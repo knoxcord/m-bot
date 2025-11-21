@@ -1,0 +1,16 @@
+{
+  "name": "m-bot",
+  "packageManager": "yarn@4.10.3",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.25.1"
+  }
+}
