@@ -1,6 +1,6 @@
 import { REST, Routes } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import { Ping } from './commands/ping.ts';
+import { Ping } from './commands/ping.js';
 
 const commands: unknown[] = [];
 commands.push(Ping.data.toJSON())
@@ -14,9 +14,9 @@ const rest = new REST().setToken(config.token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
-		const data: any = await rest.put(Routes.applicationCommands(config.clientId), { body: commands });
+		const data: unknown = await rest.put(Routes.applicationCommands(config.clientId), { body: commands });
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		console.log(`Successfully reloaded ${(data as { length: string | number }).length} application (/) commands.`);
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);

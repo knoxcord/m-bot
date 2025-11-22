@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "noImplicitAny": true,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "sourceMap": true,
     "baseUrl": "src",
-    "outDir": "build"
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noImplicitAny": true,
+    "outDir": "build",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "rootDir": "./src"
   },
   "include": [
-    "src"
+    "src/**/*"
   ]
 }
