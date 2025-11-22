@@ -1,9 +1,9 @@
-import { REST, Routes } from 'discord.js';
+import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { Ping } from './commands/ping.js';
 
-const commands: unknown[] = [];
-commands.push(Ping.data.toJSON())
+const commands: SlashCommandBuilder[] = [];
+commands.push(Ping.data)
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(config.token);
@@ -14,7 +14,7 @@ const rest = new REST().setToken(config.token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
-		const data: unknown = await rest.put(Routes.applicationCommands(config.clientId), { body: commands });
+		const data: unknown = await rest.put(Routes.applicationCommands(config.clientId), { body: commands.map(command => command.toJSON()) });
 
 		console.log(`Successfully reloaded ${(data as { length: string | number }).length} application (/) commands.`);
 	} catch (error) {

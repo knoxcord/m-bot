@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "eslint",
     "build": "tsc",
-    "start": "tsc && node ./build"
+    "start": "tsc && node ./build",
+    "register-commands": "tsc && node ./build/register-commands.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
