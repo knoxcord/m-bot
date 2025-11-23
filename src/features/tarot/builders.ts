@@ -6,7 +6,7 @@ import { getKey } from "./helpers.js";
 const examplePurposes = [
     "Tell me about my future",
     "Will today be a good day?",
-    "Should I quit my job?"
+    "Should I change my job?"
 ]
 const getPurposePlaceholder = () => examplePurposes[Math.floor(Math.random() * examplePurposes.length)]
 
