@@ -1,14 +1,48 @@
 import js from "@eslint/js";
 import globals from "globals";
-import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
+import { configs as tseslintConfigs, parser as tseslintParser } from "typescript-eslint";
+import { importX } from 'eslint-plugin-import-x';
 
 export default defineConfig([
-  {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    plugins: { js },
-    extends: ["js/recommended"],
-    languageOptions: { globals: globals.node }
+globalIgnores([
+  "build/",
+  "node_modules/",
+]),
+js.configs.recommended,
+...tseslintConfigs.recommended,
+importX.flatConfigs.recommended,
+importX.flatConfigs.typescript,
+{
+  files: ["src/**/*.{js,mjs,cjs,ts,mts,cts}"],
+  languageOptions: {
+    parser: tseslintParser,
+    parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname
+    },
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    globals: globals.node,
   },
-  tseslint.configs.recommended,
-]);
+  settings: {
+    'import-x/resolver': {
+      typescript: true
+    }
+  },
+  rules: {
+    'import-x/no-unresolved': "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+  },
+}]);

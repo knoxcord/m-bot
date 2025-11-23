@@ -6,4 +6,6 @@ const commands = [
     Tarot
 ] as const;
 
-export default commands;
+export {
+    commands
+};

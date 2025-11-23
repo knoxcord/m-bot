@@ -1,7 +1,9 @@
 // Require the necessary discord.js classes
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { CacheType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import commands from './commands/index.js';
+import { commands } from './handlers/commands/index.js';
+import { modals } from './handlers/modals/index.js';
+import { messageComponents } from './handlers/messageComponents/index.js';
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -11,17 +13,54 @@ client.once(Events.ClientReady, (readyClient) => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
-// Handle interaction events
-const commandLookup = Object.fromEntries(commands.map(command => [command.name, command.handler]));
-client.on(Events.InteractionCreate, (interaction) => {
-	if (!interaction.isChatInputCommand()) return;
+const commandLookup = Object.fromEntries(commands.map(command => [command.key, command.handler]));
+const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
+	const commandHandler = commandLookup[interaction.commandName];
 
-	// Check known commands for a match
-	const foundHandler = commandLookup[interaction.commandName];
-	if (foundHandler)
-		foundHandler(interaction);
-	else
-		console.warn(`Received command "${interaction.commandName}" with no matching handler. Did you forget to register commands?`)
+	if (commandHandler) {
+		commandHandler(interaction);
+		return;
+	}
+
+	console.warn(`Received command "${interaction.commandName}" with no matching handler. Did you forget to register commands?`)
+}
+
+const modalSubmitHandlerLookup = Object.fromEntries(modals.map(modal => [modal.customId, modal.handler]));
+const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
+	const modalSubmitHandler = modalSubmitHandlerLookup[interaction.customId];
+
+	if (modalSubmitHandler) {
+		modalSubmitHandler(interaction);
+		return;
+	}
+
+	console.warn(`Received modal submit for custom id "${interaction.customId}" with no matching handler`)
+}
+
+const messageComponentHandlerLookup = Object.fromEntries(messageComponents.map(messageComponent => [messageComponent.customIdPrefix, messageComponent.handler]));
+const handleMessageComponent = (interaction: MessageComponentInteraction<CacheType>) => {
+	const interactionCustomIdPrefix = interaction.customId.split(':')[0];
+	const messageComponentHandler = messageComponentHandlerLookup[interactionCustomIdPrefix];
+
+	if (messageComponentHandler) {
+		messageComponentHandler(interaction);
+		return;
+	}
+
+	console.warn(`Received message component interaction for custom id "${interaction.customId}" with no matching handler`)
+}
+
+client.on(Events.InteractionCreate, (interaction) => {
+	if (interaction.isChatInputCommand()) {
+		handleChatInputCommand(interaction);
+		return;
+	} else if (interaction.isModalSubmit()) {
+		handleModalSubmit(interaction);
+		return;
+	} else if (interaction.isMessageComponent()) {
+		handleMessageComponent(interaction);
+		return;
+	}
 });
 
 // Log in to Discord with your client's token

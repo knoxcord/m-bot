@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": ".",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noImplicitAny": true,
-    "outDir": "build",
+    "outDir": "./build",
     "preserveConstEnums": true,
     "removeComments": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
   },
   "include": [
     "src/**/*"

@@ -1,6 +1,6 @@
 import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import commands from './commands/index.js';
+import { commands } from './handlers/commands/index.js';
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(config.token);
@@ -9,12 +9,12 @@ const rest = new REST().setToken(config.token);
 const toRegister: SlashCommandBuilder[] = [];
 const loadedCommandNames: string[] = [];
 commands.forEach(command => {
-	if (loadedCommandNames.includes(command.name)) {
+	if (loadedCommandNames.includes(command.key)) {
 		console.error("Found multiple commands with the same name, this is not supported");
 		process.exit(1);
 	}
 
-	loadedCommandNames.push(command.name);
+	loadedCommandNames.push(command.key);
 	toRegister.push(command.builder);
 });
 
