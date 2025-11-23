@@ -1,3 +1,3 @@
-import { ICard } from "./types.js";
+import { ICard, TarotCardReversedIndicator } from "./types.js";
 
-export const getKey = (card: ICard) => `${card.reversed ? "!" : ""}${card.id}`;
+export const getKey = (card: ICard) => `${card.isReversed ? TarotCardReversedIndicator : ""}${card.id}`;

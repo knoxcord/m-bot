@@ -2,7 +2,7 @@ import { MessageComponentInteraction } from "discord.js";
 import { IMessageComponent, MessageComponentCustomIdPrefix } from "./messageComponentTypes.js";
 import db from "../../database/db.js";
 import { NextOrPrev, TarotCardReversedIndicator } from "../../features/tarot/types.js";
-import { buildTarotDisplay } from "../../features/tarot/builders.js";
+import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.js";
 import { deck } from "../../features/tarot/deck.js";
 
 const handler = async (interaction: MessageComponentInteraction) => {
@@ -33,9 +33,12 @@ const handler = async (interaction: MessageComponentInteraction) => {
         return;
     }
 
-    const container = buildTarotDisplay(newCard, newIndex, pulledCardKeys.length);
+    const embed = buildTarotDisplay(newCard);
+    const actionRow = buildTarotActionRow(newCard, newIndex, pulledCardKeys.length);
+
     await interaction.update({
-        components: [container],
+        embeds: [embed],
+        components: [actionRow],
         flags: interaction.message.flags.bitfield
     })
 }

@@ -1,5 +1,8 @@
+import config from '../../config.json' with { type: 'json' }
+
 export const TarotCustomIdKey = "tarot";
 export const TarotCardReversedIndicator = "!";
+export const TarotImagesPath = `${config.assetSrc}/tarot/`;
 
 export enum FieldId {
     Purpose = "Purpose",
@@ -20,14 +23,18 @@ export enum NextOrPrev {
 }
 
 export interface ICard {
-    name: string,
-    element: string,
-    sign: string,
-    quality: string,
-    planet: string,
-    meaning: string,
-    imageSrc: string,
     color: number,
+    element: string,
     id: string,
-    reversed?: boolean,
+    isReversed?: boolean,
+    name: string,
+    planet: string,
+    quality: string,
+    reversedImageSlug: string,
+    reversedKeywords: string
+    reversedMeaningLink: string
+    sign: string,
+    uprightImageSlug: string,
+    uprightKeywords: string,
+    uprightMeaningLink: string,
 };

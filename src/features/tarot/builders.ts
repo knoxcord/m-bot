@@ -1,5 +1,5 @@
-import { ButtonBuilder, ButtonStyle, ContainerBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import { FieldId, ICard, NextOrPrev, PullType, TarotCustomIdKey  } from "./types.js";
+import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { FieldId, ICard, NextOrPrev, PullType, TarotCustomIdKey, TarotImagesPath  } from "./types.js";
 import { ModalCustomId } from "../../handlers/modals/modalTypes.js";
 import { getKey } from "./helpers.js";
 
@@ -18,7 +18,7 @@ const getTarotPurposeInput = () => {
         .setRequired(false);
     return new LabelBuilder()
         .setLabel("What are you pulling for?")
-        .setDescription("The text you enter here is private and will not be included in public results")
+        .setDescription("The text you enter here will influence deck shuffling but will not be posted publicly")
         .setTextInputComponent(tarotPurposeInput);
 }
 
@@ -28,7 +28,7 @@ const getTarotPullTypeInput = () => {
         .setOptions(
             new StringSelectMenuOptionBuilder().setLabel("One").setDescription("Single card pull").setValue(PullType.Single),
             new StringSelectMenuOptionBuilder().setLabel("Two").setDescription("Double card pull").setValue(PullType.Double),
-            new StringSelectMenuOptionBuilder().setLabel("Three").setDescription("Three card pull").setValue(PullType.Triple).setDefault()
+            new StringSelectMenuOptionBuilder().setLabel("Three").setDescription("Triple card pull").setValue(PullType.Triple).setDefault()
         )
         .setRequired(false);
     return new LabelBuilder()
@@ -72,34 +72,42 @@ export const buildTarotModal = () => new ModalBuilder()
     );
 
 
-export const buildTarotDisplay = (displayedCard: ICard, displayIndex: number, numberOfCards: number) => {
-    // Build response
-    const container = new ContainerBuilder()
-        .setAccentColor(displayedCard.color)
-        .addTextDisplayComponents(
-            textDisplay => textDisplay.setContent(displayedCard.name),
-            textDisplay => textDisplay.setContent(displayedCard.reversed === true ? "Reversed" : "Upright"),
-            textDisplay => textDisplay.setContent(displayedCard.meaning)
-        );
+export const buildTarotDisplay = (displayedCard: ICard) => {
+    const imageSrc = `${TarotImagesPath}${displayedCard.isReversed ? displayedCard.reversedImageSlug : displayedCard.uprightImageSlug}`;
 
-    // If multiple cards were pulled add buttons to iterate through them
-    if (numberOfCards > 1) {
-        const cardKey = getKey(displayedCard);
-        container.addActionRowComponents<ButtonBuilder>(
-            actionRow => actionRow.setComponents(
-                new ButtonBuilder()
-                    .setCustomId(`${TarotCustomIdKey}:${NextOrPrev.Previous}:${cardKey}`)
-                    .setLabel("◀ Prev Card")
-                    .setDisabled(displayIndex === 0)
-                    .setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder()
-                    .setCustomId(`${TarotCustomIdKey}:${NextOrPrev.Next}:${cardKey}`)
-                    .setLabel("Next Card ▶")
-                    .setDisabled(displayIndex === numberOfCards - 1)
-                    .setStyle(ButtonStyle.Primary),
-            )
-        );
-    }
+    const fields: APIEmbedField[] = [];
+    if (displayedCard.element)
+        fields.push({ name: 'Element', value: displayedCard.element, inline: true })
+    if (displayedCard.sign)
+        fields.push({ name: 'Sign', value: displayedCard.sign, inline: true })
+    if (displayedCard.quality)
+        fields.push({ name: 'Quality', value: displayedCard.quality, inline: true })
+    if (displayedCard.planet)
+        fields.push({ name: 'Planet', value: displayedCard.planet, inline: true })
 
-    return container;
+    const embed = new EmbedBuilder()
+        .setColor(displayedCard.color)
+        .setTitle(`${displayedCard.name}${displayedCard.isReversed ? " (Reversed)" : ""}`)
+        .setDescription(`Meaning keywords: ${displayedCard.isReversed ? displayedCard.reversedKeywords : displayedCard.uprightKeywords}`)
+        .addFields(fields)
+        .setURL(displayedCard.isReversed ? displayedCard.reversedMeaningLink : displayedCard.uprightMeaningLink)
+        .setImage(imageSrc)
+
+    return embed;
+}
+
+export const buildTarotActionRow = (displayedCard: ICard, displayIndex: number, numberOfCards: number) => {
+    const cardKey = getKey(displayedCard);
+    return new ActionRowBuilder<ButtonBuilder>().setComponents(
+        new ButtonBuilder()
+            .setCustomId(`${TarotCustomIdKey}:${NextOrPrev.Previous}:${cardKey}`)
+            .setLabel("◀ Prev Card")
+            .setDisabled(displayIndex === 0)
+            .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+            .setCustomId(`${TarotCustomIdKey}:${NextOrPrev.Next}:${cardKey}`)
+            .setLabel("Next Card ▶")
+            .setDisabled(displayIndex === numberOfCards - 1)
+            .setStyle(ButtonStyle.Primary),
+    );
 }
