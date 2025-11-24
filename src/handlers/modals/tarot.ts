@@ -73,7 +73,7 @@ export const handleTarotModalSubmit = async (interaction: ModalSubmitInteraction
     // Pull cards
     const numberOfCards = PullTypeMap[pullType];
     const pulledCards = pullCards(purpose, numberOfCards, includeReversed)
-    const embed = buildTarotDisplay(pulledCards[0]);
+    const embed = buildTarotDisplay(pulledCards[0], 0, numberOfCards);
     const actionRow = buildTarotActionRow(pulledCards[0], 0, numberOfCards);
 
     await interaction.reply({

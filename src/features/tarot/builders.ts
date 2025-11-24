@@ -72,7 +72,7 @@ export const buildTarotModal = () => new ModalBuilder()
     );
 
 
-export const buildTarotDisplay = (displayedCard: ICard) => {
+export const buildTarotDisplay = (displayedCard: ICard, displayIndex: number, numberOfCards: number) => {
     const imageSrc = `${TarotImagesPath}${displayedCard.isReversed ? displayedCard.reversedImageSlug : displayedCard.uprightImageSlug}`;
 
     const fields: APIEmbedField[] = [];
@@ -92,6 +92,9 @@ export const buildTarotDisplay = (displayedCard: ICard) => {
         .addFields(fields)
         .setURL(displayedCard.isReversed ? displayedCard.reversedMeaningLink : displayedCard.uprightMeaningLink)
         .setImage(imageSrc)
+        .setFooter({
+            text: `Card ${displayIndex + 1} of ${numberOfCards}`
+        });
 
     return embed;
 }

@@ -33,7 +33,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
         return;
     }
 
-    const embed = buildTarotDisplay(newCard);
+    const embed = buildTarotDisplay(newCard, newIndex, pulledCardKeys.length);
     const actionRow = buildTarotActionRow(newCard, newIndex, pulledCardKeys.length);
 
     await interaction.update({
