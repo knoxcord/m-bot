@@ -1,4 +1,4 @@
-import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { REST, Routes, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { commands } from './handlers/commands/index.js';
 
@@ -6,7 +6,7 @@ import { commands } from './handlers/commands/index.js';
 const rest = new REST().setToken(config.token);
 
 // Protect against duplicate registrations. We could technically do this, but would need to update handler logic and also handle deduping stuff like descriptions
-const toRegister: SlashCommandBuilder[] = [];
+const toRegister: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder [] = [];
 const loadedCommandNames: string[] = [];
 commands.forEach(command => {
 	if (loadedCommandNames.includes(command.key)) {
