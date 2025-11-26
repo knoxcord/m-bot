@@ -1,5 +1,5 @@
 import { bold, ContainerBuilder, inlineCode, strikethrough, subtext } from "discord.js"
-import { DiceRollResult, RollDefinition } from "./rollTypes.js"
+import { DiceRollResult, RollAccentColors, RollDefinition } from "./rollTypes.js"
 
 const getKeepDropString = (rollDefinition: RollDefinition) => {
     if (rollDefinition.keepHighest)
@@ -41,13 +41,41 @@ const getInputString = (rollDefinition: RollDefinition, notation: string | undef
     return `Given input: ${notation ? `${inlineCode(notation.trim())} (${definitionString})` : definitionString}`;
 }
 
+interface IMinMax {
+    minimum: number,
+    maximum: number
+};
+
+const calculateRollMinMax = (rollDefinitions: RollDefinition[]): IMinMax => rollDefinitions.reduce((acc, current) => {
+    let numberOfDice = current.numberOfDice
+    if (current.keepHighest)
+        numberOfDice = current.keepHighest;
+    else if (current.keepLowest)
+        numberOfDice = current.keepLowest;
+    else
+        numberOfDice -= (current.dropHighest ?? 0) + (current.dropLowest ?? 0);
+
+    const amountChange = current.amountChange ?? 0;
+    acc.minimum += numberOfDice + amountChange;
+    acc.maximum += (numberOfDice * current.numberOfSides) + amountChange;
+    return acc;
+}, <IMinMax>{ minimum: 0, maximum: 0 });
+
 export const buildResponse = (rollResults: DiceRollResult[], rollDefinitions: RollDefinition[], notations: string[] | undefined) => {
     const rollsTotal = rollResults.reduce((acc, current) => acc + current.sum, 0);
+    const rollMinMax = calculateRollMinMax(rollDefinitions);
+
+    let accentColor = RollAccentColors.Default;
+    if (rollsTotal === rollMinMax.maximum)
+        accentColor = RollAccentColors.NatHigh;
+    else if (rollsTotal === rollMinMax.minimum)
+        accentColor = RollAccentColors.NatLow;
+
     const container = new ContainerBuilder()
-    // TODO: It would be cool if this color changed based on the result. Even if only red for nat low and green for nat high
-	.setAccentColor(0x0099ff)
+	.setAccentColor(accentColor)
     .addTextDisplayComponents(
-        textDisplay => textDisplay.setContent(`# Roll Result: ${rollsTotal}`)
+        textDisplay => textDisplay.setContent(`# Roll Result: ${rollsTotal}`),
+        textDisplay => textDisplay.setContent(subtext(`Min: ${rollMinMax.minimum}, Max: ${rollMinMax.maximum}`)),
     )
 
     rollResults.forEach((rollResult, index) => {
@@ -63,7 +91,7 @@ export const buildResponse = (rollResults: DiceRollResult[], rollDefinitions: Ro
 
         container.addTextDisplayComponents(
             textDisplay => textDisplay.setContent(`Rolled: [${dieResults}]${getShortAmountChangeString(rollDefinition.amountChange)} = ${bold(rollResult.sum.toString())}`),
-            textDisplay => textDisplay.setContent(subtext(inputString))
+            textDisplay => textDisplay.setContent(subtext(inputString)),
         )
     });
 

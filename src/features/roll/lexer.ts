@@ -85,16 +85,14 @@ const parseRoll = (rollString: string): Result<RollDefinition> => {
     };
 
     const additionalFunctions = parseResult[CapturingGroupEnum.AdditionalFunctions];
-    if (!additionalFunctions)
-        return getLexorResultSuccess(roll);
-
-    const dropKeepResult = parseDropKeep(additionalFunctions);
-    roll.keepHighest = dropKeepResult?.keepHighest;
-    roll.keepLowest = dropKeepResult?.keepLowest;
-    roll.dropLowest = dropKeepResult?.dropLowest;
-    roll.dropHighest = dropKeepResult?.dropHighest;
-
-    roll.amountChange = parsePlusOrMinus(additionalFunctions);
+    if (additionalFunctions) {
+        const dropKeepResult = parseDropKeep(additionalFunctions);
+        roll.keepHighest = dropKeepResult?.keepHighest;
+        roll.keepLowest = dropKeepResult?.keepLowest;
+        roll.dropLowest = dropKeepResult?.dropLowest;
+        roll.dropHighest = dropKeepResult?.dropHighest;
+        roll.amountChange = parsePlusOrMinus(additionalFunctions);
+    }
 
     const validationError = assertValidDefinition(roll);
     if (validationError)

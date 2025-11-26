@@ -5,7 +5,7 @@ import { RollDefinition, RollSeparator } from "../../features/roll/rollTypes.js"
 import { getErrorResult, getSuccessResult, Result } from "../../models/result.js";
 import { doRoll } from "../../features/roll/roll.js";
 import { buildResponse } from "../../features/roll/builders.js";
-import { assertValidDefinition } from "../../features/roll/validators.js";
+import { assertValidDefinition, MaxNumberOfDice, MaxNumberOfSides, MinNumberOfDice, MinNumberOfSides } from "../../features/roll/validators.js";
 
 const Key = CommandKey.Roll
 const Description = "Roll dice";
@@ -26,8 +26,8 @@ const builder = new SlashCommandBuilder()
     .setName(Key)
     .setDescription(Description)
     .addStringOption(stringOption => stringOption.setName(FieldNameEnum.Notation).setDescription("Accepts dice roll notation (ex: 4d6d1+10, 3d8kh2-4). All other options are ignored when you use this").setRequired(false))
-    .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.Number).setDescription("Number of dice to roll").setMinValue(1).setRequired(false))
-    .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.Sides).setDescription("Number sides per die").setMinValue(1).setRequired(false))
+    .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.Number).setDescription("Number of dice to roll").setMinValue(MinNumberOfDice).setMaxValue(MaxNumberOfDice).setRequired(false))
+    .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.Sides).setDescription("Number sides per die").setMinValue(MinNumberOfSides).setMaxValue(MaxNumberOfSides).setRequired(false))
     .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.DropLowest).setDescription("Drops given number of lowest rolled dice").setMinValue(0).setRequired(false))
     .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.DropHighest).setDescription("Drops given number of highest rolled dice").setMinValue(0).setRequired(false))
     .addIntegerOption(integerOption => integerOption.setName(FieldNameEnum.KeepLowest).setDescription("Keeps given number of lowest rolled dice. Drops are ignored when use is used").setMinValue(0).setRequired(false))
@@ -42,8 +42,8 @@ const getOptions = (interaction: ChatInputCommandInteraction): Result<RollDefini
     const subtractAmount = interaction.options.getInteger(FieldNameEnum.Subtract) ?? 0;
 
     const roll: RollDefinition = {
-        numberOfSides: interaction.options.getInteger(FieldNameEnum.Number) ?? 1,
-        numberOfDice: interaction.options.getInteger(FieldNameEnum.Sides) ?? 20,
+        numberOfDice: interaction.options.getInteger(FieldNameEnum.Number) ?? 1,
+        numberOfSides: interaction.options.getInteger(FieldNameEnum.Sides) ?? 20,
         // Null coalesce to undefined here to prevent NaNs
         keepHighest: interaction.options.getInteger(FieldNameEnum.KeepHighest) ?? undefined,
         keepLowest: interaction.options.getInteger(FieldNameEnum.KeepLowest) ?? undefined,
@@ -69,7 +69,10 @@ const handler = async (interaction: ChatInputCommandInteraction) => {
     
     if (!rollDefinitions.success) {
         reply = rollDefinitions.errorMessage;
-        await interaction.reply(reply);
+        await interaction.reply({
+            content: reply,
+            flags: MessageFlags.Ephemeral
+        });
         return;
     }
 

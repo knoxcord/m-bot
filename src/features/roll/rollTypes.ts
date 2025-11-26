@@ -45,3 +45,9 @@ export const getLexorResultSuccess = (roll: RollDefinition): Result<RollDefiniti
     success: true,
     data: roll,
 });
+
+export enum RollAccentColors {
+    Default = 0x0099ff,
+    NatHigh = 0x00ff00,
+    NatLow = 0xff0000
+}
