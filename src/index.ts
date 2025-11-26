@@ -1,7 +1,7 @@
 // Require the necessary discord.js classes
 import { CacheType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import { commands } from './handlers/commands/index.js';
+import { slashCommands } from './handlers/slashCommands/index.js';
 import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 
@@ -13,9 +13,9 @@ client.once(Events.ClientReady, (readyClient) => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
-const commandLookup = Object.fromEntries(commands.map(command => [command.key, command.handler]));
+const slashCommandLookup = Object.fromEntries(slashCommands.map(command => [command.key, command.handler]));
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
-	const commandHandler = commandLookup[interaction.commandName];
+	const commandHandler = slashCommandLookup[interaction.commandName];
 
 	if (commandHandler) {
 		commandHandler(interaction);

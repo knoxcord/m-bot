@@ -1,5 +1,5 @@
 import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ICommand } from "./commandTypes.js";
+import { CommandKey, ISlashCommand } from "./commandTypes.js";
 import { buildTarotModal } from "../../features/tarot/builders.js";
 
 const Key = CommandKey.Tarot;
@@ -9,7 +9,7 @@ const builder = new SlashCommandBuilder().setName(Key).setDescription(Descriptio
 
 const handler = async (interaction: ChatInputCommandInteraction<CacheType>) => await interaction.showModal(buildTarotModal());
 
-export const Tarot: ICommand = {
+export const Tarot: ISlashCommand = {
     builder: builder,
     handler: handler,
     key: Key

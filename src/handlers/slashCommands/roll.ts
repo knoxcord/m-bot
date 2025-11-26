@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ICommand } from "./commandTypes.js";
+import { CommandKey, ISlashCommand } from "./commandTypes.js";
 import { parseRolls as parseNotatedRolls } from "../../features/roll/lexer.js";
 import { RollDefinition, RollSeparator } from "../../features/roll/rollTypes.js";
 import { getErrorResult, getSuccessResult, Result } from "../../models/result.js";
@@ -84,7 +84,7 @@ const handler = async (interaction: ChatInputCommandInteraction) => {
     });
 }
 
-export const Roll: ICommand = {
+export const Roll: ISlashCommand = {
     builder: builder,
     handler: handler,
     key: Key

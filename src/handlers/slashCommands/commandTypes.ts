@@ -6,12 +6,12 @@ export enum CommandKey {
     Roll = "roll",
 }
 
-export interface ICommand
+export interface ISlashCommand
 {
     /** Builder function to register the command */
     builder: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder,
     /** Handler function to be executed when the command is invoked */
     handler: (interaction: ChatInputCommandInteraction) => Promise<unknown>,
-    /** This is used to identify incoming slash commands. Matches will have their {@link ICommand.handler handler} invoked */
+    /** This is used to identify incoming slash commands. Matches will have their {@link ISlashCommand.handler handler} invoked */
     key: CommandKey
 }
