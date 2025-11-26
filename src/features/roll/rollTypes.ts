@@ -1,3 +1,5 @@
+import { Result } from "../../models/result.js";
+
 export const RollSeparator = ",";
 
 export enum DropKeepEnum {
@@ -9,44 +11,37 @@ export enum DropKeepEnum {
     KeepHighest = "kh"
 }
 
-export interface IRoll {
+export interface RollDefinition {
     numberOfDice: number,
     numberOfSides: number,
     dropLowest?: number | undefined,
     dropHighest?: number | undefined,
+    keepLowest?: number | undefined,
+    keepHighest?: number | undefined,
     amountChange?: number
 }
 
-type LexorResultSuccess = {
-    success: true,
-    roll: IRoll
-};
-
-type LexorResultError = {
-    success: false;
-    errorMessage: string;
+export interface DieRollResult {
+    number: number,
+    isDropped: boolean
 }
 
-export type LexorResult = LexorResultSuccess | LexorResultError;
-
-type ParseRollsSuccess = {
-    success: true,
-    rolls: IRoll[],
+export interface DiceRollResult {
+    dieRollResults: DieRollResult[],
+    sum: number
 }
 
-type ParseRollsError = {
-    success: false,
-    errorMessage: string
-}
+export const getDieRollResult = (number: number, isDropped: boolean) => ({
+    number: number,
+    isDropped: isDropped
+})
 
-export type ParseRollsResult = ParseRollsSuccess | ParseRollsError;
-
-export const getLexorResultError = (errorMessage: string): LexorResultError => ({
+export const getLexorResultError = (errorMessage: string): Result<RollDefinition> => ({
     success: false,
     errorMessage: errorMessage,
 });
 
-export const getLexorResultSuccess = (roll: IRoll): LexorResultSuccess => ({
+export const getLexorResultSuccess = (roll: RollDefinition): Result<RollDefinition> => ({
     success: true,
-    roll: roll,
+    data: roll,
 });

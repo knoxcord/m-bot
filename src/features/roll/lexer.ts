@@ -1,4 +1,6 @@
-import { getLexorResultError, getLexorResultSuccess, IRoll, LexorResult, ParseRollsResult, RollSeparator } from "./rollTypes.js"
+import { Result } from "../../models/result.js"
+import { getLexorResultError, getLexorResultSuccess, RollDefinition } from "./rollTypes.js"
+import { assertValidDefinition } from "./validators.js"
 
 enum CapturingGroupEnum {
     NumberOfDice = "numberOfDice",
@@ -66,8 +68,8 @@ const parsePlusOrMinus = (additionalFunctions: string) => {
  * The supported format is as follows, with parenthesis indicating optional:
  * [number of dice]d[sides per die]([drop/keep indicator][number of dice to drop/keep])
  */
-const parseRoll = (rollString: string): LexorResult => {
-    const parseResult = rollString.match(diceRegex)?.groups ?? {};
+const parseRoll = (rollString: string): Result<RollDefinition> => {
+    const parseResult = rollString.trim().match(diceRegex)?.groups ?? {};
 
     const numberOfDice = parseInt(parseResult[CapturingGroupEnum.NumberOfDice], 10);
     if (!numberOfDice)
@@ -77,7 +79,7 @@ const parseRoll = (rollString: string): LexorResult => {
     if (!numberOfSides)
         return getLexorResultError("Missing sides per die");
 
-    const roll: IRoll = {
+    const roll: RollDefinition = {
         numberOfDice,
         numberOfSides
     };
@@ -86,31 +88,28 @@ const parseRoll = (rollString: string): LexorResult => {
     if (!additionalFunctions)
         return getLexorResultSuccess(roll);
 
-    // KeepHighest and KeepLowest are exclusive and will take higher priority than Drops
     const dropKeepResult = parseDropKeep(additionalFunctions);
-    if (dropKeepResult?.keepHighest && dropKeepResult.keepHighest <= numberOfDice) {
-        // no need to have separate drop/keep fields, just calculate drops when using keep
-        roll.dropLowest = numberOfDice - dropKeepResult.keepHighest;
-    } else if (dropKeepResult?.keepLowest && dropKeepResult.keepLowest <= numberOfDice) {
-        // no need to have separate drop/keep fields, just calculate drops when using keep
-        roll.dropHighest = numberOfDice - dropKeepResult.keepLowest;
-    } else {
-        roll.dropLowest = dropKeepResult?.dropLowest;
-        roll.dropHighest = dropKeepResult?.dropHighest;
-    }
+    roll.keepHighest = dropKeepResult?.keepHighest;
+    roll.keepLowest = dropKeepResult?.keepLowest;
+    roll.dropLowest = dropKeepResult?.dropLowest;
+    roll.dropHighest = dropKeepResult?.dropHighest;
 
     roll.amountChange = parsePlusOrMinus(additionalFunctions);
+
+    const validationError = assertValidDefinition(roll);
+    if (validationError)
+        return getLexorResultError(validationError);
+
     return getLexorResultSuccess(roll);
 }
 
-export const parseRolls = (rollsString: string): ParseRollsResult => {
-    const rollStrings = rollsString.split(RollSeparator);
+export const parseRolls = (rollStrings: string[]): Result<RollDefinition[]> => {
     const rollResults = rollStrings.map(parseRoll);
 
     if (rollResults.every(result => result.success))
         return {
             success: true,
-            rolls: rollResults.map(result => result.roll)
+            data: rollResults.map(result => result.data)
         }
 
     return {
