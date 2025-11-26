@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import { parseRolls as parseNotatedRolls } from "../../features/roll/lexer.js";
+import { parseNotatedRolls } from "../../features/roll/lexer.js";
 import { RollDefinition, RollSeparator } from "../../features/roll/rollTypes.js";
 import { getErrorResult, getSuccessResult, Result } from "../../models/result.js";
 import { doRoll } from "../../features/roll/roll.js";
@@ -60,7 +60,6 @@ const getOptions = (interaction: ChatInputCommandInteraction): Result<RollDefini
 }
 
 const handler = async (interaction: ChatInputCommandInteraction) => {
-    console.log(interaction)
     let reply = "roll";
 
     const notationString = interaction.options.getString(FieldNameEnum.Notation);

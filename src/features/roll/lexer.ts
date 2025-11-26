@@ -5,6 +5,7 @@ import { assertValidDefinition } from "./validators.js"
 enum CapturingGroupEnum {
     NumberOfDice = "numberOfDice",
     NumberOfSides = "numberOfSides",
+    OnlyNumberOfSides = "onlyNumberOfSides",
     AdditionalFunctions = "additionalFunctions",
     PlusOrMinusType = "plusOrMinusType",
     PlusOrMinusNumber = "plusOrMinusNumber"
@@ -17,7 +18,7 @@ interface IDropKeep {
     keepHighest?: number
 }
 
-const diceRegex = /^(?<numberOfDice>\d+)d(?<numberOfSides>\d+)(?<additionalFunctions>.*)/;
+const diceRegex = /^(?<numberOfDice>\d+)?d(?<numberOfSides>\d+)(?<additionalFunctions>.*)|(?<onlyNumberOfSides>\d+)(?!d)/;
 const plusOrMinusRegex = /.*(?<plusOrMinusType>[+-])(?<plusOrMinusNumber>\d+)?/;
 
 // No named capture groups on these because there can be multiple
@@ -69,17 +70,19 @@ const parsePlusOrMinus = (additionalFunctions: string) => {
 const parseRoll = (rollString: string): Result<RollDefinition> => {
     const parseResult = rollString.trim().match(diceRegex)?.groups ?? {};
 
-    const numberOfDice = parseInt(parseResult[CapturingGroupEnum.NumberOfDice], 10);
-    if (!numberOfDice)
-        return getLexorResultError("Missing number of dice");
-    
-    const numberOfSides = parseInt(parseResult[CapturingGroupEnum.NumberOfSides], 10);
-    if (!numberOfSides)
-        return getLexorResultError("Missing sides per die");
+    const parsedNumberOfDice = parseInt(parseResult[CapturingGroupEnum.NumberOfDice], 10);
+    const parsedNumberOfSides = parseInt(parseResult[CapturingGroupEnum.NumberOfSides], 10);
 
+    // This capturing group exists because someone may enter just "-roll 20" meaning roll 1d20
+    const parsedOnlyNumberOfSides = parseInt(parseResult[CapturingGroupEnum.OnlyNumberOfSides], 10);
+
+    if (!parsedNumberOfDice && !parsedNumberOfSides && !parsedOnlyNumberOfSides)
+        return getLexorResultError("Bad roll format");
+
+    // Use || here to coalesce NaN
     const roll: RollDefinition = {
-        numberOfDice,
-        numberOfSides
+        numberOfDice: parsedNumberOfDice || 1,
+        numberOfSides: parsedNumberOfSides || parsedOnlyNumberOfSides
     };
 
     const additionalFunctions = parseResult[CapturingGroupEnum.AdditionalFunctions];
@@ -99,7 +102,7 @@ const parseRoll = (rollString: string): Result<RollDefinition> => {
     return getLexorResultSuccess(roll);
 }
 
-export const parseRolls = (rollStrings: string[]): Result<RollDefinition[]> => {
+export const parseNotatedRolls = (rollStrings: string[]): Result<RollDefinition[]> => {
     const rollResults = rollStrings.map(parseRoll);
 
     if (rollResults.every(result => result.success))

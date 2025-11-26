@@ -33,7 +33,7 @@ const getShortAmountChangeString = (amountChange: number | undefined) => {
 
 const getInputString = (rollDefinition: RollDefinition, notation: string | undefined) => {
     const rollString = `roll ${rollDefinition.numberOfDice} ${rollDefinition.numberOfDice === 1 ? "die" : "dice"}`;
-    const sidesString = ` having ${rollDefinition.numberOfSides} ${rollDefinition.numberOfSides === 1 ? "side" : "sides each"}`;
+    const sidesString = ` having ${rollDefinition.numberOfSides} ${rollDefinition.numberOfSides === 1 ? "side" : `sides${rollDefinition.numberOfDice > 1 ? " each" : ""}`}`;
     const keepDropString = getKeepDropString(rollDefinition);
     const amountChangeString = getAmountChangeString(rollDefinition.amountChange);
     const definitionString = [rollString, sidesString, keepDropString, amountChangeString].join("");

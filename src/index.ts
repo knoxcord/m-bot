@@ -4,9 +4,14 @@ import config from './config.json' with { type: "json" };
 import { slashCommands } from './handlers/slashCommands/index.js';
 import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
+import { prefixCommands, CommandPrefix } from './handlers/prefixCommands/index.js';
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [
+	GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMessages,
+	GatewayIntentBits.MessageContent,
+] });
 
 // When the client is ready, run this code (only once).
 client.once(Events.ClientReady, (readyClient) => {
@@ -61,6 +66,16 @@ client.on(Events.InteractionCreate, (interaction) => {
 		handleMessageComponent(interaction);
 		return;
 	}
+});
+
+client.on(Events.MessageCreate, (message) => {
+	if (!message.content.startsWith(CommandPrefix))
+		return;
+
+	const messageCommand = message.content.slice(CommandPrefix.length);
+	const matchedCommand = prefixCommands.find(command => messageCommand.startsWith(command.key));
+	if (matchedCommand)
+		matchedCommand.handler(message);
 });
 
 // Log in to Discord with your client's token
