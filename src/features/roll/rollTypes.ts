@@ -2,15 +2,6 @@ import { Result } from "../../models/result.js";
 
 export const RollSeparator = ",";
 
-export enum DropKeepEnum {
-    Drop = "d",
-    Keep = "k",
-    DropHighest = "dh",
-    DropLowest = "dl",
-    KeepLowest = "kl",
-    KeepHighest = "kh"
-}
-
 export interface RollDefinition {
     numberOfDice: number,
     numberOfSides: number,

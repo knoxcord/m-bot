@@ -24,8 +24,6 @@ const plusOrMinusRegex = /.*(?<plusOrMinusType>[+-])(?<plusOrMinusNumber>\d+)?/;
 const dropKeepRegex = /(d|dl|dh|k|kl|kh)(\d+)/g;
 
 const parseDropKeep = (additionalFunctions: string) => {
-    // Drop highest N and drop lowest N can be used together
-    // Keep highest N and keep lowest N are exclusive, so we'll check for any of those first
     const dropKeeps = additionalFunctions.match(dropKeepRegex);
     if (!dropKeeps) return undefined;
 
