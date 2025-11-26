@@ -4,7 +4,9 @@ export enum DropKeepEnum {
     Drop = "d",
     Keep = "k",
     DropHighest = "dh",
-    DropLowest = "dl"
+    DropLowest = "dl",
+    KeepLowest = "kl",
+    KeepHighest = "kh"
 }
 
 export interface IRoll {
@@ -12,30 +14,39 @@ export interface IRoll {
     numberOfSides: number,
     dropLowest?: number | undefined,
     dropHighest?: number | undefined,
+    amountChange?: number
 }
 
 type LexorResultSuccess = {
     success: true,
-    errorMessage: undefined;
     roll: IRoll
 };
 
 type LexorResultError = {
     success: false;
     errorMessage: string;
-    roll: undefined;
 }
 
 export type LexorResult = LexorResultSuccess | LexorResultError;
 
+type ParseRollsSuccess = {
+    success: true,
+    rolls: IRoll[],
+}
+
+type ParseRollsError = {
+    success: false,
+    errorMessage: string
+}
+
+export type ParseRollsResult = ParseRollsSuccess | ParseRollsError;
+
 export const getLexorResultError = (errorMessage: string): LexorResultError => ({
     success: false,
     errorMessage: errorMessage,
-    roll: undefined
 });
 
 export const getLexorResultSuccess = (roll: IRoll): LexorResultSuccess => ({
     success: true,
     roll: roll,
-    errorMessage: undefined
 });
