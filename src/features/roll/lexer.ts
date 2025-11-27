@@ -76,13 +76,10 @@ const parseRoll = (rollString: string): Result<RollDefinition> => {
     // This capturing group exists because someone may enter just "-roll 20" meaning roll 1d20
     const parsedOnlyNumberOfSides = parseInt(parseResult[CapturingGroupEnum.OnlyNumberOfSides], 10);
 
-    if (!parsedNumberOfDice && !parsedNumberOfSides && !parsedOnlyNumberOfSides)
-        return getLexorResultError("Bad roll format");
-
     // Use || here to coalesce NaN
     const roll: RollDefinition = {
         numberOfDice: parsedNumberOfDice || 1,
-        numberOfSides: parsedNumberOfSides || parsedOnlyNumberOfSides
+        numberOfSides: parsedNumberOfSides || parsedOnlyNumberOfSides || 20
     };
 
     const additionalFunctions = parseResult[CapturingGroupEnum.AdditionalFunctions];

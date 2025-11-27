@@ -66,15 +66,19 @@ export const buildResponse = (rollResults: DiceRollResult[], rollDefinitions: Ro
     const rollMinMax = calculateRollMinMax(rollDefinitions);
 
     let accentColor = RollAccentColors.Default;
-    if (rollsTotal === rollMinMax.maximum)
+    let resultDecorator = "";
+    if (rollsTotal === rollMinMax.maximum) {
         accentColor = RollAccentColors.NatHigh;
-    else if (rollsTotal === rollMinMax.minimum)
+        resultDecorator = "  :tada:";
+    } else if (rollsTotal === rollMinMax.minimum) {
         accentColor = RollAccentColors.NatLow;
+        resultDecorator = "  :skull:";
+    }
 
     const container = new ContainerBuilder()
 	.setAccentColor(accentColor)
     .addTextDisplayComponents(
-        textDisplay => textDisplay.setContent(`# Roll Result: ${rollsTotal}`),
+        textDisplay => textDisplay.setContent(`# Roll Result: ${rollsTotal}${resultDecorator}`),
         textDisplay => textDisplay.setContent(subtext(`Min: ${rollMinMax.minimum}, Max: ${rollMinMax.maximum}`)),
     )
 
