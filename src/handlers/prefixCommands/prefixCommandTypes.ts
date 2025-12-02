@@ -2,6 +2,7 @@ import { Message, OmitPartialGroupDMChannel } from "discord.js";
 
 export enum CommandKey {
     Roll = "roll",
+    PawaRoll = "pawaroll"
 }
 
 export interface IPrefixCommand

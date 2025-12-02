@@ -1,9 +1,11 @@
 import { Roll } from "./roll.js";
+import { PawaRoll } from "./pawaroll.js"
 
 export const CommandPrefix = '-';
 
 const prefixCommands = [
-    Roll
+    Roll,
+    PawaRoll
 ] as const;
 
 export {
