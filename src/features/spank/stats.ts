@@ -1,4 +1,4 @@
-import { Message, OmitPartialGroupDMChannel } from "discord.js";
+import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import db from "../../database/db.js";
 
 const RecentReasonsLimit = 5;
@@ -32,7 +32,15 @@ export const handleStats = async (commandBody: string, message: OmitPartialGroup
         return;
     }
 
-    const targetUser = await message.guild.members.fetch(targetUserId);
+    let targetUser: GuildMember;
+    try {
+        targetUser = await message.guild.members.fetch(targetUserId);
+    } catch (error) {
+        console.warn(`Failed to fetch targetUser for id: ${targetUserId} with error ${error}`);
+        await message.reply("Sorry, I can't find that user. Did you tag the right person?");
+        return;
+    }
+
     const totalSpanks = db.getSpankCountForSpankee(targetUserId, message.guildId) ?? 0;
     const recentSpanks = db.getRecentSpankReasonsForSpankee(targetUserId, message.guildId, RecentReasonsLimit);
 
