@@ -23,7 +23,16 @@ class DatabaseManager {
                 UserId TEXT NOT NULL,
                 PullResult TEXT NOT NULL,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
+            );
+            
+            CREATE TABLE IF NOT EXISTS Spanks (
+                MessageId TEXT PRIMARY KEY,
+                GuildId TEXT NOT NULL,
+                SpankerUserId TEXT NOT NULL,
+                SpankeeUserId TEXT NOT NULL,
+                Reason TEXT,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         `)
     }
 
@@ -41,6 +50,30 @@ class DatabaseManager {
         `);
         const result = statement.get(messageId) as { PullResult: string } | undefined;
         return result ? result.PullResult : null;
+    }
+
+    saveSpank(messageId: string, guildId: string, spanker: string, spankee: string, reason: string) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO Spanks (MessageId, GuildId, SpankerUserId, SpankeeUserId, Reason)
+            VALUES (?, ?, ?, ?, ?)
+        `);
+        return statement.run(messageId, guildId, spanker, spankee, reason);
+    }
+
+    getSpankCountForSpankee(spankeeUserId: string, guildId: string) {
+        const statement = this.db.prepare(`
+            SELECT COUNT(*) as totalSpanks FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ?
+        `)
+        const result = statement.get(spankeeUserId, guildId) as { totalSpanks: number } | undefined;
+        return result ? result.totalSpanks : null;
+    }
+
+    getRecentSpankReasonsForSpankee(spankeeUserId: string, guildId: string, limit: number) {
+        const statement = this.db.prepare(`
+            SELECT Reason, CreatedAt FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
+        `);
+        const result = statement.all(spankeeUserId, guildId, limit) as { Reason: string, CreatedAt: string }[] | undefined;
+        return result ? result : null;
     }
 }
 
