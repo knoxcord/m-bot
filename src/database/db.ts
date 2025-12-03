@@ -68,11 +68,11 @@ class DatabaseManager {
         return result ? result.totalSpanks : null;
     }
 
-    getRecentSpankReasonsForSpankee(spankeeUserId: string, guildId: string) {
+    getRecentSpankReasonsForSpankee(spankeeUserId: string, guildId: string, limit: number) {
         const statement = this.db.prepare(`
-            SELECT Reason, CreatedAt FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT 5;
+            SELECT Reason, CreatedAt FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
         `);
-        const result = statement.all(spankeeUserId, guildId) as { Reason: string, CreatedAt: string }[] | undefined;
+        const result = statement.all(spankeeUserId, guildId, limit) as { Reason: string, CreatedAt: string }[] | undefined;
         return result ? result : null;
     }
 }

@@ -1,6 +1,7 @@
 import { Message, OmitPartialGroupDMChannel } from "discord.js";
 import db from "../../database/db.js";
 
+const RecentReasonsLimit = 5;
 const StatsRegex = /<?@?(?<userId>\d+)>?/;
 const enum StatsRegexCaptingGroups {
     UserId = "userId",
@@ -33,7 +34,7 @@ export const handleStats = async (commandBody: string, message: OmitPartialGroup
 
     const targetUser = await message.guild.members.fetch(targetUserId);
     const totalSpanks = db.getSpankCountForSpankee(targetUserId, message.guildId) ?? 0;
-    const recentSpanks = db.getRecentSpankReasonsForSpankee(targetUserId, message.guildId);
+    const recentSpanks = db.getRecentSpankReasonsForSpankee(targetUserId, message.guildId, RecentReasonsLimit);
 
     let reply = `${targetUser.user.displayName} has received ${totalSpanks} spank${totalSpanks === 1 ? "" : "s"}`;
 
