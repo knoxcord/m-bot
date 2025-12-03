@@ -1,5 +1,9 @@
 {
 	"token": "your-token-goes-here",
 	"clientId": "your-client-id-goes-here",
-	"assetSrc": "https://static.example.com"
+	"assetSrc": "https://static.example.com",
+	"mutedRoleId": "[your muted roleid]",
+	"roleIdsThatCanMute": [
+		"[some roleid that is allowed to mute]"
+	]
 }
