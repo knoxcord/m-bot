@@ -65,16 +65,10 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return;
     }
 
-    if (targetUser.roles.highest.position >= authorUser.roles.highest.position) {
-        await message.reply("Sorry, you can't mute someone with an equal or higher role than your own.")
-        return;
-    }
-
     if (targetUser.roles.highest.position >= myUser.roles.highest.position) {
         await message.reply("Sorry, I dont have permission to mute that user");
         return;
     }
-
 
     try {
         await targetUser.roles.add(MutedRoleId);
