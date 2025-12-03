@@ -5,5 +5,6 @@
 	"mutedRoleId": "[your muted roleid]",
 	"roleIdsThatCanMute": [
 		"[some roleid that is allowed to mute]"
-	]
+	],
+	"spankMuteDurationSeconds": 10
 }

@@ -42,15 +42,21 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return
     }
 
-    const authorUser = await message.guild.members.fetch(authorUserId);
-    if (!authorUser) {
-        console.warn(`Failed to fetch authorUser for id: ${authorUserId}`);
-        return
+    let authorUser: GuildMember;
+    try {
+        authorUser = await message.guild.members.fetch(authorUserId);
+    } catch (error) {
+        console.warn(`Failed to fetch authorUser for id: ${authorUserId} with error ${error}`);
+        await message.reply("Sorry, I'm not sure who you are... How strange...");
+        return;
     }
 
-    const targetUser = await message.guild.members.fetch(targetUserId);
-    if (!targetUser) {
-        console.warn(`Failed to fetch targetUser for id: ${targetUserId}`);
+    let targetUser: GuildMember;
+    try {
+        targetUser = await message.guild.members.fetch(targetUserId);
+    } catch (error) {
+        console.warn(`Failed to fetch targetUser for id: ${targetUserId} with error ${error}`);
+        await message.reply("Sorry, I can't find that user. Did you tag the right person?");
         return;
     }
 
@@ -69,7 +75,14 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return;
     }
 
+
+    try {
+        await targetUser.roles.add(MutedRoleId);
+    } catch (error) {
+        console.error(`Failed to assigned muted role id ${MutedRoleId} to target user id ${targetUserId} with error ${error}`);
+        return;
+    }
+    await message.reply(`Muted ${targetUser.user.displayName} for ${config.spankMuteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
-    await targetUser.roles.add(MutedRoleId);
-    setTimeout(async () => await removeRole(MutedRoleId, targetUser), 10000);
+    setTimeout(async () => await removeRole(MutedRoleId, targetUser), config.spankMuteDurationSeconds * 1000);
 }
