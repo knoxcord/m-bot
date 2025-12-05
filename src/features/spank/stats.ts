@@ -44,7 +44,7 @@ export const handleStats = async (commandBody: string, message: OmitPartialGroup
     const totalSpanks = db.getSpankCountForSpankee(targetUserId, message.guildId) ?? 0;
     const recentSpanks = db.getRecentSpankReasonsForSpankee(targetUserId, message.guildId, RecentReasonsLimit);
 
-    let reply = `${targetUser.user.displayName} has received ${totalSpanks} spank${totalSpanks === 1 ? "" : "s"}`;
+    let reply = `${targetUser.user.displayName} has received ${totalSpanks} smack${totalSpanks === 1 ? "" : "s"}`;
 
     if (recentSpanks && recentSpanks.length > 0) {
         reply += `\nRecent reasons:\n${recentSpanks.map(getRecentSpankString).join("\n")}`

@@ -10,7 +10,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         return;
 
     const commandBody = message.content.slice(Key.length + CommandPrefix.length).trim();
-    await handleMute(commandBody, message);
+    await handleMute(commandBody, message, 'spank');
 }
 
 export const Spank: IPrefixCommand = {

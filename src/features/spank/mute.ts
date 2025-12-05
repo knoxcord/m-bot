@@ -13,7 +13,7 @@ const enum SnowflakeRegexCapturingGroups {
 const removeRole = (roleId: string, user: GuildMember) =>
     user.roles.remove(roleId);
 
-export const handleMute = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
+export const handleMute = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>, verb: string) => {
     const regexResult = commandBody.match(SpankRegex)?.groups;
     
     if (!regexResult) {
@@ -30,9 +30,8 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
     }
 
     const authorUserId = message.author.id;
-
     if (targetUserId === authorUserId) {
-        await message.reply("Trying to spank yourself? :thinking:");
+        await message.reply(`Trying to ${verb} yourself? :thinking:`);
         return;
     }
 
@@ -76,6 +75,7 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         console.error(`Failed to assigned muted role id ${MutedRoleId} to target user id ${targetUserId} with error ${error}`);
         return;
     }
+
     await message.reply(`Muted ${targetUser.user.displayName} for ${config.spankMuteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
     setTimeout(async () => await removeRole(MutedRoleId, targetUser), config.spankMuteDurationSeconds * 1000);

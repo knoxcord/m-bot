@@ -3,6 +3,10 @@ import { Message, OmitPartialGroupDMChannel } from "discord.js";
 export enum CommandKey {
     Roll = "roll",
     PawaRoll = "pawaroll",
+    Slap = "slap",
+    SlapStats = "slapstats",
+    Smack = "smack",
+    SmackStats = "smackstats",
     Spank = "spank",
     SpankStats = "spankstats"
 }
