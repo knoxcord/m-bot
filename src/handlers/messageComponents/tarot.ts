@@ -32,6 +32,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
         console.warn(`Failed to retrieve card matching id ${newCardId}`);
         return;
     }
+    newCard.isReversed = isReversed;
 
     const embed = buildTarotDisplay(newCard, newIndex, pulledCardKeys.length);
     const actionRow = buildTarotActionRow(newCard, newIndex, pulledCardKeys.length);
