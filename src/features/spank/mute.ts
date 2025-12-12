@@ -1,6 +1,6 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import config from '../../config.json' with { type: "json" };
-import db from "../../database/db.js";
+import db from "../../database/databaseManager.js";
 
 const MutedRoleId = config.mutedRoleId;
 const RoleIdsThatCanMute = config.roleIdsThatCanMute;

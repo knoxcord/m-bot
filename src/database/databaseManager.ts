@@ -8,16 +8,16 @@ const __dirname = path.dirname(__filename);
 
 const DbPath = '../../data/sqlite.db';
 
-class DatabaseManager {
-    private db: Database.Database;
+export class DatabaseManager {
+    private _db: Database.Database;
 
     constructor() {
-        this.db = new Database(path.join(__dirname, DbPath));
+        this._db = new Database(path.join(__dirname, DbPath));
         this.initialize();
     }
 
     private initialize() {
-        this.db.exec(`
+        this._db.exec(`
             CREATE TABLE IF NOT EXISTS TarotPulls (
                 MessageId TEXT PRIMARY KEY,
                 UserId TEXT NOT NULL,
@@ -36,8 +36,10 @@ class DatabaseManager {
         `)
     }
 
+    getDatabase = () => this._db;
+
     savePullResult(messageId: string, userId: string, pullResult: string) {
-        const statement = this.db.prepare(`
+        const statement = this._db.prepare(`
             INSERT OR REPLACE INTO TarotPulls (MessageId, UserId, PullResult)
             VALUES (?, ?, ?)
         `);
@@ -45,7 +47,7 @@ class DatabaseManager {
     }
 
     getPullResult(messageId: string) {
-        const statement = this.db.prepare(`
+        const statement = this._db.prepare(`
             SELECT PullResult FROM TarotPulls WHERE MessageId = ?
         `);
         const result = statement.get(messageId) as { PullResult: string } | undefined;
@@ -53,7 +55,7 @@ class DatabaseManager {
     }
 
     saveSpank(messageId: string, guildId: string, spanker: string, spankee: string, reason: string) {
-        const statement = this.db.prepare(`
+        const statement = this._db.prepare(`
             INSERT OR REPLACE INTO Spanks (MessageId, GuildId, SpankerUserId, SpankeeUserId, Reason)
             VALUES (?, ?, ?, ?, ?)
         `);
@@ -61,7 +63,7 @@ class DatabaseManager {
     }
 
     getSpankCountForSpankee(spankeeUserId: string, guildId: string) {
-        const statement = this.db.prepare(`
+        const statement = this._db.prepare(`
             SELECT COUNT(*) as totalSpanks FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ?
         `)
         const result = statement.get(spankeeUserId, guildId) as { totalSpanks: number } | undefined;
@@ -69,7 +71,7 @@ class DatabaseManager {
     }
 
     getRecentSpankReasonsForSpankee(spankeeUserId: string, guildId: string, limit: number) {
-        const statement = this.db.prepare(`
+        const statement = this._db.prepare(`
             SELECT Reason, CreatedAt FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
         `);
         const result = statement.all(spankeeUserId, guildId, limit) as { Reason: string, CreatedAt: string }[] | undefined;
@@ -77,4 +79,4 @@ class DatabaseManager {
     }
 }
 
-export default new DatabaseManager();
+export const databaseManager = new DatabaseManager();

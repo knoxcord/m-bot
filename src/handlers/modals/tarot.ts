@@ -1,7 +1,7 @@
 import { MessageFlags, ModalSubmitInteraction } from "discord.js";
 import { FieldId, PullType, ICard } from "../../features/tarot/types.js";
 import { deck } from "../../features/tarot/deck.js";
-import db from "../../database/db.js";
+import db from "../../database/databaseManager.js";
 import { getKey } from "../../features/tarot/helpers.js";
 import { buildTarotActionRow, buildTarotDisplay, buildTarotModal } from "../../features/tarot/builders.js";
 import { IModal, ModalCustomId } from "./modalTypes.js";

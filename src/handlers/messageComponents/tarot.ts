@@ -1,6 +1,6 @@
 import { MessageComponentInteraction } from "discord.js";
 import { IMessageComponent, MessageComponentCustomIdPrefix } from "./messageComponentTypes.js";
-import db from "../../database/db.js";
+import db from "../../database/databaseManager.js";
 import { NextOrPrev, TarotCardReversedIndicator } from "../../features/tarot/types.js";
 import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.js";
 import { deck } from "../../features/tarot/deck.js";

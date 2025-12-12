@@ -1,5 +1,5 @@
 import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import db from "../../database/db.js";
+import db from "../../database/databaseManager.js";
 
 const RecentReasonsLimit = 5;
 const StatsRegex = /<?@?(?<userId>\d+)>?/;
