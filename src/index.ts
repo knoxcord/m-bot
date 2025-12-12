@@ -69,7 +69,7 @@ client.on(Events.MessageCreate, (message) => {
 	if (!message.content.startsWith(CommandPrefix))
 		return;
 
-	const messageCommand = message.content.slice(CommandPrefix.length).split(" ")[0];
+	const messageCommand = message.content.slice(CommandPrefix.length).split(" ")[0].toLowerCase();
 	const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
 	if (matchedCommand)
 		matchedCommand.handler(message);
