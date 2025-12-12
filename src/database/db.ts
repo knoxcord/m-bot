@@ -33,6 +33,13 @@ class DatabaseManager {
                 Reason TEXT,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+            
+            CREATE TABLE IF NOT EXISTS Awards (
+                GuildId TEXT NOT NULL,
+                UserId TEXT NOT NULL,
+                Award TEXT,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         `)
     }
 
@@ -73,6 +80,22 @@ class DatabaseManager {
             SELECT Reason, CreatedAt FROM Spanks WHERE SpankeeUserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
         `);
         const result = statement.all(spankeeUserId, guildId, limit) as { Reason: string, CreatedAt: string }[] | undefined;
+        return result ? result : null;
+    }
+
+    saveAward(guildId: string, userId: string, award: string) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO Awards (GuildId, UserId, Award)
+            VALUES (?, ?, ?)
+        `);
+        return statement.run(guildId, userId, award);
+    }
+
+    getAwardsForUser(guildId: string, userId: string) {
+        const statement = this.db.prepare(`
+            SELECT Award, CreatedAt FROM Awards WHERE UserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
+        `);
+        const result = statement.all(userId, guildId) as { Award: string, CreatedAt: string }[] | undefined;
         return result ? result : null;
     }
 }

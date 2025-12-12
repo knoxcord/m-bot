@@ -8,7 +8,8 @@ export enum CommandKey {
     Smack = "smack",
     SmackStats = "smackstats",
     Spank = "spank",
-    SpankStats = "spankstats"
+    SpankStats = "spankstats",
+    Award = "award",
 }
 
 export interface IPrefixCommand

@@ -6,6 +6,7 @@ import { Smack } from "./smack.js";
 import { Slap } from "./slap.js";
 import { SlapStats } from "./slapstats.js";
 import { SmackStats } from "./smackstats.js";
+import { Award } from "./award.js";
 
 export const CommandPrefix = '-';
 
@@ -18,6 +19,7 @@ const prefixCommands = [
     SpankStats,
     SlapStats,
     SmackStats,
+    Award,
 ] as const;
 
 export {
