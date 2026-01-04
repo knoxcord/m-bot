@@ -28,7 +28,7 @@ export const doRoll = (roll: RollDefinition): DiceRollResult => {
         sliceUpper = roll.dropHighest && roll.dropHighest <= roll.numberOfDice ? roll.dropHighest : 0;
     }
 
-    const toDrop = dieRollResults.toSorted();
+    const toDrop = dieRollResults.toSorted((a, b) => a - b);
     // Notice we're using splice here to trim the lower and upper numbers as needed
     toDrop.splice(sliceLower, roll.numberOfDice-sliceLower-sliceUpper)
 
