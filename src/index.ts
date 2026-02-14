@@ -66,13 +66,19 @@ client.on(Events.InteractionCreate, (interaction) => {
 });
 
 client.on(Events.MessageCreate, (message) => {
-	if (!message.content.startsWith(CommandPrefix))
+	if (message.content.startsWith(CommandPrefix)) {
+		const messageCommand = message.content.slice(CommandPrefix.length).split(" ")[0].toLowerCase();
+		const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
+		if (matchedCommand)
+			matchedCommand.handler(message);
+	}
+
+	if (!client.user)
 		return;
 
-	const messageCommand = message.content.slice(CommandPrefix.length).split(" ")[0].toLowerCase();
-	const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
-	if (matchedCommand)
-		matchedCommand.handler(message);
+	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${client.user.username})`, 'i');
+	if (insultPattern.test(message.content))
+		message.reply(`Fuck you ${message.author.displayName}`);
 });
 
 client.login(config.token);

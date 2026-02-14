@@ -3,17 +3,17 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { handleStats } from "../../features/spank/stats.js";
 import { CommandPrefix } from "./index.js";
 
-export const Key = CommandKey.SpankStats;
+const getCommand = (commandKey: string) => <IPrefixCommand>{
+    handler: async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+        if (!message.inGuild())
+            return;
 
-export const spankStatsHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    if (!message.inGuild())
-        return;
+        const commandBody = message.content.slice(commandKey.length + CommandPrefix.length).trim();
+        await handleStats(commandBody, message);
+    },
+    key: commandKey
+};
 
-    const commandBody = message.content.slice(Key.length + CommandPrefix.length).trim();
-    await handleStats(commandBody, message);
-}
-
-export const SpankStats: IPrefixCommand = {
-    handler: spankStatsHandler,
-    key: Key
-}
+export const SpankStats = getCommand(CommandKey.SpankStats);
+export const SmackStats = getCommand(CommandKey.SmackStats);
+export const SlapStats = getCommand(CommandKey.SlapStats);

@@ -1,6 +1,7 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import config from '../../config.json' with { type: "json" };
 import db from "../../database/db.js";
+import { getMissingPermissionResponse } from "../../shared/responses.js";
 
 const MutedRoleId = config.mutedRoleId;
 const RoleIdsThatCanMute = config.roleIdsThatCanMute;
@@ -60,7 +61,7 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
     }
 
     if (!authorUser.roles.cache.hasAny(...RoleIdsThatCanMute)) {
-        await message.reply("Ooph. This must be embarassing for you");
+        await message.reply(getMissingPermissionResponse());
         return;
     }
 

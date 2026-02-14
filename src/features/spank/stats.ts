@@ -2,10 +2,12 @@ import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import db from "../../database/db.js";
 
 const RecentReasonsLimit = 5;
+const TopSpankeesLimit = 5;
 const StatsRegex = /<?@?(?<userId>\d+)>?/;
 const enum StatsRegexCaptingGroups {
     UserId = "userId",
 };
+const TopArgument = "top";
 
 const padNumber = (num: number) => String(num).padStart(2, "0");
 
@@ -19,7 +21,27 @@ const getRecentSpankString = (recentSpank: {
     return `\`${dateString}\`: ${reasonString}`
 }
 
+const getTopSpankees = async (message: OmitPartialGroupDMChannel<Message<true>>) => {
+    const topSpankees = db.getTopSpankees(message.guildId, TopSpankeesLimit);
+
+    let reply = "Top troublemakers:";
+    for (const topSpankee of topSpankees) {
+        try {
+            const spankeeUser = await message.guild.members.fetch(topSpankee.SpankeeUserId);
+            reply += `\n${spankeeUser.user.displayName} has received ${topSpankee.totalSpanks} smack${topSpankee.totalSpanks === 1 ? "" : "s"}`;
+        } catch (e) {
+            console.warn('Failed to retrieve spankee username with error', e);
+            reply += `\n[Unknown User] has received ${topSpankee.totalSpanks} smack${topSpankee.totalSpanks === 1 ? "" : "s"}`;
+        }
+    };
+
+    await message.reply(reply)
+}
+
 export const handleStats = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
+    if (commandBody.toLocaleLowerCase().trim() == TopArgument)
+        return getTopSpankees(message);
+
     const regexResult = commandBody.match(StatsRegex)?.groups;
     if (!regexResult) {
         await message.channel.send("Invalid user");

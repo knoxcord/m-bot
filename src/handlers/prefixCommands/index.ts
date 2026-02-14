@@ -1,11 +1,7 @@
 import { Roll } from "./roll.js";
 import { PawaRoll } from "./pawaroll.js"
-import { Spank } from "./spank.js"
-import { SpankStats } from "./spankstats.js";
-import { Smack } from "./smack.js";
-import { Slap } from "./slap.js";
-import { SlapStats } from "./slapstats.js";
-import { SmackStats } from "./smackstats.js";
+import { Spank, Smack, Slap } from "./spank.js"
+import { SpankStats, SmackStats, SlapStats } from "./spankstats.js";
 import { Award } from "./award.js";
 
 export const CommandPrefix = '-';

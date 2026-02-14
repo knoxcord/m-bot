@@ -83,6 +83,19 @@ class DatabaseManager {
         return result ? result : null;
     }
 
+    getTopSpankees(guildId: string, limit: number) {
+    const statement = this.db.prepare(`
+        SELECT SpankeeUserId, COUNT(*) as totalSpanks
+        FROM Spanks
+        WHERE GuildId = ?
+        GROUP BY SpankeeUserId
+        ORDER BY totalSpanks DESC
+        LIMIT ?
+    `);
+    const result = statement.all(guildId, limit) as { SpankeeUserId: string, totalSpanks: number }[] | undefined;
+    return result ? result : [];
+}
+
     saveAward(guildId: string, userId: string, award: string) {
         const statement = this.db.prepare(`
             INSERT OR REPLACE INTO Awards (GuildId, UserId, Award)
