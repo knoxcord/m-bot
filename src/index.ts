@@ -73,10 +73,10 @@ client.on(Events.MessageCreate, (message) => {
 			matchedCommand.handler(message);
 	}
 
-	if (!client.user)
+	if (!client.user || message.author.bot)
 		return;
 
-	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${client.user.displayName})`, 'i');
+	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${message.guild?.members.me?.displayName ?? client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))
 		message.reply(`Fuck you ${message.author.displayName}`);
 });
