@@ -76,7 +76,7 @@ client.on(Events.MessageCreate, (message) => {
 	if (!client.user)
 		return;
 
-	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${client.user.username})`, 'i');
+	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))
 		message.reply(`Fuck you ${message.author.displayName}`);
 });
