@@ -5,7 +5,8 @@ import { Tarot } from "./tarot.js";
 const slashCommands = [
     Ping,
     Tarot,
-    Roll
+    Roll,
+    Configure
 ] as const;
 
 export {
