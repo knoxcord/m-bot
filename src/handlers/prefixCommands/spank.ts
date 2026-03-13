@@ -9,7 +9,7 @@ const getCommand = (commandKey: string) => <IPrefixCommand>{
             return;
 
         const commandBody = message.content.slice(commandKey.length + CommandPrefix.length).trim();
-        await handleMute(commandBody, message, commandKey);
+        await handleMute(commandBody, message);
     },
     key: commandKey
 };

@@ -14,7 +14,7 @@ const enum SnowflakeRegexCapturingGroups {
 const removeRole = (roleId: string, user: GuildMember) =>
     user.roles.remove(roleId);
 
-export const handleMute = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>, verb: string) => {
+export const handleMute = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
     const regexResult = commandBody.match(SpankRegex)?.groups;
     
     if (!regexResult) {
@@ -32,7 +32,7 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
 
     const authorUserId = message.author.id;
     if (targetUserId === authorUserId) {
-        await message.reply(`Trying to ${verb} yourself? :thinking:`);
+        await message.reply(`Trying to smack yourself? :thinking:`);
         return;
     }
 
