@@ -1,15 +1,23 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
-import config from '../../config.json' with { type: "json" };
 import db from "../../database/db.js";
+import configuration from "../../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 
-const MutedRoleId = config.mutedRoleId;
-const RoleIdsThatCanMute = config.roleIdsThatCanMute;
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
     Reason = "reason"
 };
+
+// Setup feature config
+const MutedRoleIdConfigurationKey = 'MUTED_ROLE_ID';
+const MutedDurationSecondsConfigurationKey = 'MUTED_DURATION_SECONDS';
+const RoleIdsThatCanMuteConfigurationKey = 'ROLE_IDS_THAT_CAN_MUTE';
+configuration.registerConfigurations([
+    ['Muted Role Id', MutedRoleIdConfigurationKey],
+    ['Muted Duration Seconds', MutedDurationSecondsConfigurationKey],
+    ['Role Ids That Can Mute', RoleIdsThatCanMuteConfigurationKey],
+]);
 
 const removeRole = (roleId: string, user: GuildMember) =>
     user.roles.remove(roleId);
@@ -60,13 +68,26 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return;
     }
 
-    if (!authorUser.roles.cache.hasAny(...RoleIdsThatCanMute)) {
+    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanMute.length < 1) {
+        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+        return;
+    }
+
+    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
         await message.reply(getMissingPermissionResponse());
         return;
     }
 
     if (targetUser.roles.highest.position >= myUser.roles.highest.position) {
         await message.reply("Sorry, I dont have permission to mute that user");
+        return;
+    }
+
+    const MutedRoleId = configuration.getConfigurationValue(message.guildId, MutedRoleIdConfigurationKey);
+    if (!MutedRoleId) {
+        console.warn(`Muted role id not configured for guildId ${message.guildId}`);
+        await message.reply("This command requires configuration. Contact a bot admin before use.");
         return;
     }
 
@@ -77,7 +98,8 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return;
     }
 
-    await message.reply(`Muted ${targetUser.user.displayName} for ${config.spankMuteDurationSeconds} seconds`)
+    const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
+    await message.reply(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
-    setTimeout(async () => await removeRole(MutedRoleId, targetUser), config.spankMuteDurationSeconds * 1000);
+    setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
 }

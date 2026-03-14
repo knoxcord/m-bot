@@ -1,13 +1,17 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { CommandPrefix } from "./index.js";
-import config from '../../config.json' with { type: "json" };
 import db from "../../database/db.js";
+import configuration from "../../configuration/configuration.js";
 
 export const Key = CommandKey.Award;
 
-// TODO: This shouldnt just reuse the mute group
-const RoleIdsThatCanAward = config.roleIdsThatCanMute;
+// Setup feature config
+const RoleIdsThatCanAwardConfigurationKey = 'ROLE_IDS_THAT_CAN_AWARD';
+configuration.registerConfigurations([
+    ['Role Ids That Can Award', RoleIdsThatCanAwardConfigurationKey],
+]);
+
 const AwardRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
@@ -49,7 +53,13 @@ export const awardHandler = async (message: OmitPartialGroupDMChannel<Message<bo
         return;
     }
 
-    if (!authorUser.roles.cache.hasAny(...RoleIdsThatCanAward)) {
+    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanAwardConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanMute.length < 1) {
+        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+        return;
+    }
+
+    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
         await message.reply("Ooph. This must be embarassing for you");
         return;
     }

@@ -4,6 +4,7 @@ export enum CommandKey {
     Ping = "ping",
     Tarot = "tarot",
     Roll = "roll",
+    Configure = "configure",
 }
 
 export interface ISlashCommand
