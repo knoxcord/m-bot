@@ -1,5 +1,6 @@
 import { MessageComponentInteraction } from "discord.js";
 import { TarotCustomIdKey } from "../../features/tarot/types.js";
+import { ConfigurationRegistration } from "src/configuration/configurationTypes.js";
 
 export enum MessageComponentCustomIdPrefix {
     Tarot = TarotCustomIdKey
@@ -10,4 +11,6 @@ export interface IMessageComponent {
     customIdPrefix: MessageComponentCustomIdPrefix;
     /** This is the handler function to be called upon modal submit for matching custom id */
     handler: (interaction: MessageComponentInteraction) => Promise<unknown>
+    /** This contains configuration registrations for message component handlers */
+    configurationRegistrations?: ConfigurationRegistration[];
 }

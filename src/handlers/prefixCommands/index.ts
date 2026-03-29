@@ -19,5 +19,5 @@ const prefixCommands = [
 ] as const;
 
 export {
-    prefixCommands
+    prefixCommands,
 };

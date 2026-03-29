@@ -1,6 +1,7 @@
 import { REST, Routes, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { slashCommands } from './handlers/slashCommands/index.js';
+import { ConfigureSlashCommand } from './configuration/configureSlashCommand.js';
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(config.token);
@@ -8,7 +9,10 @@ const rest = new REST().setToken(config.token);
 // Protect against duplicate registrations. We could technically do this, but would need to update handler logic and also handle deduping stuff like descriptions
 const toRegister: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder [] = [];
 const loadedCommandNames: string[] = [];
-slashCommands.forEach(command => {
+
+// The configuration slash command is defined seperately because it accesses other slash commands' definitions
+const allSlashCommands = [...slashCommands, ConfigureSlashCommand];
+allSlashCommands.forEach(command => {
 	if (loadedCommandNames.includes(command.key)) {
 		console.error("Found multiple commands with the same name, this is not supported");
 		process.exit(1);

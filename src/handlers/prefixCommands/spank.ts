@@ -1,6 +1,6 @@
 import { OmitPartialGroupDMChannel, Message } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { handleMute } from "../../features/spank/mute.js";
+import { handleMute, muteConfigurationRegistrations } from "../../features/spank/mute.js";
 import { CommandPrefix } from "./index.js";
 
 const getCommand = (commandKey: string) => <IPrefixCommand>{
@@ -16,4 +16,7 @@ const getCommand = (commandKey: string) => <IPrefixCommand>{
 
 export const Spank = getCommand(CommandKey.Spank);
 export const Smack = getCommand(CommandKey.Smack);
-export const Slap = getCommand(CommandKey.Slap);
+export const Slap = {
+    ...getCommand(CommandKey.Slap),
+    configurationRegistrations: muteConfigurationRegistrations
+};

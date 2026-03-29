@@ -46,7 +46,8 @@ class DatabaseManager {
                 Key TEXT NOT NULL,
                 Value TEXT NOT NULL,
                 SetByUserId TEXT NOT NULL,
-                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (GuildId, Key)
             );
         `)
     }
@@ -120,6 +121,7 @@ class DatabaseManager {
         return result ? result : null;
     }
 
+    /** This should only be accessed by the configuration class */
     setConfigurationValue(guildId: string, key: string, value: string, userId: string) {
         const statement = this.db.prepare(`
             INSERT OR REPLACE INTO Configuration (GuildId, Key, Value, SetByUserId)
@@ -128,6 +130,7 @@ class DatabaseManager {
         return statement.run(guildId, key, value, userId);
     }
 
+    /** This should only be accessed by the configuration class */
     getConfigurationValue(guildId: string, key: string) {
         const statement = this.db.prepare(`
             SELECT Value FROM Configuration WHERE GuildId = ? AND Key = ?
@@ -136,6 +139,7 @@ class DatabaseManager {
         return result ? result.Value : null;
     }
 
+    /** This should only be accessed by the configuration class */
     getAllConfigurationValues() {
         const statement = this.db.prepare(`
             SELECT GuildId, Key, Value FROM Configuration

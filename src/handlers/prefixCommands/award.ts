@@ -6,12 +6,7 @@ import configuration from "../../configuration/configuration.js";
 
 export const Key = CommandKey.Award;
 
-// Setup feature config
 const RoleIdsThatCanAwardConfigurationKey = 'ROLE_IDS_THAT_CAN_AWARD';
-configuration.registerConfigurations([
-    ['Role Ids That Can Award', RoleIdsThatCanAwardConfigurationKey],
-]);
-
 const AwardRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
@@ -70,5 +65,8 @@ export const awardHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
 export const Award: IPrefixCommand = {
     handler: awardHandler,
-    key: Key
+    key: Key,
+    configurationRegistrations: [
+        ['Role Ids That Can Award', RoleIdsThatCanAwardConfigurationKey]
+    ]
 }

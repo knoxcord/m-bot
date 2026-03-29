@@ -4,6 +4,7 @@ import { slashCommands } from './handlers/slashCommands/index.js';
 import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands, CommandPrefix } from './handlers/prefixCommands/index.js';
+import { ConfigureSlashCommand } from './configuration/configureSlashCommand.js';
 
 const client = new Client({ intents: [
 	GatewayIntentBits.Guilds,
@@ -15,7 +16,10 @@ client.once(Events.ClientReady, (readyClient) => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
-const slashCommandLookup = Object.fromEntries(slashCommands.map(command => [command.key, command.handler]));
+const slashCommandLookup = Object.fromEntries([
+	...slashCommands.map(command => [command.key, command.handler]),
+    [ConfigureSlashCommand.key, ConfigureSlashCommand.handler],
+]);
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const commandHandler = slashCommandLookup[interaction.commandName];
 

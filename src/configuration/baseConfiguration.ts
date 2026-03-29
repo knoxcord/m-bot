@@ -1,10 +1,12 @@
-import Configuration from './configuration.js';
+import { ConfigurationRegistration } from "./configurationTypes.js";
 
-export const BotAdminRolesConfigurationKey = "BOT_ADMIN_ROLES";
 export const ModeratorRolesConfigurationKey = "MODERATION_ROLES";
 
-// Configuration options not related to a specific command can go hereQ
-Configuration.registerConfigurations([
-    ['Bot Admin Roles', BotAdminRolesConfigurationKey],
+const baseConfigs = <ConfigurationRegistration[]>[
     ['Moderator Roles', ModeratorRolesConfigurationKey]
-]);
+]
+
+// Configuration options not related to a specific command can go here
+export {
+    baseConfigs
+};
