@@ -49,6 +49,14 @@ class DatabaseManager {
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (GuildId, Key)
             );
+
+            CREATE TABLE IF NOT EXISTS RoleMessageCounts (
+                GuildId TEXT NOT NULL,
+                RoleId TEXT NOT NULL,
+                HourWindow TEXT NOT NULL,
+                Count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (GuildId, RoleId, HourWindow)
+            );
         `)
     }
 
@@ -119,6 +127,22 @@ class DatabaseManager {
         `);
         const result = statement.all(userId, guildId) as { Award: string, CreatedAt: string }[] | undefined;
         return result ? result : null;
+    }
+
+    incrementRoleMessageCount(guildId: string, roleId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO RoleMessageCounts (GuildId, RoleId, HourWindow, Count)
+            VALUES (?, ?, ?, 1)
+            ON CONFLICT (GuildId, RoleId, HourWindow) DO UPDATE SET Count = Count + 1
+        `);
+        return statement.run(guildId, roleId, hourWindow);
+    }
+
+    getRoleMessageCountsForWindow(guildId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            SELECT RoleId, Count FROM RoleMessageCounts WHERE GuildId = ? AND HourWindow = ?
+        `);
+        return statement.all(guildId, hourWindow) as { RoleId: string, Count: number }[];
     }
 
     /** This should only be accessed by the configuration class */
