@@ -2,11 +2,12 @@
   "name": "m-bot",
   "packageManager": "yarn@4.10.3",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "scripts": {
     "lint": "eslint",
     "build": "tsc",
     "start": "tsc && node ./build",
+    "start-prod": "NODE_ENV=production && pm2 start ./build/index.js",
     "register-commands": "tsc && node ./build/register-commands.js"
   },
   "devDependencies": {
