@@ -1,8 +1,6 @@
 import { REST, Routes, SharedSlashCommand } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { slashCommands } from './handlers/slashCommands/index.js';
-import { ConfigurationCommandKey } from './configuration/configurationTypes.js';
-import { getConfigurationCommandBuilder } from './configuration/configurationCommandBuilder.js';
 
 
 // Construct and prepare an instance of the REST module
@@ -12,12 +10,7 @@ const rest = new REST().setToken(config.token);
 const toRegister: SharedSlashCommand [] = [];
 const loadedCommandNames: string[] = [];
 
-// The configuration slash command is defined seperately because it accesses other slash commands' definitions
-const allSlashCommands = [
-	...slashCommands,
-	{ key: ConfigurationCommandKey, builder: getConfigurationCommandBuilder() }
-];
-allSlashCommands.forEach(command => {
+slashCommands.forEach(command => {
 	if (loadedCommandNames.includes(command.key)) {
 		console.error("Found multiple commands with the same name, this is not supported");
 		process.exit(1);

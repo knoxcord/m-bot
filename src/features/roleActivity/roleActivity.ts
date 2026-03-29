@@ -1,0 +1,121 @@
+import { Client, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
+import configuration from "../configuration/configuration.js";
+import db from "../../database/db.js";
+import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag } from "./config.js";
+import featureFlags from "../featureFlags/featureFlags.js";
+
+function getHourWindow(date: Date): string {
+    const d = new Date(date);
+    d.setMinutes(0, 0, 0);
+    return d.toISOString();
+}
+
+function getPreviousHourWindow(): string {
+    const now = new Date();
+    now.setHours(now.getHours() - 1, 0, 0, 0);
+    return now.toISOString();
+}
+
+export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+    if (!message.guildId || !message.member) return;
+
+    const featureFlagEnabled = featureFlags.getFeatureFlag(message.guildId, RoleActivityFeatureFlag);
+    if (!featureFlagEnabled)
+        return;
+
+    const trackedRoleIdsValue = configuration.getConfigurationValue(message.guildId, TrackedRoleIdsConfigurationKey);
+    if (!trackedRoleIdsValue) return;
+
+    const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
+    if (trackedRoleIds.length === 0) return;
+
+    const hourWindow = getHourWindow(message.createdAt);
+
+    for (const roleId of trackedRoleIds) {
+        if (message.member.roles.cache.has(roleId)) {
+            db.incrementRoleMessageCount(message.guildId, roleId, hourWindow);
+        }
+    }
+}
+
+const reportActivityForServer = async (guildId: string, guild: Guild, previousHourWindow: string) => {
+    const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
+    if (!featureFlagEnabled)
+        return;
+
+    const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
+    const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
+
+    if (!trackedRoleIdsValue || !channelId) return;
+
+    const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
+    if (trackedRoleIds.length === 0) return;
+
+    const counts = db.getRoleMessageCountsForWindow(guildId, previousHourWindow);
+    const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
+
+    await guild.members.fetch();
+
+    let mostActiveRoleId: string | null = null;
+    let highestActivity = -1;
+
+    for (const roleId of trackedRoleIds) {
+        const role = guild.roles.cache.get(roleId);
+        if (!role) continue;
+
+        const memberCount = role.members.size;
+        if (memberCount === 0) continue;
+
+        const messageCount = countMap.get(roleId) ?? 0;
+        const activity = messageCount / memberCount;
+
+        if (activity > highestActivity) {
+            highestActivity = activity;
+            mostActiveRoleId = roleId;
+        }
+    }
+
+    if (!mostActiveRoleId) return;
+
+    const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
+    if (!mostActiveRole) return;
+
+    const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
+    if (!channel) return;
+
+    const windowDate = new Date(previousHourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+    const messageCount = countMap.get(mostActiveRoleId) ?? 0;
+    const memberCount = mostActiveRole.members.size;
+
+    await channel.send(
+        `Most active role for the hour ending at ${hourLabel} ET: **${mostActiveRole.name}** ` +
+        `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
+    );
+}
+
+export const runRoleActivityHourlyJob = async (client: Client, guildId?: string | null) => {
+    if (guildId) {
+        const guild = await client.guilds.fetch({
+            guild: guildId
+        });
+        await reportActivityForServer(guildId, guild, getHourWindow(new Date()))
+    } else {
+        for (const [guildId, guild] of client.guilds.cache) {
+            await reportActivityForServer(guildId, guild, getPreviousHourWindow());
+        }
+    }
+}
+
+export function scheduleRoleActivityHourlyJob(client: Client) {
+    const now = new Date();
+    const msUntilNextHour =
+        (60 - now.getMinutes()) * 60 * 1000 -
+        now.getSeconds() * 1000 -
+        now.getMilliseconds();
+
+    setTimeout(() => {
+        runRoleActivityHourlyJob(client);
+        setInterval(() => runRoleActivityHourlyJob(client), 60 * 60 * 1000);
+    }, msUntilNextHour);
+}

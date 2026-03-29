@@ -1,5 +1,21 @@
 # m-bot
 
+## Permissions
+The bot needs these permissions to use all features:
+
+### Scopes:
+- `applications.commands`
+- `bot`
+
+### Bot Permissions:
+- `Manage Roles`
+- `Send Messages`
+- `Read Message History`
+
+### Intents:
+- Server Members Intent
+- Message Content Intent
+
 ## Installation
 ### Prerequisites:
 The project requires node to build and run. It has been developed using the latest version of node at the time of writing (node 24). Prior versions may work, but are untested.

@@ -49,6 +49,23 @@ class DatabaseManager {
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (GuildId, Key)
             );
+
+            CREATE TABLE IF NOT EXISTS RoleMessageCounts (
+                GuildId TEXT NOT NULL,
+                RoleId TEXT NOT NULL,
+                HourWindow TEXT NOT NULL,
+                Count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (GuildId, RoleId, HourWindow)
+            );
+
+            CREATE TABLE IF NOT EXISTS FeatureFlags (
+                GuildId TEXT NOT NULL,
+                Key TEXT NOT NULL,
+                Enabled INTEGER NOT NULL DEFAULT 0,
+                SetByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (GuildId, Key)
+            );
         `)
     }
 
@@ -121,6 +138,22 @@ class DatabaseManager {
         return result ? result : null;
     }
 
+    incrementRoleMessageCount(guildId: string, roleId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO RoleMessageCounts (GuildId, RoleId, HourWindow, Count)
+            VALUES (?, ?, ?, 1)
+            ON CONFLICT (GuildId, RoleId, HourWindow) DO UPDATE SET Count = Count + 1
+        `);
+        return statement.run(guildId, roleId, hourWindow);
+    }
+
+    getRoleMessageCountsForWindow(guildId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            SELECT RoleId, Count FROM RoleMessageCounts WHERE GuildId = ? AND HourWindow = ?
+        `);
+        return statement.all(guildId, hourWindow) as { RoleId: string, Count: number }[];
+    }
+
     /** This should only be accessed by the configuration class */
     setConfigurationValue(guildId: string, key: string, value: string, userId: string) {
         const statement = this.db.prepare(`
@@ -137,6 +170,33 @@ class DatabaseManager {
         `)
         const result = statement.get(guildId, key) as { Value: string } | undefined;
         return result ? result.Value : null;
+    }
+
+    /** This should only be accessed by the feature flags class */
+    setFeatureFlag(guildId: string, key: string, enabled: boolean, userId: string) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO FeatureFlags (GuildId, Key, Enabled, SetByUserId)
+            VALUES (?, ?, ?, ?)
+        `)
+        return statement.run(guildId, key, enabled ? 1 : 0, userId);
+    }
+
+    /** This should only be accessed by the feature flags class */
+    getFeatureFlag(guildId: string, key: string) {
+        const statement = this.db.prepare(`
+            SELECT Enabled FROM FeatureFlags WHERE GuildId = ? AND Key = ?
+        `)
+        const result = statement.get(guildId, key) as { Enabled: number } | undefined;
+        return result ? result.Enabled === 1 : null;
+    }
+
+    /** This should only be accessed by the feature flags class */
+    getAllFeatureFlags() {
+        const statement = this.db.prepare(`
+            SELECT GuildId, Key, Enabled FROM FeatureFlags
+        `)
+        const result = statement.all() as { GuildId: string, Key: string, Enabled: number }[] | undefined;
+        return result ? result : null;
     }
 
     /** This should only be accessed by the configuration class */

@@ -1,3 +1,5 @@
+import { Configure } from "./configure.js";
+import { Feature } from "./feature.js";
 import { Ping } from "./ping.js";
 import { Roll } from "./roll.js";
 import { Tarot } from "./tarot.js";
@@ -8,7 +10,8 @@ const slashCommands = [
     Tarot,
     Roll,
     Version,
-    // Configuration slash command registered seperately
+    Configure,
+    Feature,
 ] as const;
 
 export {

@@ -3,6 +3,7 @@ import { PawaRoll } from "./pawaroll.js"
 import { Spank, Smack, Slap } from "./spank.js"
 import { SpankStats, SmackStats, SlapStats } from "./spankstats.js";
 import { Award } from "./award.js";
+import { RoleActivity } from "./roleActivity.js";
 
 const prefixCommands = [
     Roll,
@@ -14,6 +15,7 @@ const prefixCommands = [
     SlapStats,
     SmackStats,
     Award,
+    RoleActivity,
 ] as const;
 
 export {

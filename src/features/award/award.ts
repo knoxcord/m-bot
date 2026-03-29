@@ -1,7 +1,7 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import { CommandKey, CommandPrefix } from "../../handlers/prefixCommands/prefixCommandTypes.js";
 import db from "../../database/db.js";
-import configuration from "../../configuration/configuration.js";
+import configuration from "../configuration/configuration.js";
 import { RoleIdsThatCanAwardConfigurationKey } from "./config.js";
 
 const AwardRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;

@@ -5,23 +5,23 @@ import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands } from './handlers/prefixCommands/index.js';
 import { CommandPrefix } from './handlers/prefixCommands/prefixCommandTypes.js';
-import { configurationCommandHandler } from './configuration/configurationCommandHandler.js';
-import { ConfigurationCommandKey } from './configuration/configurationTypes.js';
+import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
 
 const client = new Client({ intents: [
 	GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMembers,
 	GatewayIntentBits.GuildMessages,
 	GatewayIntentBits.MessageContent,
 ] });
 
 client.once(Events.ClientReady, (readyClient) => {
 	console.info(`Ready! Logged in as ${readyClient.user.tag}`);
+	scheduleRoleActivityHourlyJob(readyClient);
 });
 
-const slashCommandLookup = Object.fromEntries([
-	...slashCommands.map(command => [command.key, command.handler]),
-    [ConfigurationCommandKey, configurationCommandHandler],
-]);
+const slashCommandLookup = Object.fromEntries(
+	slashCommands.map(command => [command.key, command.handler]),
+);
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const commandHandler = slashCommandLookup[interaction.commandName];
 
@@ -81,6 +81,8 @@ client.on(Events.MessageCreate, (message) => {
 
 	if (!client.user || message.author.bot)
 		return;
+
+	handleRoleActivityMessage(message);
 
 	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${message.guild?.members.me?.displayName ?? client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))

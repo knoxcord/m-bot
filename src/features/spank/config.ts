@@ -1,4 +1,4 @@
-import { ConfigurationRegistration } from "src/configuration/configurationTypes.js";
+import { ConfigurationRegistration } from "src/features/configuration/configurationTypes.js";
 
 // Setup feature config
 export const MutedRoleIdConfigurationKey = 'MUTED_ROLE_ID';

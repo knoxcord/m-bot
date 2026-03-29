@@ -1,4 +1,4 @@
-import db from "../database/db.js";
+import db from "../../database/db.js";
 
 type ConfigurationMatrix = Map<string, Map<string, string>>;
 
@@ -7,7 +7,7 @@ class Configuration {
 
     constructor() {
         this.configValues = this.loadConfiguration();
-        console.log("Loaded configuration:\n", this.configValues);
+        console.info("Loaded configuration:\n", this.configValues);
     }
 
     private loadConfiguration = () =>
@@ -32,7 +32,7 @@ class Configuration {
             this.configValues.set(guildId, new Map<string, string>());
         
         this.configValues.get(guildId)?.set(key, value);
-        console.log("Updated configuration:\n", this.configValues);
+        console.info("Updated configuration:\n", this.configValues);
     }
 }
 
