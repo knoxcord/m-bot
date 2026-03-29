@@ -4,6 +4,7 @@ import { Spank, Smack, Slap } from "./spank.js"
 import { SpankStats, SmackStats, SlapStats } from "./spankstats.js";
 import { Award } from "./award.js";
 import { RoleActivity } from "./roleActivity.js";
+import { AllRoleActivity } from "./allRoleActivity.js";
 
 const prefixCommands = [
     Roll,
@@ -16,6 +17,7 @@ const prefixCommands = [
     SmackStats,
     Award,
     RoleActivity,
+    AllRoleActivity,
 ] as const;
 
 export {

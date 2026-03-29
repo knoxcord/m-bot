@@ -1,4 +1,4 @@
-import { Client, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
+import { blockQuote, Client, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";
 import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag } from "./config.js";
@@ -38,7 +38,7 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
     }
 }
 
-const reportActivityForServer = async (guildId: string, guild: Guild, previousHourWindow: string) => {
+const reportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
     const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
     if (!featureFlagEnabled)
         return;
@@ -51,7 +51,7 @@ const reportActivityForServer = async (guildId: string, guild: Guild, previousHo
     const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
     if (trackedRoleIds.length === 0) return;
 
-    const counts = db.getRoleMessageCountsForWindow(guildId, previousHourWindow);
+    const counts = db.getRoleMessageCountsForWindow(guildId, hourWindow);
     const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
 
     await guild.members.fetch();
@@ -83,14 +83,69 @@ const reportActivityForServer = async (guildId: string, guild: Guild, previousHo
     const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
     if (!channel) return;
 
-    const windowDate = new Date(previousHourWindow);
-    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+    const windowDate = new Date(hourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
     const messageCount = countMap.get(mostActiveRoleId) ?? 0;
     const memberCount = mostActiveRole.members.size;
 
     await channel.send(
-        `Most active role for the hour ending at ${hourLabel} ET: **${mostActiveRole.name}** ` +
+        `Most active role for the ${hourLabel} ET hour window: **${mostActiveRole.name}** ` +
         `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
+    );
+}
+
+const allReportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
+    const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
+    if (!featureFlagEnabled)
+        return;
+
+    const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
+    const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
+
+    if (!trackedRoleIdsValue || !channelId) return;
+
+    const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
+    if (trackedRoleIds.length === 0) return;
+
+    const counts = db.getRoleMessageCountsForWindow(guildId, hourWindow);
+    const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
+
+    await guild.members.fetch();
+
+    const activityMap = new Map<string, { memberCount: number, messageCount: number, activityRatio: number, roleName: string }>();
+
+    for (const roleId of trackedRoleIds) {
+        const role = guild.roles.cache.get(roleId);
+        if (!role) continue;
+
+        const memberCount = role.members.size;
+        if (memberCount === 0) continue;
+
+        const messageCount = countMap.get(roleId) ?? 0;
+        const activity = messageCount / memberCount;
+
+        activityMap.set(roleId, {
+            memberCount: memberCount,
+            messageCount: messageCount,
+            activityRatio: activity,
+            roleName: role.name
+        });
+    }
+
+    const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
+    if (!channel) return;
+
+    const windowDate = new Date(hourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+
+    const sorted = [...activityMap.entries()].sort((a, b) => b[1].activityRatio - a[1].activityRatio);
+
+    const lines = sorted.map(([, { roleName, messageCount, memberCount, activityRatio }]) =>
+        `**${roleName}**: ${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} members => ${activityRatio.toFixed(2)} activity ratio`
+    );
+
+    await channel.send(
+        `Role activity for the ${hourLabel} ET hour window:\n${blockQuote(lines.join('\n'))}`
     );
 }
 
@@ -105,6 +160,13 @@ export const runRoleActivityHourlyJob = async (client: Client, guildId?: string 
             await reportActivityForServer(guildId, guild, getPreviousHourWindow());
         }
     }
+}
+
+export const allRoleActivity = async (client: Client, guildId: string) => {
+    const guild = await client.guilds.fetch({
+        guild: guildId
+    });
+    await allReportActivityForServer(guildId, guild, getHourWindow(new Date()))
 }
 
 export function scheduleRoleActivityHourlyJob(client: Client) {
