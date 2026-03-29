@@ -1,7 +1,6 @@
 import { OmitPartialGroupDMChannel, Message } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { handleMute } from "../../features/spank/mute.js";
-import { CommandPrefix } from "./index.js";
+import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
+import { handleSpank } from "../../features/spank/spank.js";
 
 const getCommand = (commandKey: string) => <IPrefixCommand>{
     handler: async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
@@ -9,7 +8,7 @@ const getCommand = (commandKey: string) => <IPrefixCommand>{
             return;
 
         const commandBody = message.content.slice(commandKey.length + CommandPrefix.length).trim();
-        await handleMute(commandBody, message, commandKey);
+        await handleSpank(commandBody, message);
     },
     key: commandKey
 };

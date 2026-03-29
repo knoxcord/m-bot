@@ -40,6 +40,15 @@ class DatabaseManager {
                 Award TEXT,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS Configuration (
+                GuildId TEXT NOT NULL,
+                Key TEXT NOT NULL,
+                Value TEXT NOT NULL,
+                SetByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (GuildId, Key)
+            );
         `)
     }
 
@@ -109,6 +118,33 @@ class DatabaseManager {
             SELECT Award, CreatedAt FROM Awards WHERE UserId = ? AND GuildId = ? ORDER BY CreatedAt DESC LIMIT ?;
         `);
         const result = statement.all(userId, guildId) as { Award: string, CreatedAt: string }[] | undefined;
+        return result ? result : null;
+    }
+
+    /** This should only be accessed by the configuration class */
+    setConfigurationValue(guildId: string, key: string, value: string, userId: string) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO Configuration (GuildId, Key, Value, SetByUserId)
+            VALUES (?, ?, ?, ?)
+        `)
+        return statement.run(guildId, key, value, userId);
+    }
+
+    /** This should only be accessed by the configuration class */
+    getConfigurationValue(guildId: string, key: string) {
+        const statement = this.db.prepare(`
+            SELECT Value FROM Configuration WHERE GuildId = ? AND Key = ?
+        `)
+        const result = statement.get(guildId, key) as { Value: string } | undefined;
+        return result ? result.Value : null;
+    }
+
+    /** This should only be accessed by the configuration class */
+    getAllConfigurationValues() {
+        const statement = this.db.prepare(`
+            SELECT GuildId, Key, Value FROM Configuration
+        `)
+        const result = statement.all() as { GuildId: string, Key: string, Value: string }[] | undefined;
         return result ? result : null;
     }
 }

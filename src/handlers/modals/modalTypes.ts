@@ -10,5 +10,5 @@ export interface IModal{
     /** This is the handler function to be called upon modal submit for matching custom id */
     handler: (interaction: ModalSubmitInteraction) => Promise<unknown>
     /** builder function to use to create the modal */
-    builder: () => ModalBuilder
+    builder: () => ModalBuilder,
 }

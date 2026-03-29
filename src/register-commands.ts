@@ -1,14 +1,23 @@
-import { REST, Routes, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import { REST, Routes, SharedSlashCommand } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { slashCommands } from './handlers/slashCommands/index.js';
+import { ConfigurationCommandKey } from './configuration/configurationTypes.js';
+import { getConfigurationCommandBuilder } from './configuration/configurationCommandBuilder.js';
+
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(config.token);
 
 // Protect against duplicate registrations. We could technically do this, but would need to update handler logic and also handle deduping stuff like descriptions
-const toRegister: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder [] = [];
+const toRegister: SharedSlashCommand [] = [];
 const loadedCommandNames: string[] = [];
-slashCommands.forEach(command => {
+
+// The configuration slash command is defined seperately because it accesses other slash commands' definitions
+const allSlashCommands = [
+	...slashCommands,
+	{ key: ConfigurationCommandKey, builder: getConfigurationCommandBuilder() }
+];
+allSlashCommands.forEach(command => {
 	if (loadedCommandNames.includes(command.key)) {
 		console.error("Found multiple commands with the same name, this is not supported");
 		process.exit(1);
@@ -21,12 +30,12 @@ slashCommands.forEach(command => {
 // Register commands
 (async () => {
 	try {
-		console.log(`Started refreshing ${toRegister.length} application (/) commands.`);
+		console.info(`Started refreshing ${toRegister.length} application (/) commands.`);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
 		const data: unknown = await rest.put(Routes.applicationCommands(config.clientId), { body: toRegister.map(builder => builder.toJSON()) });
 
-		console.log(`Successfully reloaded ${(data as { length: string | number }).length} application (/) commands.`);
+		console.info(`Successfully reloaded ${(data as { length: string | number }).length} application (/) commands.`);
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);
