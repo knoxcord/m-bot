@@ -4,8 +4,6 @@ import { Spank, Smack, Slap } from "./spank.js"
 import { SpankStats, SmackStats, SlapStats } from "./spankstats.js";
 import { Award } from "./award.js";
 
-export const CommandPrefix = '-';
-
 const prefixCommands = [
     Roll,
     PawaRoll,

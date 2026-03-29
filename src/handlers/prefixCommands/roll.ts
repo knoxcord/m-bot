@@ -2,8 +2,7 @@ import { OmitPartialGroupDMChannel, Message, MessageFlags } from "discord.js";
 import { buildResponse } from "../../features/roll/builders.js";
 import { doRoll } from "../../features/roll/roll.js";
 import { RollSeparator } from "../../features/roll/rollTypes.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { CommandPrefix } from "./index.js";
+import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
 import { parseNotatedRolls } from "../../features/roll/lexer.js";
 
 const Key = CommandKey.Roll

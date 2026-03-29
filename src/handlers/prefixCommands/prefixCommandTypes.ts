@@ -1,5 +1,6 @@
 import { Message, OmitPartialGroupDMChannel } from "discord.js";
-import { ConfigurationRegistration } from "src/configuration/configurationTypes.js";
+
+export const CommandPrefix = '-';
 
 export enum CommandKey {
     Roll = "roll",
@@ -19,6 +20,4 @@ export interface IPrefixCommand
     handler: (message: OmitPartialGroupDMChannel<Message<boolean>>) => Promise<unknown>,
     /** This is used to identify incoming prefix commands. Matches will have their {@link IPrefixCommand.handler handler} invoked */
     key: CommandKey,
-    /** This contains configuration registrations for prefix command handlers */
-    configurationRegistrations?: ConfigurationRegistration[];
 }

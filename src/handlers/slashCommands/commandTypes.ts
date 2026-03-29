@@ -1,5 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
-import { ConfigurationRegistration } from "src/configuration/configurationTypes.js";
+import { ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
 
 export enum CommandKey {
     Ping = "ping",
@@ -11,11 +10,9 @@ export enum CommandKey {
 export interface ISlashCommand
 {
     /** Builder function to register the command */
-    builder: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder,
+    builder: SharedSlashCommand,
     /** Handler function to be executed when the command is invoked */
     handler: (interaction: ChatInputCommandInteraction) => Promise<unknown>,
     /** This is used to identify incoming slash commands. Matches will have their {@link ISlashCommand.handler handler} invoked */
     key: CommandKey
-    /** This contains configuration registrations for slash command handlers */
-    configurationRegistrations?: ConfigurationRegistration[];
 }

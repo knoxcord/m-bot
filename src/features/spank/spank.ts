@@ -2,7 +2,7 @@ import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import db from "../../database/db.js";
 import configuration from "../../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { ConfigurationRegistration } from "src/configuration/configurationTypes.js";
+import { MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -10,20 +10,10 @@ const enum SnowflakeRegexCapturingGroups {
     Reason = "reason"
 };
 
-// Setup feature config
-const MutedRoleIdConfigurationKey = 'MUTED_ROLE_ID';
-const MutedDurationSecondsConfigurationKey = 'MUTED_DURATION_SECONDS';
-const RoleIdsThatCanMuteConfigurationKey = 'ROLE_IDS_THAT_CAN_MUTE';
-export const muteConfigurationRegistrations = <ConfigurationRegistration[]>[
-    ['Muted Role Id', MutedRoleIdConfigurationKey],
-    ['Muted Duration Seconds', MutedDurationSecondsConfigurationKey],
-    ['Role Ids That Can Mute', RoleIdsThatCanMuteConfigurationKey],
-];
-
 const removeRole = (roleId: string, user: GuildMember) =>
     user.roles.remove(roleId);
 
-export const handleMute = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
+export const handleSpank = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
     const regexResult = commandBody.match(SpankRegex)?.groups;
     
     if (!regexResult) {
@@ -99,8 +89,6 @@ export const handleMute = async (commandBody: string, message: OmitPartialGroupD
         return;
     }
 
-    const temp = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10);
-    console.log(temp);
     const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
     await message.reply(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
