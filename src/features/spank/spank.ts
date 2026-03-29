@@ -1,6 +1,6 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import db from "../../database/db.js";
-import configuration from "../../configuration/configuration.js";
+import configuration from "../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 import { MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
 

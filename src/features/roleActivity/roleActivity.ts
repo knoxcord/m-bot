@@ -1,7 +1,8 @@
-import { Client, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
-import configuration from "../../configuration/configuration.js";
+import { Client, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
+import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";
-import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey } from "./config.js";
+import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag } from "./config.js";
+import featureFlags from "../featureFlags/featureFlags.js";
 
 function getHourWindow(date: Date): string {
     const d = new Date(date);
@@ -15,8 +16,12 @@ function getPreviousHourWindow(): string {
     return now.toISOString();
 }
 
-export async function handleRoleActivityMessage(message: OmitPartialGroupDMChannel<Message<boolean>>) {
+export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
     if (!message.guildId || !message.member) return;
+
+    const featureFlagEnabled = featureFlags.getFeatureFlag(message.guildId, RoleActivityFeatureFlag);
+    if (!featureFlagEnabled)
+        return;
 
     const trackedRoleIdsValue = configuration.getConfigurationValue(message.guildId, TrackedRoleIdsConfigurationKey);
     if (!trackedRoleIdsValue) return;
@@ -33,59 +38,72 @@ export async function handleRoleActivityMessage(message: OmitPartialGroupDMChann
     }
 }
 
-export async function runRoleActivityHourlyJob(client: Client) {
-    const previousHourWindow = getPreviousHourWindow();
+const reportActivityForServer = async (guildId: string, guild: Guild, previousHourWindow: string) => {
+    const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
+    if (!featureFlagEnabled)
+        return;
 
-    for (const [guildId, guild] of client.guilds.cache) {
-        const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
-        const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
+    const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
+    const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
 
-        if (!trackedRoleIdsValue || !channelId) continue;
+    if (!trackedRoleIdsValue || !channelId) return;
 
-        const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
-        if (trackedRoleIds.length === 0) continue;
+    const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
+    if (trackedRoleIds.length === 0) return;
 
-        const counts = db.getRoleMessageCountsForWindow(guildId, previousHourWindow);
-        const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
+    const counts = db.getRoleMessageCountsForWindow(guildId, previousHourWindow);
+    const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
 
-        await guild.members.fetch();
+    await guild.members.fetch();
 
-        let mostActiveRoleId: string | null = null;
-        let highestActivity = -1;
+    let mostActiveRoleId: string | null = null;
+    let highestActivity = -1;
 
-        for (const roleId of trackedRoleIds) {
-            const role = guild.roles.cache.get(roleId);
-            if (!role) continue;
+    for (const roleId of trackedRoleIds) {
+        const role = guild.roles.cache.get(roleId);
+        if (!role) continue;
 
-            const memberCount = role.members.size;
-            if (memberCount === 0) continue;
+        const memberCount = role.members.size;
+        if (memberCount === 0) continue;
 
-            const messageCount = countMap.get(roleId) ?? 0;
-            const activity = messageCount / memberCount;
+        const messageCount = countMap.get(roleId) ?? 0;
+        const activity = messageCount / memberCount;
 
-            if (activity > highestActivity) {
-                highestActivity = activity;
-                mostActiveRoleId = roleId;
-            }
+        if (activity > highestActivity) {
+            highestActivity = activity;
+            mostActiveRoleId = roleId;
         }
+    }
 
-        if (!mostActiveRoleId) continue;
+    if (!mostActiveRoleId) return;
 
-        const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
-        if (!mostActiveRole) continue;
+    const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
+    if (!mostActiveRole) return;
 
-        const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
-        if (!channel) continue;
+    const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
+    if (!channel) return;
 
-        const windowDate = new Date(previousHourWindow);
-        const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'UTC' });
-        const messageCount = countMap.get(mostActiveRoleId) ?? 0;
-        const memberCount = mostActiveRole.members.size;
+    const windowDate = new Date(previousHourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+    const messageCount = countMap.get(mostActiveRoleId) ?? 0;
+    const memberCount = mostActiveRole.members.size;
 
-        await channel.send(
-            `Most active role for the hour ending at ${hourLabel} UTC: **${mostActiveRole.name}** ` +
-            `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
-        );
+    await channel.send(
+        `Most active role for the hour ending at ${hourLabel} ET: **${mostActiveRole.name}** ` +
+        `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
+    );
+}
+
+export const runRoleActivityHourlyJob = async (client: Client, guildId?: string | null) => {
+    if (guildId) {
+        const guild = await client.guilds.fetch({
+            guild: guildId
+        });
+        await reportActivityForServer(guildId, guild, getHourWindow(new Date()))
+    } else {
+        for (const [guildId, guild] of client.guilds.cache) {
+            await reportActivityForServer(guildId, guild, getPreviousHourWindow());
+        }
     }
 }
 

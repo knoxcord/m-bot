@@ -12,6 +12,7 @@ export enum CommandKey {
     Spank = "spank",
     SpankStats = "spankstats",
     Award = "award",
+    RoleActivity = "roleactivity",
 }
 
 export interface IPrefixCommand

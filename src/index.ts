@@ -5,8 +5,6 @@ import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands } from './handlers/prefixCommands/index.js';
 import { CommandPrefix } from './handlers/prefixCommands/prefixCommandTypes.js';
-import { configurationCommandHandler } from './configuration/configurationCommandHandler.js';
-import { ConfigurationCommandKey } from './configuration/configurationTypes.js';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
 
 const client = new Client({ intents: [
@@ -21,10 +19,9 @@ client.once(Events.ClientReady, (readyClient) => {
 	scheduleRoleActivityHourlyJob(readyClient);
 });
 
-const slashCommandLookup = Object.fromEntries([
-	...slashCommands.map(command => [command.key, command.handler]),
-    [ConfigurationCommandKey, configurationCommandHandler],
-]);
+const slashCommandLookup = Object.fromEntries(
+	slashCommands.map(command => [command.key, command.handler]),
+);
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const commandHandler = slashCommandLookup[interaction.commandName];
 

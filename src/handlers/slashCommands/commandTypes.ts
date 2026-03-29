@@ -6,6 +6,7 @@ export enum CommandKey {
     Roll = "roll",
     Configure = "configure",
     Version = "version",
+    Feature = "feature",
 }
 
 export interface ISlashCommand

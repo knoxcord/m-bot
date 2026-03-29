@@ -57,6 +57,15 @@ class DatabaseManager {
                 Count INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (GuildId, RoleId, HourWindow)
             );
+
+            CREATE TABLE IF NOT EXISTS FeatureFlags (
+                GuildId TEXT NOT NULL,
+                Key TEXT NOT NULL,
+                Enabled INTEGER NOT NULL DEFAULT 0,
+                SetByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (GuildId, Key)
+            );
         `)
     }
 
@@ -161,6 +170,33 @@ class DatabaseManager {
         `)
         const result = statement.get(guildId, key) as { Value: string } | undefined;
         return result ? result.Value : null;
+    }
+
+    /** This should only be accessed by the feature flags class */
+    setFeatureFlag(guildId: string, key: string, enabled: boolean, userId: string) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO FeatureFlags (GuildId, Key, Enabled, SetByUserId)
+            VALUES (?, ?, ?, ?)
+        `)
+        return statement.run(guildId, key, enabled ? 1 : 0, userId);
+    }
+
+    /** This should only be accessed by the feature flags class */
+    getFeatureFlag(guildId: string, key: string) {
+        const statement = this.db.prepare(`
+            SELECT Enabled FROM FeatureFlags WHERE GuildId = ? AND Key = ?
+        `)
+        const result = statement.get(guildId, key) as { Enabled: number } | undefined;
+        return result ? result.Enabled === 1 : null;
+    }
+
+    /** This should only be accessed by the feature flags class */
+    getAllFeatureFlags() {
+        const statement = this.db.prepare(`
+            SELECT GuildId, Key, Enabled FROM FeatureFlags
+        `)
+        const result = statement.all() as { GuildId: string, Key: string, Enabled: number }[] | undefined;
+        return result ? result : null;
     }
 
     /** This should only be accessed by the configuration class */
