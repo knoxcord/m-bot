@@ -48,13 +48,13 @@ export const awardHandler = async (message: OmitPartialGroupDMChannel<Message<bo
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanAwardConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    const roleIdsThatCanAward = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanAwardConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanAward.length < 1) {
+        console.warn(`Found empty roleIdsThatCanAward config for guildId ${message.guildId}`);
         return;
     }
 
-    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
+    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanAward)) {
         await message.reply("Ooph. This must be embarassing for you");
         return;
     }
