@@ -3,7 +3,7 @@ import { FieldId, PullType, ICard } from "../../features/tarot/types.js";
 import { deck } from "../../features/tarot/deck.js";
 import db from "../../database/db.js";
 import { getKey } from "../../features/tarot/helpers.js";
-import { buildTarotActionRow, buildTarotDisplay, buildTarotModal } from "../../features/tarot/builders.js";
+import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.js";
 import { IModal, ModalCustomId } from "./modalTypes.js";
 
 const PullTypeMap: Record<PullType, number> = {
@@ -93,6 +93,5 @@ export const handleTarotModalSubmit = async (interaction: ModalSubmitInteraction
 
 export const Tarot: IModal = {
     customId: ModalCustomId.Tarot,
-    builder: buildTarotModal,
     handler: handleTarotModalSubmit
 }

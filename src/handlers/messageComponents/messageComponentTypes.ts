@@ -1,8 +1,11 @@
 import { MessageComponentInteraction } from "discord.js";
 import { TarotCustomIdKey } from "../../features/tarot/types.js";
 
+export const RoleAddCustomIdKey = "roleAdd";
+
 export enum MessageComponentCustomIdPrefix {
-    Tarot = TarotCustomIdKey
+    Tarot = TarotCustomIdKey,
+    RoleAdd = RoleAddCustomIdKey
 }
 
 export interface IMessageComponent {

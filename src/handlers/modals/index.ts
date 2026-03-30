@@ -1,7 +1,9 @@
+import { RoleAdd } from "./roleAdd.js";
 import { Tarot } from "./tarot.js";
 
 const modals = [
-    Tarot
+    Tarot,
+    RoleAdd
 ];
 
 export {
