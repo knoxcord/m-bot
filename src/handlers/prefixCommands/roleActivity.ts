@@ -1,11 +1,14 @@
 import { OmitPartialGroupDMChannel, Message } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { runRoleActivityHourlyJob } from "../../features/roleActivity/roleActivity.js";
+import { reportActivityForServer, getHourWindowForDate } from "../../features/roleActivity/roleActivity.js";
 
 const Key = CommandKey.RoleActivity
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    await runRoleActivityHourlyJob(message.client, message.guildId)
+    if (!message.guildId || !message.guild)
+        return;
+
+    await reportActivityForServer(message.guildId, message.guild, getHourWindowForDate(new Date()))
 }
 
 export const RoleActivity: IPrefixCommand = {

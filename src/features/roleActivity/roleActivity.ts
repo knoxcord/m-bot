@@ -4,13 +4,13 @@ import db from "../../database/db.js";
 import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag } from "./config.js";
 import featureFlags from "../featureFlags/featureFlags.js";
 
-function getHourWindow(date: Date): string {
+export const getHourWindowForDate = (date: Date): string => {
     const d = new Date(date);
     d.setMinutes(0, 0, 0);
     return d.toISOString();
 }
 
-function getPreviousHourWindow(): string {
+const getPreviousHourWindow = (): string => {
     const now = new Date();
     now.setHours(now.getHours() - 1, 0, 0, 0);
     return now.toISOString();
@@ -29,7 +29,7 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
     const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
     if (trackedRoleIds.length === 0) return;
 
-    const hourWindow = getHourWindow(message.createdAt);
+    const hourWindow = getHourWindowForDate(message.createdAt);
 
     for (const roleId of trackedRoleIds) {
         if (message.member.roles.cache.has(roleId)) {
@@ -38,11 +38,7 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
     }
 }
 
-const reportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
-    const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
-    if (!featureFlagEnabled)
-        return;
-
+export const reportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
     const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
     const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
 
@@ -95,10 +91,6 @@ const reportActivityForServer = async (guildId: string, guild: Guild, hourWindow
 }
 
 const allReportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
-    const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
-    if (!featureFlagEnabled)
-        return;
-
     const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
     const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
 
@@ -149,16 +141,12 @@ const allReportActivityForServer = async (guildId: string, guild: Guild, hourWin
     );
 }
 
-export const runRoleActivityHourlyJob = async (client: Client, guildId?: string | null) => {
-    if (guildId) {
-        const guild = await client.guilds.fetch({
-            guild: guildId
-        });
-        await reportActivityForServer(guildId, guild, getHourWindow(new Date()))
-    } else {
-        for (const [guildId, guild] of client.guilds.cache) {
-            await reportActivityForServer(guildId, guild, getPreviousHourWindow());
-        }
+export const runRoleActivityHourlyJob = async (client: Client) => {
+    for (const [guildId, guild] of client.guilds.cache) {
+        const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
+        if (!featureFlagEnabled)
+            continue;
+        await reportActivityForServer(guildId, guild, getPreviousHourWindow());
     }
 }
 
@@ -166,7 +154,7 @@ export const allRoleActivity = async (client: Client, guildId: string) => {
     const guild = await client.guilds.fetch({
         guild: guildId
     });
-    await allReportActivityForServer(guildId, guild, getHourWindow(new Date()))
+    await allReportActivityForServer(guildId, guild, getHourWindowForDate(new Date()))
 }
 
 export function scheduleRoleActivityHourlyJob(client: Client) {
