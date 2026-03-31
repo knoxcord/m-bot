@@ -50,7 +50,9 @@ export const reportActivityForServer = async (guildId: string, guild: Guild, hou
     const counts = db.getRoleMessageCountsForWindow(guildId, hourWindow);
     const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
 
-    await guild.members.fetch();
+    if (guild.members.cache.size < guild.memberCount) {
+        await guild.members.fetch();
+    }
 
     let mostActiveRoleId: string | null = null;
     let highestActivity = -1;
@@ -71,7 +73,10 @@ export const reportActivityForServer = async (guildId: string, guild: Guild, hou
         }
     }
 
-    if (!mostActiveRoleId) return;
+    if (!mostActiveRoleId) {
+        console.info("Not reporting role activity due to no activity");
+        return;
+    }
 
     const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
     if (!mostActiveRole) return;
@@ -102,7 +107,9 @@ const allReportActivityForServer = async (guildId: string, guild: Guild, hourWin
     const counts = db.getRoleMessageCountsForWindow(guildId, hourWindow);
     const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
 
-    await guild.members.fetch();
+    if (guild.members.cache.size < guild.memberCount) {
+        await guild.members.fetch();
+    }
 
     const activityMap = new Map<string, { memberCount: number, messageCount: number, activityRatio: number, roleName: string }>();
 
@@ -151,9 +158,8 @@ export const runRoleActivityHourlyJob = async (client: Client) => {
 }
 
 export const allRoleActivity = async (client: Client, guildId: string) => {
-    const guild = await client.guilds.fetch({
-        guild: guildId
-    });
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) return;
     await allReportActivityForServer(guildId, guild, getHourWindowForDate(new Date()))
 }
 
