@@ -1,7 +1,7 @@
-import { blockQuote, Client, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
+import { blockQuote, Client, Constants, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";
-import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag } from "./config.js";
+import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag } from "./config.js";
 import featureFlags from "../featureFlags/featureFlags.js";
 
 export const getHourWindowForDate = (date: Date): string => {
@@ -38,7 +38,66 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
     }
 }
 
-export const reportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
+export const reportAdHocActivityForServer = async (message: OmitPartialGroupDMChannel<Message<boolean>>, hourWindow: string) => {
+    if (!message.guildId || !message.guild)
+        return;
+
+    const trackedRoleIdsValue = configuration.getConfigurationValue(message.guildId, TrackedRoleIdsConfigurationKey);
+    if (!trackedRoleIdsValue) {
+        await message.reply("No roles tracked");
+        return;
+    };
+
+    const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
+    if (trackedRoleIds.length === 0) return;
+
+    const counts = db.getRoleMessageCountsForWindow(message.guildId, hourWindow);
+    const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
+    const guild = message.guild;
+
+    if (guild.members.cache.size < guild.memberCount) {
+        await guild.members.fetch();
+    }
+
+    let mostActiveRoleId: string | null = null;
+    let highestActivity = -1;
+
+    for (const roleId of trackedRoleIds) {
+        const role = guild.roles.cache.get(roleId);
+        if (!role) continue;
+
+        const memberCount = role.members.size;
+        if (memberCount === 0) continue;
+
+        const messageCount = countMap.get(roleId) ?? 0;
+        const activity = messageCount / memberCount;
+
+        if (activity > highestActivity) {
+            highestActivity = activity;
+            mostActiveRoleId = roleId;
+        }
+    }
+
+    const windowDate = new Date(hourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+    if (!mostActiveRoleId) {
+        message.reply(`No activity for the ${hourLabel} ET hour window`);
+        return;
+    }
+
+    const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
+    if (!mostActiveRole) return;
+
+    const messageCount = countMap.get(mostActiveRoleId) ?? 0;
+    const memberCount = mostActiveRole.members.size;
+
+    await message.reply(
+        `Most active role for the ${hourLabel} ET hour window: **${mostActiveRole.name}** ` +
+        `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
+    );
+}
+
+export const reportHourlyActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
     const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
     const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
 
@@ -81,6 +140,26 @@ export const reportActivityForServer = async (guildId: string, guild: Guild, hou
     const mostActiveRole = guild.roles.cache.get(mostActiveRoleId);
     if (!mostActiveRole) return;
 
+    const holographicEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityHolographicFeatureFlag);
+    if (holographicEnabled) {
+        const holographicColors = {
+            primaryColor: Constants.HolographicStyle.Primary,
+            secondaryColor: Constants.HolographicStyle.Secondary,
+            tertiaryColor: Constants.HolographicStyle.Tertiary,
+        };
+
+        for (const roleId of trackedRoleIds) {
+            const role = guild.roles.cache.get(roleId);
+            if (!role) continue;
+
+            if (roleId === mostActiveRoleId) {
+                await role.setColors(holographicColors);
+            } else {
+                await role.setColors({ primaryColor: "#FFFFFF" });
+            }
+        }
+    }
+
     const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
     if (!channel) return;
 
@@ -90,7 +169,7 @@ export const reportActivityForServer = async (guildId: string, guild: Guild, hou
     const memberCount = mostActiveRole.members.size;
 
     await channel.send(
-        `Most active role for the ${hourLabel} ET hour window: **${mostActiveRole.name}** ` +
+        `Team **${mostActiveRole.name}** has won the ${hourLabel} ET hour window! ` +
         `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
     );
 }
@@ -153,7 +232,7 @@ export const runRoleActivityHourlyJob = async (client: Client) => {
         const featureFlagEnabled = featureFlags.getFeatureFlag(guildId, RoleActivityReportingFeatureFlag);
         if (!featureFlagEnabled)
             continue;
-        await reportActivityForServer(guildId, guild, getPreviousHourWindow());
+        await reportHourlyActivityForServer(guildId, guild, getPreviousHourWindow());
     }
 }
 
