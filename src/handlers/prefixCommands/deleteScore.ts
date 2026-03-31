@@ -1,22 +1,15 @@
 import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
 import db from "../../database/db.js";
 import configuration from "../../features/configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { assignRole } from "../../features/autoRole/autoRole.js";
+import { RoleIdsThatCanSetScoreConfigurationKey } from "./setScore.js";
+import config from "../../config.json" with { type: "json" }
 
-const SetScoreRegex = /<?@?(?<userId>\d+)>?\s+(?<score>\d+)/;
-const enum SetScoreRegexCapturingGroups {
+const DeleteScoreRegex = /<?@?(?<userId>\d+)>?/;
+const enum DeleteScoreRegexCapturingGroups {
     UserId = "userId",
-    Score = "score",
 };
-
-export const RoleIdsThatCanSetScoreConfigurationKey = 'ROLE_IDS_THAT_CAN_SET_SCORE';
-
-export const setScoreConfigurationRegistrations = <ConfigurationRegistration[]>[
-    ['Role Ids That Can Set Score', RoleIdsThatCanSetScoreConfigurationKey]
-];
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
     if (!message.inGuild())
@@ -42,23 +35,17 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         return;
     }
 
-    const commandBody = message.content.slice(CommandKey.SetScore.length + CommandPrefix.length).trim();
+    const commandBody = message.content.slice(CommandKey.DeleteScore.length + CommandPrefix.length).trim();
 
-    const regexResult = commandBody.match(SetScoreRegex)?.groups;
+    const regexResult = commandBody.match(DeleteScoreRegex)?.groups;
     if (!regexResult) {
-        await message.channel.send("Invalid format. Usage: `-setscore @user 85`");
+        await message.channel.send("Invalid format. Usage: `-deletescore @user`");
         return;
     }
 
-    const targetUserId = regexResult[SetScoreRegexCapturingGroups.UserId];
+    const targetUserId = regexResult[DeleteScoreRegexCapturingGroups.UserId];
     if (!targetUserId) {
         await message.channel.send("Invalid user");
-        return;
-    }
-
-    const score = parseInt(regexResult[SetScoreRegexCapturingGroups.Score], 10);
-    if (isNaN(score) || score < 0 || score > 100) {
-        await message.channel.send("Score must be a number between 0 and 100");
         return;
     }
 
@@ -71,13 +58,27 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         return;
     }
 
-    db.saveScoreSubmission(message.guildId, targetUserId, score);
-    const newRole = await assignRole(targetUser, score);
-    const roleName = message.guild.roles.cache.get(newRole)?.name ?? newRole;
-    await message.reply(`Score for ${targetUser.user.displayName} set to ${score} and role updated to ${roleName}`);
+    const result = db.deleteScoreSubmission(message.guildId, targetUserId);
+    if (result.changes < 1) {
+        await message.reply(`${targetUser.user.displayName} has no score to delete`);
+        return;
+    }
+
+    // Remove any already assigned roles
+    await Promise.all(
+        [config.monkRoleId, config.normieRoleId, config.performerRoleId]
+            .filter(roleId => targetUser.roles.cache.has(roleId))
+            .map(roleId => targetUser.roles.remove(roleId))
+    );
+
+    // Ensure user has Unsorted role
+    if (!targetUser.roles.cache.has(config.unsortedRoleId))
+        await targetUser.roles.add(config.unsortedRoleId);
+
+    await message.reply(`Score for ${targetUser.user.displayName} has been deleted and Unsorted role applied`);
 };
 
-export const SetScore: IPrefixCommand = {
+export const DeleteScore: IPrefixCommand = {
     handler: handler,
-    key: CommandKey.SetScore,
+    key: CommandKey.DeleteScore,
 };

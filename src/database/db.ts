@@ -177,6 +177,13 @@ class DatabaseManager {
         return statement.get(userId, guildId) as { Score: number, CreatedAt: string };
     }
 
+    deleteScoreSubmission(guildId: string, userId: string) {
+        const statement = this.db.prepare(`
+            DELETE FROM ScoreSubmissions WHERE GuildId = ? AND UserId = ?
+        `);
+        return statement.run(guildId, userId);
+    }
+
     /** This should only be accessed by the configuration class */
     setConfigurationValue(guildId: string, key: string, value: string, userId: string) {
         const statement = this.db.prepare(`

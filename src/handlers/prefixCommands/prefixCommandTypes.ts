@@ -16,6 +16,7 @@ export enum CommandKey {
     AllRoleActivity = "allroleactivity",
     GetScore = "getscore",
     SetScore = "setscore",
+    DeleteScore = "deletescore",
 }
 
 export interface IPrefixCommand

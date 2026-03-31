@@ -2,7 +2,7 @@ import { LabelBuilder, MessageComponentInteraction, MessageFlags, ModalBuilder, 
 import { IMessageComponent, MessageComponentCustomIdPrefix } from "./messageComponentTypes.js";
 import { ModalCustomId } from "../modals/modalTypes.js";
 import db from "../../database/db.js";
-import config from "../../config.json" with { type: "json" }
+import { assignRole } from "../../features/autoRole/autoRole.js";
 
 const RoleAddFieldId = "roleAddNumber";
 
@@ -12,16 +12,7 @@ const handleExisingSubmission = async (interaction: MessageComponentInteraction,
     
     console.info(`Reassigning role to already known userid: ${interaction.user.id} in guildId: ${interaction.guildId}`);
     const authorUser = await interaction.guild?.members.fetch(interaction.user.id);
-
-    if (existingSubmissionScore >= 90) {
-        await authorUser.roles.add(config.MonkRoleId);
-    } else if (existingSubmissionScore >= 80) {
-        await authorUser.roles.add(config.NormieRoleId);
-    } else {
-        await authorUser.roles.add(config.PerformerRoleId);
-    }
-
-    await authorUser.roles.remove(config.UnsortedRoleId);
+    await assignRole(authorUser, existingSubmissionScore)
     await interaction.reply({ content: "Your result is already known. You may now leave this channel.", flags: MessageFlags.Ephemeral })
 }
 
