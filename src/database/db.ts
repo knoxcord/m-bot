@@ -68,11 +68,11 @@ class DatabaseManager {
             );
 
             CREATE TABLE IF NOT EXISTS ScoreSubmissions (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 GuildId TEXT NOT NULL,
                 UserId TEXT NOT NULL,
                 Score INTEGER NOT NULL,
-                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (GuildId, UserId)
             );
         `)
     }
@@ -164,17 +164,17 @@ class DatabaseManager {
 
     saveScoreSubmission(guildId: string, userId: string, score: number) {
         const statement = this.db.prepare(`
-            INSERT INTO ScoreSubmissions (GuildId, UserId, Score)
+            INSERT OR REPLACE INTO ScoreSubmissions (GuildId, UserId, Score)
             VALUES (?, ?, ?)
         `);
         return statement.run(guildId, userId, score);
     }
 
-    getScoreSubmissionsForUser(guildId: string, userId: string) {
+    getScoreSubmissionForUser(guildId: string, userId: string) {
         const statement = this.db.prepare(`
-            SELECT Score, CreatedAt FROM ScoreSubmissions WHERE UserId = ? AND GuildId = ? ORDER BY CreatedAt DESC
+            SELECT Score, CreatedAt FROM ScoreSubmissions WHERE UserId = ? AND GuildId = ?
         `);
-        return statement.all(userId, guildId) as { Score: number, CreatedAt: string }[];
+        return statement.get(userId, guildId) as { Score: number, CreatedAt: string };
     }
 
     /** This should only be accessed by the configuration class */

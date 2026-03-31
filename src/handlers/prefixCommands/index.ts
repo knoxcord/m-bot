@@ -6,6 +6,7 @@ import { Award } from "./award.js";
 import { RoleActivity } from "./roleActivity.js";
 import { AllRoleActivity } from "./allRoleActivity.js";
 import { GetScore } from "./getScore.js";
+import { SetScore } from "./setScore.js";
 
 const prefixCommands = [
     Roll,
@@ -20,6 +21,7 @@ const prefixCommands = [
     RoleActivity,
     AllRoleActivity,
     GetScore,
+    SetScore,
 ] as const;
 
 export {

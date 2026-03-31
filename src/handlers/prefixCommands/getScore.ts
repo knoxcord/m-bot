@@ -10,10 +10,10 @@ const enum GetScoreRegexCapturingGroups {
     UserId = "userId",
 };
 
-const RoleIdsThatCanGetScoreConfigurationGet = 'ROLE_IDS_THAT_CAN_GET_SCORE';
+const RoleIdsThatCanGetScoreConfigurationKey = 'ROLE_IDS_THAT_CAN_GET_SCORE';
 
 export const getScoreConfigurationRegistrations = <ConfigurationRegistration[]>[
-    ['Role Ids That Can Get Score', RoleIdsThatCanGetScoreConfigurationGet]
+    ['Role Ids That Can Get Score', RoleIdsThatCanGetScoreConfigurationKey]
 ];
 
 const padNumber = (num: number) => String(num).padStart(2, "0");
@@ -28,9 +28,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
     if (!message.inGuild())
         return;
 
-    const roleIdsThatCanGetScore = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanGetScoreConfigurationGet)?.split(',') ?? [];
+    const roleIdsThatCanGetScore = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanGetScoreConfigurationKey)?.split(',') ?? [];
     if (roleIdsThatCanGetScore.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+        console.warn(`Found empty roleIdsThatCanGetScore config for guildId ${message.guildId}`);
         return;
     }
 
@@ -71,17 +71,14 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         return;
     }
 
-    const submissions = db.getScoreSubmissionsForUser(message.guildId, targetUserId);
+    const submission = db.getScoreSubmissionForUser(message.guildId, targetUserId);
 
-    if (!submissions || submissions.length === 0) {
-        await message.reply(`${targetUser.user.displayName} has no score submissions`);
+    if (!submission) {
+        await message.reply(`${targetUser.user.displayName} has no score submission`);
         return;
     }
 
-    let reply = `${targetUser.user.displayName} has ${submissions.length} score submission${submissions.length === 1 ? "" : "s"}:`;
-    reply += `\n${submissions.map(getScoreString).join("\n")}`;
-
-    await message.reply(reply);
+    await message.reply(getScoreString(submission));
 };
 
 export const GetScore: IPrefixCommand = {
