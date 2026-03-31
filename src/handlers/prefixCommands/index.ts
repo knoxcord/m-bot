@@ -5,6 +5,7 @@ import { SpankStats, SmackStats, SlapStats } from "./spankstats.js";
 import { Award } from "./award.js";
 import { RoleActivity } from "./roleActivity.js";
 import { AllRoleActivity } from "./allRoleActivity.js";
+import { GetScore } from "./getScore.js";
 
 const prefixCommands = [
     Roll,
@@ -18,6 +19,7 @@ const prefixCommands = [
     Award,
     RoleActivity,
     AllRoleActivity,
+    GetScore,
 ] as const;
 
 export {

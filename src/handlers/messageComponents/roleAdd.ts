@@ -7,13 +7,13 @@ const RoleAddFieldId = "roleAddNumber";
 const handler = async (interaction: MessageComponentInteraction) => {
     const modal = new ModalBuilder()
         .setCustomId(ModalCustomId.RoleAdd)
-        .setTitle("Submit Score")
+        .setTitle("Submit Result")
         .addTextDisplayComponents(
-            builder => builder.setContent("You will only be able to do this once, so be honest.")
+            builder => builder.setContent("You will only be able to submit once, so be honest.")
         )
         .addLabelComponents(
             new LabelBuilder()
-                .setLabel("Enter your numeric score here:")
+                .setLabel("Enter your numeric result here:")
                 .setTextInputComponent(
                     new TextInputBuilder()
                         .setCustomId(RoleAddFieldId)

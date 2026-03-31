@@ -66,6 +66,14 @@ class DatabaseManager {
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (GuildId, Key)
             );
+
+            CREATE TABLE IF NOT EXISTS ScoreSubmissions (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                GuildId TEXT NOT NULL,
+                UserId TEXT NOT NULL,
+                Score INTEGER NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         `)
     }
 
@@ -152,6 +160,21 @@ class DatabaseManager {
             SELECT RoleId, Count FROM RoleMessageCounts WHERE GuildId = ? AND HourWindow = ?
         `);
         return statement.all(guildId, hourWindow) as { RoleId: string, Count: number }[];
+    }
+
+    saveScoreSubmission(guildId: string, userId: string, score: number) {
+        const statement = this.db.prepare(`
+            INSERT INTO ScoreSubmissions (GuildId, UserId, Score)
+            VALUES (?, ?, ?)
+        `);
+        return statement.run(guildId, userId, score);
+    }
+
+    getScoreSubmissionsForUser(guildId: string, userId: string) {
+        const statement = this.db.prepare(`
+            SELECT Score, CreatedAt FROM ScoreSubmissions WHERE UserId = ? AND GuildId = ? ORDER BY CreatedAt DESC
+        `);
+        return statement.all(userId, guildId) as { Score: number, CreatedAt: string }[];
     }
 
     /** This should only be accessed by the configuration class */

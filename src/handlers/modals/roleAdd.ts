@@ -1,6 +1,8 @@
 import { MessageFlags, ModalSubmitInteraction } from "discord.js";
 import { IModal, ModalCustomId } from "./modalTypes.js";
 import { RoleAddFieldId } from "../messageComponents/roleAdd.js";
+import database from "../../database/db.js";
+import config from "../../config.json" with { type: "json" }
 
 const handler = async (interaction: ModalSubmitInteraction) => {
     if (!interaction.guild)
@@ -14,14 +16,19 @@ const handler = async (interaction: ModalSubmitInteraction) => {
         return;
     }
 
+    database.saveScoreSubmission(interaction.guild.id, interaction.user.id, parsed);
+
     const authorUser = await interaction.guild.members.fetch(interaction.user.id);
-    if (parsed >= 80 && parsed < 90) {
-        authorUser.roles.add('1487906985855942656');
-    } else if (parsed >= 60 && parsed < 70) {
-        authorUser.roles.add('1487907079149584476');
+    if (parsed >= 90) {
+        await authorUser.roles.add(config.MonkRoleId);
+    } else if (parsed >= 80) {
+        await authorUser.roles.add(config.NormieRoleId);
+    } else {
+        await authorUser.roles.add(config.PerformerRoleId);
     }
 
-    await interaction.reply({ content: `You entered: ${parsed}`, flags: MessageFlags.Ephemeral });
+    await authorUser.roles.remove(config.UnsortedRoleId);
+    await interaction.reply({ content: "Result accepted. You may now leave this channel.", flags: MessageFlags.Ephemeral });
 };
 
 export const RoleAdd: IModal = {
