@@ -11,6 +11,7 @@ const handleExisingSubmission = async (interaction: MessageComponentInteraction,
     console.info(`Reassigning preset role to userid: ${interaction.user.id} in guildId: ${interaction.guildId}`);
     const authorUser = await interaction.guild?.members.fetch(interaction.user.id);
     const newRole = await assignRole(authorUser, existingSubmissionScore)
+    await authorUser.roles.remove(config.presetRoleId);
     await sendWelcomeMessage(authorUser, newRole, interaction.guild);
     await interaction.reply({ content: `Excellent. You may now close this channel`, flags: MessageFlags.Ephemeral });
 }
