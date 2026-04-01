@@ -75,7 +75,7 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
 
     const globalMutableChannelId = configuration.getConfigurationValue(message.guildId, GlobalMutableChannelId);
     const isGlobalMutableChannel = globalMutableChannelId ? message.channelId === globalMutableChannelId : true;
-    if (!isGlobalMutableChannel) {
+    if (!authorCanMute && !isGlobalMutableChannel) {
         await message.reply("You can't do that here");
         return;
     }
