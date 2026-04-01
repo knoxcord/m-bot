@@ -66,7 +66,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
 
     // Remove any already assigned roles
     await Promise.all(
-        [config.monkRoleId, config.normieRoleId, config.performerRoleId]
+        [config.monkRoleId, config.normieRoleId, config.performerRoleId, config.presetRoleId]
             .filter(roleId => targetUser.roles.cache.has(roleId))
             .map(roleId => targetUser.roles.remove(roleId))
     );

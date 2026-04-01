@@ -5,6 +5,7 @@ import db from "../../database/db.js";
 import configuration from "../../features/configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 import { assignRole } from "../../features/autoRole/autoRole.js";
+import config from "../../config.json" with { type: "json" }
 
 const SetScoreRegex = /<?@?(?<userId>\d+)>?\s+(?<score>\d+)/;
 const enum SetScoreRegexCapturingGroups {
@@ -18,7 +19,7 @@ export const setScoreConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Role Ids That Can Set Score', RoleIdsThatCanSetScoreConfigurationKey]
 ];
 
-const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, isPreset: boolean = false) => {
     if (!message.inGuild())
         return;
 
@@ -72,12 +73,23 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
     }
 
     db.saveScoreSubmission(message.guildId, targetUserId, score);
-    const newRole = await assignRole(targetUser, score);
-    const roleName = message.guild.roles.cache.get(newRole)?.name ?? newRole;
-    await message.reply(`Score for ${targetUser.user.displayName} set to ${score} and role updated to ${roleName}`);
+    if (isPreset) {
+        targetUser.roles.remove(config.unsortedRoleId);
+        targetUser.roles.add(config.presetRoleId);
+        await message.reply(`Score for ${targetUser.user.displayName} set to ${score} and role updated to Preset`);
+    } else {
+        const newRole = await assignRole(targetUser, score);
+        const roleName = message.guild.roles.cache.get(newRole)?.name ?? newRole;
+        await message.reply(`Score for ${targetUser.user.displayName} set to ${score} and role updated to ${roleName}`);
+    };
 };
 
 export const SetScore: IPrefixCommand = {
     handler: handler,
     key: CommandKey.SetScore,
+};
+
+export const PresetScore: IPrefixCommand = {
+    handler: (message) => handler(message, true),
+    key: CommandKey.PresetScore,
 };

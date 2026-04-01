@@ -1,8 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, hyperlink, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import { RoleAddCustomIdKey } from "../messageComponents/messageComponentTypes.js";
+import { PresetRoleCustomIdKey } from "../messageComponents/messageComponentTypes.js";
 
-const Key = CommandKey.SetupRoleAddMessage;
+const Key = CommandKey.SetupPresetRoleMessage;
 const Description = "Posts a Submit Role message with a button to a specified channel";
 
 const builder = new SlashCommandBuilder()
@@ -28,20 +28,20 @@ const handler = async (interaction: ChatInputCommandInteraction) => {
 
     const actionRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
         new ButtonBuilder()
-            .setCustomId(RoleAddCustomIdKey)
-            .setLabel("Submit Result")
+            .setCustomId(PresetRoleCustomIdKey)
+            .setLabel("I Accept")
             .setStyle(ButtonStyle.Primary)
     );
 
     await targetChannel.send({
-        content: `Take ${hyperlink("this quiz", "https://www.performativepuritytest.com/")} then click the button below to submit your result`,
+        content: `Welcome. Your fate is known. Click below to get started.`,
         components: [actionRow]
     });
 
-    await interaction.reply({ content: `Submit Result message posted to <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: `Preset Result message posted to <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
 };
 
-export const SetupRoleAddMessage: ISlashCommand = {
+export const SetupPresetRoleMessage: ISlashCommand = {
     builder: builder,
     handler: handler,
     key: Key

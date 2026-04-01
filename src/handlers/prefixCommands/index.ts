@@ -6,7 +6,7 @@ import { Award } from "./award.js";
 import { RoleActivity } from "./roleActivity.js";
 import { AllRoleActivity } from "./allRoleActivity.js";
 import { GetScore } from "./getScore.js";
-import { SetScore } from "./setScore.js";
+import { SetScore, PresetScore } from "./setScore.js";
 import { DeleteScore } from "./deleteScore.js";
 
 const prefixCommands = [
@@ -23,6 +23,7 @@ const prefixCommands = [
     AllRoleActivity,
     GetScore,
     SetScore,
+    PresetScore,
     DeleteScore,
 ] as const;
 
