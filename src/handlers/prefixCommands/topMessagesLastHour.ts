@@ -1,12 +1,35 @@
-import { OmitPartialGroupDMChannel, Message, userMention, blockQuote } from "discord.js";
+import { OmitPartialGroupDMChannel, Message, userMention, blockQuote, GuildMember } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { getPreviousHourWindow } from "../../features/roleActivity/roleActivity.js";
 import db from "../../database/db.js";
+import configuration from "../../features/configuration/configuration.js";
+import { getMissingPermissionResponse } from "../../shared/responses.js";
+import { RoleIdsThatCanGetScoreConfigurationKey } from "./getScore.js";
 
 const Key = CommandKey.TopMessagesLastHour;
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    if (!message.guildId) return;
+    if (!message.guildId || !message.guild) return;
+
+    const roleIdsThatCanGetScore = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanGetScoreConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanGetScore.length < 1) {
+        console.warn(`Found empty roleIdsThatCanGetScore config for guildId ${message.guildId}`);
+        return;
+    }
+
+    let authorUser: GuildMember;
+    try {
+        authorUser = await message.guild.members.fetch(message.author.id);
+    } catch (error) {
+        console.warn(`Failed to fetch authorUser for id: ${message.author.id} with error ${error}`);
+        await message.reply("Sorry, I'm not sure who you are... How strange...");
+        return;
+    }
+
+    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanGetScore)) {
+        await message.reply(getMissingPermissionResponse());
+        return;
+    }
 
     const hourWindow = getPreviousHourWindow();
     const topUsers = db.getTopUsersForWindow(message.guildId, hourWindow);

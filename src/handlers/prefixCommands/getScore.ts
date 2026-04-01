@@ -10,7 +10,7 @@ const enum GetScoreRegexCapturingGroups {
     UserId = "userId",
 };
 
-const RoleIdsThatCanGetScoreConfigurationKey = 'ROLE_IDS_THAT_CAN_GET_SCORE';
+export const RoleIdsThatCanGetScoreConfigurationKey = 'ROLE_IDS_THAT_CAN_GET_SCORE';
 
 export const getScoreConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Role Ids That Can Get Score', RoleIdsThatCanGetScoreConfigurationKey]
