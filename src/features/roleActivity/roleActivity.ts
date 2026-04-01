@@ -250,7 +250,7 @@ export function scheduleRoleActivityHourlyJob(client: Client) {
         now.getMilliseconds();
 
     setTimeout(() => {
-        runRoleActivityHourlyJob(client);
-        setInterval(() => runRoleActivityHourlyJob(client), 60 * 60 * 1000);
+        runRoleActivityHourlyJob(client).catch(error => console.error('Error running role activity hourly job:', error));
+        setInterval(() => runRoleActivityHourlyJob(client).catch(error => console.error('Error running role activity hourly job:', error)), 60 * 60 * 1000);
     }, msUntilNextHour);
 }
