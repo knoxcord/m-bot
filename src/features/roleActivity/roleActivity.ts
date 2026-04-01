@@ -36,7 +36,7 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
             continue;
         db.incrementRoleMessageCount(message.guildId, roleId, hourWindow);
 
-        const trackActivityByUserValue = configuration.getConfigurationValue(message.guildId, ActivityByUserFeatureFlag);
+        const trackActivityByUserValue = featureFlags.getFeatureFlag(message.guildId, ActivityByUserFeatureFlag);
         if (trackActivityByUserValue)
             db.incrementUserRoleMessageCount(message.guildId, roleId, message.author.id, hourWindow);
     }
