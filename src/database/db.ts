@@ -192,12 +192,12 @@ class DatabaseManager {
 
     getTopUsersForWindow(guildId: string, hourWindow: string, limit: number = 10) {
         const statement = this.db.prepare(`
-            SELECT UserId, Count FROM UserRoleMessageCounts
+            SELECT UserId, RoleId, Count FROM UserRoleMessageCounts
             WHERE GuildId = ? AND HourWindow = ?
             ORDER BY Count DESC
             LIMIT ?
         `);
-        return statement.all(guildId, hourWindow, limit) as { UserId: string, Count: number }[];
+        return statement.all(guildId, hourWindow, limit) as { UserId: string, RoleId: string, Count: number }[];
     }
 
     saveScoreSubmission(guildId: string, userId: string, score: number) {

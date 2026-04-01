@@ -40,7 +40,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
     }
 
     const lines = topUsers.map((user, i) =>
-        `${i + 1}. ${userMention(user.UserId)} — ${user.Count} message${user.Count !== 1 ? 's' : ''}`
+        `${i + 1}. ${userMention(user.UserId)} (${message.guild?.roles.cache.get(user.RoleId)?.name ?? user.RoleId}) — ${user.Count} message${user.Count !== 1 ? 's' : ''}`
     );
 
     await message.reply(`Top messages this hour:\n${blockQuote(lines.join('\n'))}`);
