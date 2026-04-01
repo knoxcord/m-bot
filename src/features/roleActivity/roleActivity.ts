@@ -1,7 +1,7 @@
-import { blockQuote, Client, Constants, Guild, Message, OmitPartialGroupDMChannel, TextChannel } from "discord.js";
+import { blockQuote, Client, Constants, Guild, Message, OmitPartialGroupDMChannel, TextChannel, userMention } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";
-import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag } from "./config.js";
+import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag, ActivityByUserFeatureFlag, ActivityByUserReportingFeatureFlag } from "./config.js";
 import featureFlags from "../featureFlags/featureFlags.js";
 
 export const getHourWindowForDate = (date: Date): string => {
@@ -32,9 +32,13 @@ export const handleRoleActivityMessage = async (message: OmitPartialGroupDMChann
     const hourWindow = getHourWindowForDate(message.createdAt);
 
     for (const roleId of trackedRoleIds) {
-        if (message.member.roles.cache.has(roleId)) {
-            db.incrementRoleMessageCount(message.guildId, roleId, hourWindow);
-        }
+        if (!message.member.roles.cache.has(roleId))
+            continue;
+        db.incrementRoleMessageCount(message.guildId, roleId, hourWindow);
+
+        const trackActivityByUserValue = configuration.getConfigurationValue(message.guildId, ActivityByUserFeatureFlag);
+        if (trackActivityByUserValue)
+            db.incrementUserRoleMessageCount(message.guildId, roleId, message.author.id, hourWindow);
     }
 }
 
@@ -168,9 +172,19 @@ export const reportHourlyActivityForServer = async (guildId: string, guild: Guil
     const messageCount = countMap.get(mostActiveRoleId) ?? 0;
     const memberCount = mostActiveRole.members.size;
 
+    let mvpLine = '';
+    const activityByUserReportingEnabled = featureFlags.getFeatureFlag(guildId, ActivityByUserReportingFeatureFlag);
+    if (activityByUserReportingEnabled) {
+        const topUser = db.getTopUserForRoleInWindow(guildId, mostActiveRoleId, hourWindow);
+        if (topUser) {
+            mvpLine = `\nMVP: ${userMention(topUser.UserId)} with ${topUser.Count} message${topUser.Count !== 1 ? 's' : ''}`;
+        }
+    }
+
     await channel.send(
         `Team **${mostActiveRole.name}** has won the ${hourLabel} ET hour window! ` +
-        `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})`
+        `(${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} member${memberCount !== 1 ? 's' : ''})` +
+        mvpLine
     );
 }
 

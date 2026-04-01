@@ -58,6 +58,15 @@ class DatabaseManager {
                 PRIMARY KEY (GuildId, RoleId, HourWindow)
             );
 
+            CREATE TABLE IF NOT EXISTS UserRoleMessageCounts (
+                GuildId TEXT NOT NULL,
+                RoleId TEXT NOT NULL,
+                UserId TEXT NOT NULL,
+                HourWindow TEXT NOT NULL,
+                Count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (GuildId, RoleId, UserId, HourWindow)
+            );
+
             CREATE TABLE IF NOT EXISTS FeatureFlags (
                 GuildId TEXT NOT NULL,
                 Key TEXT NOT NULL,
@@ -155,11 +164,30 @@ class DatabaseManager {
         return statement.run(guildId, roleId, hourWindow);
     }
 
+    incrementUserRoleMessageCount(guildId: string, roleId: string, userId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO UserRoleMessageCounts (GuildId, RoleId, UserId, HourWindow, Count)
+            VALUES (?, ?, ?, ?, 1)
+            ON CONFLICT (GuildId, RoleId, UserId, HourWindow) DO UPDATE SET Count = Count + 1
+        `);
+        return statement.run(guildId, roleId, userId, hourWindow);
+    }
+
     getRoleMessageCountsForWindow(guildId: string, hourWindow: string) {
         const statement = this.db.prepare(`
             SELECT RoleId, Count FROM RoleMessageCounts WHERE GuildId = ? AND HourWindow = ?
         `);
         return statement.all(guildId, hourWindow) as { RoleId: string, Count: number }[];
+    }
+
+    getTopUserForRoleInWindow(guildId: string, roleId: string, hourWindow: string) {
+        const statement = this.db.prepare(`
+            SELECT UserId, Count FROM UserRoleMessageCounts
+            WHERE GuildId = ? AND RoleId = ? AND HourWindow = ?
+            ORDER BY Count DESC
+            LIMIT 1
+        `);
+        return statement.get(guildId, roleId, hourWindow) as { UserId: string, Count: number } | undefined;
     }
 
     saveScoreSubmission(guildId: string, userId: string, score: number) {
