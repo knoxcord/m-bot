@@ -43,7 +43,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         `${i + 1}. ${userMention(user.UserId)} (${message.guild?.roles.cache.get(user.RoleId)?.name ?? user.RoleId}) — ${user.Count} message${user.Count !== 1 ? 's' : ''}`
     );
 
-    await message.reply(`Top messages this hour:\n${blockQuote(lines.join('\n'))}`);
+    const windowDate = new Date(hourWindow);
+    const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+    await message.reply(`Top messages for the ${hourLabel} ET hour window:\n${blockQuote(lines.join('\n'))}`);
 }
 
 export const TopMessagesLastHour: IPrefixCommand = {
