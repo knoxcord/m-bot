@@ -10,7 +10,7 @@ export const getHourWindowForDate = (date: Date): string => {
     return d.toISOString();
 }
 
-const getPreviousHourWindow = (): string => {
+export const getPreviousHourWindow = (): string => {
     const now = new Date();
     now.setHours(now.getHours() - 1, 0, 0, 0);
     return now.toISOString();

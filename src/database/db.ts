@@ -190,6 +190,16 @@ class DatabaseManager {
         return statement.get(guildId, roleId, hourWindow) as { UserId: string, Count: number } | undefined;
     }
 
+    getTopUsersForWindow(guildId: string, hourWindow: string, limit: number = 10) {
+        const statement = this.db.prepare(`
+            SELECT UserId, Count FROM UserRoleMessageCounts
+            WHERE GuildId = ? AND HourWindow = ?
+            ORDER BY Count DESC
+            LIMIT ?
+        `);
+        return statement.all(guildId, hourWindow, limit) as { UserId: string, Count: number }[];
+    }
+
     saveScoreSubmission(guildId: string, userId: string, score: number) {
         const statement = this.db.prepare(`
             INSERT OR REPLACE INTO ScoreSubmissions (GuildId, UserId, Score)

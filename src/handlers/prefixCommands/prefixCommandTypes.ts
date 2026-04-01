@@ -18,6 +18,7 @@ export enum CommandKey {
     SetScore = "setscore",
     PresetScore = "presetscore",
     DeleteScore = "deletescore",
+    TopMessagesLastHour = "topmessageslasthour",
 }
 
 export interface IPrefixCommand
