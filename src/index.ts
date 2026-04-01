@@ -51,7 +51,7 @@ const handleMessageComponent = (interaction: MessageComponentInteraction<CacheTy
 	const messageComponentHandler = messageComponentHandlerLookup[interactionCustomIdPrefix];
 
 	if (messageComponentHandler) {
-		messageComponentHandler(interaction).catch(error => console.error(`Error handling message component for "${interaction.customId}":`, error));
+		messageComponentHandler(interaction).catch(error => console.error(`Error handling message component for "${interaction.customId} by user ${interaction.user.id}":`, error));
 		return;
 	}
 

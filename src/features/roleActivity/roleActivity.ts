@@ -1,8 +1,10 @@
-import { blockQuote, Client, Constants, Guild, Message, OmitPartialGroupDMChannel, TextChannel, userMention } from "discord.js";
+import { blockQuote, Client, Constants, Guild, GuildMember, Message, OmitPartialGroupDMChannel, TextChannel, userMention } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";
 import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag, ActivityByUserFeatureFlag, ActivityByUserReportingFeatureFlag } from "./config.js";
 import featureFlags from "../featureFlags/featureFlags.js";
+import { RoleIdsThatCanGetScoreConfigurationKey } from "../../handlers/prefixCommands/getScore.js";
+import { getMissingPermissionResponse } from "../../shared/responses.js";
 
 export const getHourWindowForDate = (date: Date): string => {
     const d = new Date(date);
@@ -188,15 +190,40 @@ export const reportHourlyActivityForServer = async (guildId: string, guild: Guil
     );
 }
 
-const allReportActivityForServer = async (guildId: string, guild: Guild, hourWindow: string) => {
-    const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
-    const channelId = configuration.getConfigurationValue(guildId, RoleActivityChannelIdConfigurationKey);
+export const allRoleActivity = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+    if (!message.guildId || !message.guild)
+        return;
 
-    if (!trackedRoleIdsValue || !channelId) return;
+    const guildId = message.guildId;
+    const guild = message.guild;
+    const trackedRoleIdsValue = configuration.getConfigurationValue(guildId, TrackedRoleIdsConfigurationKey);
+
+    if (!trackedRoleIdsValue) return;
 
     const trackedRoleIds = trackedRoleIdsValue.split(',').map(id => id.trim()).filter(Boolean);
     if (trackedRoleIds.length === 0) return;
 
+    const roleIdsThatCanGetScore = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanGetScoreConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanGetScore.length < 1) {
+        console.warn(`Found empty roleIdsThatCanGetScore config for guildId ${message.guildId}`);
+        return;
+    }
+
+    let authorUser: GuildMember;
+    try {
+        authorUser = await message.guild.members.fetch(message.author.id);
+    } catch (error) {
+        console.warn(`Failed to fetch authorUser for id: ${message.author.id} with error ${error}`);
+        await message.reply("Sorry, I'm not sure who you are... How strange...");
+        return;
+    }
+
+    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanGetScore)) {
+        await message.reply(getMissingPermissionResponse());
+        return;
+    }
+
+    const hourWindow = getPreviousHourWindow();
     const counts = db.getRoleMessageCountsForWindow(guildId, hourWindow);
     const countMap = new Map(counts.map(row => [row.RoleId, row.Count]));
 
@@ -224,9 +251,6 @@ const allReportActivityForServer = async (guildId: string, guild: Guild, hourWin
         });
     }
 
-    const channel = guild.channels.cache.get(channelId) as TextChannel | undefined;
-    if (!channel) return;
-
     const windowDate = new Date(hourWindow);
     const hourLabel = windowDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
 
@@ -236,7 +260,7 @@ const allReportActivityForServer = async (guildId: string, guild: Guild, hourWin
         `**${roleName}**: ${messageCount} message${messageCount !== 1 ? 's' : ''} from ${memberCount} members => ${activityRatio.toFixed(2)} activity ratio`
     );
 
-    await channel.send(
+    await message.reply(
         `Role activity for the ${hourLabel} ET hour window:\n${blockQuote(lines.join('\n'))}`
     );
 }
@@ -248,12 +272,6 @@ export const runRoleActivityHourlyJob = async (client: Client) => {
             continue;
         await reportHourlyActivityForServer(guildId, guild, getPreviousHourWindow());
     }
-}
-
-export const allRoleActivity = async (client: Client, guildId: string) => {
-    const guild = client.guilds.cache.get(guildId);
-    if (!guild) return;
-    await allReportActivityForServer(guildId, guild, getHourWindowForDate(new Date()))
 }
 
 export function scheduleRoleActivityHourlyJob(client: Client) {
