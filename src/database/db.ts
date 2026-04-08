@@ -8,6 +8,27 @@ const __dirname = path.dirname(__filename);
 
 const DbPath = '../../data/sqlite.db';
 
+export interface LocationRow {
+    Id: number;
+    GuildId: string;
+    Name: string;
+    Address: string | null;
+    Description: string | null;
+    Keywords: string | null;
+    Hours: string | null;
+    Url: string | null;
+    AddedByUserId: string;
+    CreatedAt: string;
+}
+
+export interface LocationImageRow {
+    Id: number;
+    LocationId: number;
+    ImageUrl: string;
+    AddedByUserId: string;
+    CreatedAt: string;
+}
+
 class DatabaseManager {
     private db: Database.Database;
 
@@ -82,6 +103,29 @@ class DatabaseManager {
                 Score INTEGER NOT NULL,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (GuildId, UserId)
+            );
+
+            CREATE TABLE IF NOT EXISTS Locations (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                GuildId TEXT NOT NULL,
+                Name TEXT NOT NULL,
+                Address TEXT,
+                Description TEXT,
+                Keywords TEXT,
+                Hours TEXT,
+                Url TEXT,
+                AddedByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (GuildId, Name)
+            );
+
+            CREATE TABLE IF NOT EXISTS LocationImages (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                LocationId INTEGER NOT NULL,
+                ImageUrl TEXT NOT NULL,
+                AddedByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (LocationId) REFERENCES Locations(Id) ON DELETE CASCADE
             );
         `)
     }
@@ -220,6 +264,90 @@ class DatabaseManager {
             DELETE FROM ScoreSubmissions WHERE GuildId = ? AND UserId = ?
         `);
         return statement.run(guildId, userId);
+    }
+
+    // Location methods
+
+    addLocation(guildId: string, name: string, addedByUserId: string, address?: string, description?: string, keywords?: string, hours?: string, url?: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO Locations (GuildId, Name, Address, Description, Keywords, Hours, Url, AddedByUserId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        return statement.run(guildId, name, address ?? null, description ?? null, keywords ?? null, hours ?? null, url ?? null, addedByUserId);
+    }
+
+    getLocation(guildId: string, name: string) {
+        const statement = this.db.prepare(`
+            SELECT * FROM Locations WHERE GuildId = ? AND Name = ?
+        `);
+        return statement.get(guildId, name) as LocationRow | undefined;
+    }
+
+    getAllLocations(guildId: string) {
+        const statement = this.db.prepare(`
+            SELECT * FROM Locations WHERE GuildId = ? ORDER BY Name ASC
+        `);
+        return statement.all(guildId) as LocationRow[];
+    }
+
+    searchLocations(guildId: string, query: string) {
+        const searchTerm = `%${query}%`;
+        const statement = this.db.prepare(`
+            SELECT * FROM Locations WHERE GuildId = ? AND (Name LIKE ? OR Keywords LIKE ? OR Address LIKE ? OR Description LIKE ?)
+            ORDER BY Name ASC
+            LIMIT 25
+        `);
+        return statement.all(guildId, searchTerm, searchTerm, searchTerm, searchTerm) as LocationRow[];
+    }
+
+    updateLocation(guildId: string, currentName: string, name?: string, address?: string | null, description?: string | null, keywords?: string | null, hours?: string | null, url?: string | null) {
+        const location = this.getLocation(guildId, currentName);
+        if (!location) return;
+
+        const statement = this.db.prepare(`
+            UPDATE Locations
+            SET Name = ?, Address = ?, Description = ?, Keywords = ?, Hours = ?, Url = ?
+            WHERE GuildId = ? AND Name = ?
+        `);
+        return statement.run(
+            name ?? location.Name,
+            address !== undefined ? address : location.Address,
+            description !== undefined ? description : location.Description,
+            keywords !== undefined ? keywords : location.Keywords,
+            hours !== undefined ? hours : location.Hours,
+            url !== undefined ? url : location.Url,
+            guildId,
+            currentName
+        );
+    }
+
+    removeLocation(guildId: string, name: string) {
+        const statement = this.db.prepare(`
+            DELETE FROM Locations WHERE GuildId = ? AND Name = ?
+        `);
+        return statement.run(guildId, name);
+    }
+
+    addLocationImage(locationId: number, imageUrl: string, addedByUserId: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO LocationImages (LocationId, ImageUrl, AddedByUserId)
+            VALUES (?, ?, ?)
+        `);
+        return statement.run(locationId, imageUrl, addedByUserId);
+    }
+
+    getLocationImages(locationId: number) {
+        const statement = this.db.prepare(`
+            SELECT * FROM LocationImages WHERE LocationId = ?
+        `);
+        return statement.all(locationId) as LocationImageRow[];
+    }
+
+    removeLocationImage(imageId: number) {
+        const statement = this.db.prepare(`
+            DELETE FROM LocationImages WHERE Id = ?
+        `);
+        return statement.run(imageId);
     }
 
     /** This should only be accessed by the configuration class */

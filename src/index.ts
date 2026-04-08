@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 import config from './config.json' with { type: "json" };
 import { slashCommands } from './handlers/slashCommands/index.js';
 import { modals } from './handlers/modals/index.js';
@@ -21,6 +21,9 @@ client.once(Events.ClientReady, (readyClient) => {
 
 const slashCommandLookup = Object.fromEntries(
 	slashCommands.map(command => [command.key, command.handler]),
+);
+const autocompleteHandlerLookup = Object.fromEntries(
+	slashCommands.filter(command => command.autocompleteHandler).map(command => [command.key, command.autocompleteHandler!]),
 );
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const commandHandler = slashCommandLookup[interaction.commandName];
@@ -58,9 +61,23 @@ const handleMessageComponent = (interaction: MessageComponentInteraction<CacheTy
 	console.warn(`Received message component interaction for custom id "${interaction.customId}" with no matching handler`)
 }
 
+const handleAutocomplete = (interaction: AutocompleteInteraction<CacheType>) => {
+	const autocompleteHandler = autocompleteHandlerLookup[interaction.commandName];
+
+	if (autocompleteHandler) {
+		autocompleteHandler(interaction).catch(error => console.error(`Error handling autocomplete for "${interaction.commandName}":`, error));
+		return;
+	}
+
+	console.warn(`Received autocomplete for command "${interaction.commandName}" with no matching handler`);
+}
+
 client.on(Events.InteractionCreate, (interaction) => {
 	if (interaction.isChatInputCommand()) {
 		handleChatInputCommand(interaction);
+		return;
+	} else if (interaction.isAutocomplete()) {
+		handleAutocomplete(interaction);
 		return;
 	} else if (interaction.isModalSubmit()) {
 		handleModalSubmit(interaction);
