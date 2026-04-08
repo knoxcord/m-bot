@@ -2,7 +2,7 @@ import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import db from "../../database/db.js";
 import configuration from "../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
+import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -64,9 +64,19 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
         console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
         return;
     }
+    const globalMutableRoleId = configuration.getConfigurationValue(message.guildId, GlobalMutableRoleId);
 
-    if (!authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
+    const authorCanMute = authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+    const targetIsGlobalMutable = globalMutableRoleId && targetUser.roles.cache.has(globalMutableRoleId);
+    if (!authorCanMute && !targetIsGlobalMutable) {
         await message.reply(getMissingPermissionResponse());
+        return;
+    }
+
+    const globalMutableChannelId = configuration.getConfigurationValue(message.guildId, GlobalMutableChannelId);
+    const isGlobalMutableChannel = globalMutableChannelId ? message.channelId === globalMutableChannelId : true;
+    if (!authorCanMute && !isGlobalMutableChannel) {
+        await message.reply("You can't do that here");
         return;
     }
 

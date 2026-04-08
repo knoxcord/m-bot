@@ -7,6 +7,8 @@ export enum CommandKey {
     Configure = "configure",
     Version = "version",
     Feature = "feature",
+    SetupRoleAddMessage = "setuproleaddmessage",
+    SetupPresetRoleMessage = "setuppresetrolemessage",
 }
 
 export interface ISlashCommand

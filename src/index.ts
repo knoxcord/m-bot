@@ -38,7 +38,7 @@ const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
 	const modalSubmitHandler = modalSubmitHandlerLookup[interaction.customId];
 
 	if (modalSubmitHandler) {
-		modalSubmitHandler(interaction);
+		modalSubmitHandler(interaction).catch(error => console.error(`Error handling modal submit for "${interaction.customId}":`, error));
 		return;
 	}
 
@@ -51,7 +51,7 @@ const handleMessageComponent = (interaction: MessageComponentInteraction<CacheTy
 	const messageComponentHandler = messageComponentHandlerLookup[interactionCustomIdPrefix];
 
 	if (messageComponentHandler) {
-		messageComponentHandler(interaction);
+		messageComponentHandler(interaction).catch(error => console.error(`Error handling message component for "${interaction.customId} by user ${interaction.user.id}":`, error));
 		return;
 	}
 
