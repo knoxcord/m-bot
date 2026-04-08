@@ -4,7 +4,6 @@ import db from "../../database/db.js";
 import configuration from "../../features/configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 import { RoleIdsThatCanSetScoreConfigurationKey } from "./setScore.js";
-import config from "../../config.json" with { type: "json" }
 
 const DeleteScoreRegex = /<?@?(?<userId>\d+)>?/;
 const enum DeleteScoreRegexCapturingGroups {
@@ -64,18 +63,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         return;
     }
 
-    // Remove any already assigned roles
-    await Promise.all(
-        [config.monkRoleId, config.normieRoleId, config.performerRoleId, config.presetRoleId]
-            .filter(roleId => targetUser.roles.cache.has(roleId))
-            .map(roleId => targetUser.roles.remove(roleId))
-    );
-
-    // Ensure user has Unsorted role
-    if (!targetUser.roles.cache.has(config.unsortedRoleId))
-        await targetUser.roles.add(config.unsortedRoleId);
-
-    await message.reply(`Score for ${targetUser.user.displayName} has been deleted and Unsorted role applied`);
+    await message.reply(`Score for ${targetUser.user.displayName} has been deleted`);
 };
 
 export const DeleteScore: IPrefixCommand = {

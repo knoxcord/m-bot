@@ -1,3 +1,5 @@
+// The code in this file was hasily written for april fools 2026. It probably has bugs
+
 import { blockQuote, Client, Constants, Guild, GuildMember, Message, OmitPartialGroupDMChannel, TextChannel, userMention } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import db from "../../database/db.js";

@@ -2,7 +2,6 @@ import { ModalSubmitInteraction } from "discord.js";
 
 export enum ModalCustomId {
     Tarot = "tarot",
-    RoleAdd = "roleAdd"
 }
 
 export interface IModal{
