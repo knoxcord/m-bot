@@ -39,7 +39,6 @@ const locationInfoHandler = async (interaction: ChatInputCommandInteraction) => 
     if (location.Address) embed.addFields({ name: "Address", value: location.Address, inline: true });
     if (location.Hours) embed.addFields({ name: "Hours", value: location.Hours, inline: true });
     if (location.Url) embed.addFields({ name: "Website", value: location.Url });
-    if (location.Keywords) embed.addFields({ name: "Keywords", value: location.Keywords });
     if (images.length > 0) embed.setImage(images[0].ImageUrl);
 
     embed.setTimestamp(new Date(location.CreatedAt));
