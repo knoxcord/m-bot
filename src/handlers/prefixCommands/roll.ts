@@ -2,14 +2,13 @@ import { OmitPartialGroupDMChannel, Message, MessageFlags } from "discord.js";
 import { buildResponse } from "../../features/roll/builders.js";
 import { doRoll } from "../../features/roll/roll.js";
 import { RollSeparator } from "../../features/roll/rollTypes.js";
-import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
+import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { parseNotatedRolls } from "../../features/roll/lexer.js";
 
 const Key = CommandKey.Roll
 
-const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    const contentString = message.content.slice(CommandPrefix.length + Key.length).trim();
-    const notations = contentString?.split(RollSeparator) ?? [];
+const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
+    const notations = commandBody.split(RollSeparator) ?? [];
     if (!notations)
         return;
 

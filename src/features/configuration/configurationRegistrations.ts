@@ -5,6 +5,7 @@ import { spankConfigurationRegistrations } from "../spank/config.js";
 import { roleActivityConfigurationRegistrations } from "../roleActivity/config.js";
 import { getScoreConfigurationRegistrations } from "../../handlers/prefixCommands/getScore.js";
 import { setScoreConfigurationRegistrations } from "../../handlers/prefixCommands/setScore.js";
+import { sayConfigurationRegistrations } from "../say/config.js";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...awardConfigurationRegistrations,
@@ -12,6 +13,7 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...roleActivityConfigurationRegistrations,
     ...getScoreConfigurationRegistrations,
     ...setScoreConfigurationRegistrations,
+    ...sayConfigurationRegistrations,
 ]
 
 export {

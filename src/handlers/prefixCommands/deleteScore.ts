@@ -1,5 +1,5 @@
 import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
+import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import db from "../../database/db.js";
 import configuration from "../../features/configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
@@ -10,7 +10,7 @@ const enum DeleteScoreRegexCapturingGroups {
     UserId = "userId",
 };
 
-const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.inGuild())
         return;
 
@@ -33,8 +33,6 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         await message.reply(getMissingPermissionResponse());
         return;
     }
-
-    const commandBody = message.content.slice(CommandKey.DeleteScore.length + CommandPrefix.length).trim();
 
     const regexResult = commandBody.match(DeleteScoreRegex)?.groups;
     if (!regexResult) {

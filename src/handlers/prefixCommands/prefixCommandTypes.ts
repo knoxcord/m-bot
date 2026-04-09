@@ -1,7 +1,5 @@
 import { Message, OmitPartialGroupDMChannel } from "discord.js";
 
-export const CommandPrefix = '-';
-
 export enum CommandKey {
     Roll = "roll",
     PawaRoll = "pawaroll",
@@ -19,12 +17,18 @@ export enum CommandKey {
     PresetScore = "presetscore",
     DeleteScore = "deletescore",
     TopMessagesLastHour = "topmessageslasthour",
+    Say = "say",
+    Reply = "reply",
+    React = "react",
+    Help = "help",
 }
 
 export interface IPrefixCommand
 {
     /** Handler function to be executed when the command is invoked */
-    handler: (message: OmitPartialGroupDMChannel<Message<boolean>>) => Promise<unknown>,
+    handler: (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => Promise<unknown>,
     /** This is used to identify incoming prefix commands. Matches will have their {@link IPrefixCommand.handler handler} invoked */
     key: CommandKey,
+    /** Help message for the command */
+    helpMessage?: string
 }
