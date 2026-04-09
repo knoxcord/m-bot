@@ -1,4 +1,4 @@
-import { OmitPartialGroupDMChannel, Message, MessageFlags } from "discord.js";
+import { OmitPartialGroupDMChannel, Message, MessageFlags, inlineCode } from "discord.js";
 import { buildResponse } from "../../features/roll/builders.js";
 import { doRoll } from "../../features/roll/roll.js";
 import { RollSeparator } from "../../features/roll/rollTypes.js";
@@ -33,5 +33,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
 
 export const Roll: IPrefixCommand = {
     handler: handler,
-    key: Key
+    key: Key,
+    description: "Executes one or more notated dice rolls",
+    usage: `Usage: ${inlineCode("roll [notation]")}. Ex: ${inlineCode("roll 4d20dl1, 3d6kh1")}`
 }
