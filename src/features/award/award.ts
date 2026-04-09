@@ -1,5 +1,4 @@
 import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
-import { CommandKey, CommandPrefix } from "../../handlers/prefixCommands/prefixCommandTypes.js";
 import db from "../../database/db.js";
 import configuration from "../configuration/configuration.js";
 import { RoleIdsThatCanAwardConfigurationKey } from "./config.js";
@@ -10,11 +9,10 @@ const enum SnowflakeRegexCapturingGroups {
     Reason = "reason"
 };
 
-export const awardHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+export const awardHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.inGuild())
         return;
 
-    const commandBody = message.content.slice(CommandKey.Award.length + CommandPrefix.length).trim();
     const regexResult = commandBody.match(AwardRegex)?.groups;
     
     if (!regexResult) {

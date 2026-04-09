@@ -6,8 +6,12 @@ import { Award } from "./award.js";
 import { RoleActivity } from "./roleActivity.js";
 import { AllRoleActivity } from "./allRoleActivity.js";
 import { GetScore } from "./getScore.js";
+import { React } from "./react.js";
+import { Reply } from "./reply.js";
+import { Say } from "./say.js";
 import { SetScore } from "./setScore.js";
 import { TopMessagesLastHour } from "./topMessagesLastHour.js";
+import { Help } from "./help.js";
 
 const prefixCommands = [
     Roll,
@@ -24,6 +28,10 @@ const prefixCommands = [
     GetScore,
     SetScore,
     TopMessagesLastHour,
+    Say,
+    Reply,
+    React,
+    Help,
 ] as const;
 
 export {

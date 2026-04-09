@@ -4,8 +4,9 @@ import { slashCommands } from './handlers/slashCommands/index.js';
 import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands } from './handlers/prefixCommands/index.js';
-import { CommandPrefix } from './handlers/prefixCommands/prefixCommandTypes.js';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
+
+const CommandPrefix = "-";
 
 const client = new Client({ intents: [
 	GatewayIntentBits.Guilds,
@@ -92,12 +93,26 @@ client.on(Events.MessageCreate, (message) => {
 	if (message.content.startsWith(CommandPrefix)) {
 		const messageCommand = message.content.slice(CommandPrefix.length).split(" ")[0].toLowerCase();
 		const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
-		if (matchedCommand)
-			matchedCommand.handler(message);
+		if (matchedCommand) {
+			const commandBody = message.content.slice(matchedCommand.key.length + CommandPrefix.length).trim();
+			matchedCommand.handler(message, commandBody);
+		}
 	}
 
 	if (!client.user || message.author.bot)
 		return;
+
+	const meMention = `<@${client.user.id}>`;
+	if (message.content.startsWith(meMention)) {
+		// Index 1 here because there should be a space after the mention unlike when using command prefix
+		const messageCommand = message.content.slice(meMention.length).split(" ")[1].toLowerCase();
+		const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
+		if (matchedCommand) {
+			// Plus 1 for the space between mention and key
+			const commandBody = message.content.slice(matchedCommand.key.length + meMention.length + 1).trim();
+			matchedCommand.handler(message, commandBody);
+		}
+	}
 
 	handleRoleActivityMessage(message);
 

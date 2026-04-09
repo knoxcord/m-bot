@@ -1,5 +1,5 @@
 import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
+import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
 import db from "../../database/db.js";
 import configuration from "../../features/configuration/configuration.js";
@@ -24,7 +24,7 @@ const getScoreString = (submission: { Score: number; CreatedAt: string }) => {
     return `\`${dateString}\`: ${submission.Score}`;
 };
 
-const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.inGuild())
         return;
 
@@ -47,8 +47,6 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
         await message.reply(getMissingPermissionResponse());
         return;
     }
-
-    const commandBody = message.content.slice(CommandKey.GetScore.length + CommandPrefix.length).trim();
 
     const regexResult = commandBody.match(GetScoreRegex)?.groups;
     if (!regexResult) {

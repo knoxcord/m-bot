@@ -1,15 +1,14 @@
-import { OmitPartialGroupDMChannel, Message, MessageFlags } from "discord.js";
+import { OmitPartialGroupDMChannel, Message, MessageFlags, inlineCode } from "discord.js";
 import { buildResponse } from "../../features/roll/builders.js";
 import { doRoll } from "../../features/roll/roll.js";
 import { RollSeparator } from "../../features/roll/rollTypes.js";
-import { CommandKey, CommandPrefix, IPrefixCommand } from "./prefixCommandTypes.js";
+import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { parseNotatedRolls } from "../../features/roll/lexer.js";
 
 const Key = CommandKey.Roll
 
-const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    const contentString = message.content.slice(CommandPrefix.length + Key.length).trim();
-    const notations = contentString?.split(RollSeparator) ?? [];
+const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
+    const notations = commandBody.split(RollSeparator) ?? [];
     if (!notations)
         return;
 
@@ -34,5 +33,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>) => 
 
 export const Roll: IPrefixCommand = {
     handler: handler,
-    key: Key
+    key: Key,
+    description: "Executes one or more notated dice rolls",
+    usage: `Usage: ${inlineCode("roll [notation]")}. Ex: ${inlineCode("roll 4d20dl1, 3d6kh1")}`
 }
