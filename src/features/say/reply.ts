@@ -2,6 +2,7 @@ import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import { RoleIdsThatCanSayConfigurationKey } from "./config.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
+import { Reply } from "../../handlers/prefixCommands/reply.js";
 
 // Usage: -reply <#channel|channelId> <messageId> <message>
 const ChannelMentionRegex = /^(?:<#)?(\d+)>?/;
@@ -33,7 +34,7 @@ export const replyHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const channelMatch = commandBody.match(ChannelMentionRegex);
     if (!channelMatch) {
-        await message.reply("Usage: `-reply <#channel> <messageId> <message>`");
+        await message.reply(Reply.helpMessage ?? "Invalid command");
         return;
     }
 
@@ -42,7 +43,7 @@ export const replyHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const spaceIndex = remaining.indexOf(' ');
     if (spaceIndex === -1) {
-        await message.reply("Usage: `-reply <#channel> <messageId> <message>`");
+        await message.reply(Reply.helpMessage ?? "Invalid command");
         return;
     }
 

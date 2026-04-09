@@ -2,8 +2,8 @@ import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import configuration from "../configuration/configuration.js";
 import { RoleIdsThatCanSayConfigurationKey } from "./config.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
+import { Say } from "../../handlers/prefixCommands/say.js";
 
-// Usage: -say <#channel|channelId> <message>
 const ChannelMentionRegex = /^(?:<#)?(\d+)>?/;
 
 export const sayHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
@@ -33,7 +33,7 @@ export const sayHandler = async (message: OmitPartialGroupDMChannel<Message<bool
 
     const channelMatch = commandBody.match(ChannelMentionRegex);
     if (!channelMatch) {
-        await message.reply("Usage: `-say <#channel> <message>`");
+        await message.reply(Say.helpMessage ?? "Invalid command");
         return;
     }
 
