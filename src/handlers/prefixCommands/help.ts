@@ -2,23 +2,30 @@ import { OmitPartialGroupDMChannel, Message, bold, quote } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { prefixCommands } from "./index.js";
 
+const getHelpBlurb = (command: IPrefixCommand) => `\
+${bold(command.key)} help:\n\
+${command.description ? `${quote(command.description)}\n` : ""}\
+${command.usage ? quote(command.usage) : ""}`;
+
 // This does not check whether the user can actually use any of the functions in the help message
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     const matchedCommand = prefixCommands.find(command => commandBody.startsWith(command.key));
     if (matchedCommand) {
-        const matchingHelpMessage = matchedCommand.helpMessage ?? `There is no help message for command ${matchedCommand.key}`;
-        message.reply(`${matchedCommand.key} help:\n${matchingHelpMessage}`);
+        const helpMessage = matchedCommand.description || matchedCommand.usage
+            ? getHelpBlurb(matchedCommand)
+            : `There is no help message for command ${bold(matchedCommand.key)}`;
+        message.reply(helpMessage);
         return;
     }
 
     const helpMessage = prefixCommands
-        .filter(command => command.helpMessage)
-        .map(command => `${bold(command.key)} help:\n${quote(command.helpMessage!)}\n`);
-    message.reply(helpMessage.join("\n"));
+        .filter(command => command.description || command.usage)
+        .map(getHelpBlurb);
+    message.reply(helpMessage.join("\n\n"));
 }
 
 export const Help: IPrefixCommand = {
     handler: handler,
     key: CommandKey.Help,
-    helpMessage: "Posts this message"
+    description: "Posts this message"
 }

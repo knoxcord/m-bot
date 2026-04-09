@@ -52,7 +52,7 @@ export const reactHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const channelMatch = commandBody.match(ChannelMentionRegex);
     if (!channelMatch) {
-        await message.reply(React.helpMessage ?? "Invalid command");
+        await message.reply(React.usage ?? "Invalid usage");
         return;
     }
 
@@ -61,7 +61,7 @@ export const reactHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const spaceIndex = remaining.indexOf(' ');
     if (spaceIndex === -1) {
-        await message.reply(React.helpMessage ?? "Invalid command");
+        await message.reply(React.usage ?? "Invalid usage");
         return;
     }
 

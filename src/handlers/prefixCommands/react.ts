@@ -5,5 +5,6 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 export const React: IPrefixCommand = {
     handler: reactHandler,
     key: CommandKey.React,
-    helpMessage: `Usage: ${inlineCode("react <#channel|channelId> <messageId> <emojis>")}`
+    description: 'Reacts to a message',
+    usage: `Usage: ${inlineCode("react <#channel|channelId> <messageId> <emojis>")}`
 }

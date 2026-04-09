@@ -29,6 +29,8 @@ export interface IPrefixCommand
     handler: (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => Promise<unknown>,
     /** This is used to identify incoming prefix commands. Matches will have their {@link IPrefixCommand.handler handler} invoked */
     key: CommandKey,
-    /** Help message for the command */
-    helpMessage?: string
+    /** Description of the command */
+    description?: string
+    /** How to use the command */
+    usage?: string
 }

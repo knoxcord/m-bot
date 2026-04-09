@@ -5,5 +5,6 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 export const Reply: IPrefixCommand = {
     handler: replyHandler,
     key: CommandKey.Reply,
-    helpMessage: `Usage: ${inlineCode("reply <#channel|channelId> <messageId> <message>")}`
+    description: 'Replies to a message',
+    usage: `Usage: ${inlineCode("reply <#channel|channelId> <messageId> <message>")}`
 }

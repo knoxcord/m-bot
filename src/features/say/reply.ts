@@ -4,7 +4,6 @@ import { RoleIdsThatCanSayConfigurationKey } from "./config.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 import { Reply } from "../../handlers/prefixCommands/reply.js";
 
-// Usage: -reply <#channel|channelId> <messageId> <message>
 const ChannelMentionRegex = /^(?:<#)?(\d+)>?/;
 
 export const replyHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
@@ -34,7 +33,7 @@ export const replyHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const channelMatch = commandBody.match(ChannelMentionRegex);
     if (!channelMatch) {
-        await message.reply(Reply.helpMessage ?? "Invalid command");
+        await message.reply(Reply.usage ?? "Invalid usage");
         return;
     }
 
@@ -43,7 +42,7 @@ export const replyHandler = async (message: OmitPartialGroupDMChannel<Message<bo
 
     const spaceIndex = remaining.indexOf(' ');
     if (spaceIndex === -1) {
-        await message.reply(Reply.helpMessage ?? "Invalid command");
+        await message.reply(Reply.usage ?? "Invalid usage");
         return;
     }
 

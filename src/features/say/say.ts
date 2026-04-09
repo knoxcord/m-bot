@@ -33,7 +33,7 @@ export const sayHandler = async (message: OmitPartialGroupDMChannel<Message<bool
 
     const channelMatch = commandBody.match(ChannelMentionRegex);
     if (!channelMatch) {
-        await message.reply(Say.helpMessage ?? "Invalid command");
+        await message.reply(Say.usage ?? "Invalid usage");
         return;
     }
 
