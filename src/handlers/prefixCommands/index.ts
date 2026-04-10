@@ -12,6 +12,7 @@ import { Say } from "./say.js";
 import { SetScore } from "./setScore.js";
 import { TopMessagesLastHour } from "./topMessagesLastHour.js";
 import { Help } from "./help.js";
+import { RussianRoulette } from "./russianRoulette.js";
 
 const prefixCommands = [
     Roll,
@@ -32,6 +33,7 @@ const prefixCommands = [
     Reply,
     React,
     Help,
+    RussianRoulette
 ] as const;
 
 export {

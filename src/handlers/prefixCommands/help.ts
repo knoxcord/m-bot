@@ -3,9 +3,9 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { prefixCommands } from "./index.js";
 
 const getHelpBlurb = (command: IPrefixCommand) => `\
-${bold(command.key)} help:\n\
-${command.description ? `${quote(command.description)}\n` : ""}\
-${command.usage ? quote(command.usage) : ""}`;
+${bold(command.key)} help:\
+${command.description ? `\n${quote(command.description)}` : ""}\
+${command.usage ? `\n${quote(command.usage)}` : ""}`;
 
 // This does not check whether the user can actually use any of the functions in the help message
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {

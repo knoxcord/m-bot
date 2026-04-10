@@ -21,6 +21,7 @@ export enum CommandKey {
     Reply = "reply",
     React = "react",
     Help = "help",
+    RussianRoulette = "russianroulette",
 }
 
 export interface IPrefixCommand
