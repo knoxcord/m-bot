@@ -6,6 +6,7 @@ import { roleActivityConfigurationRegistrations } from "../roleActivity/config.j
 import { getScoreConfigurationRegistrations } from "../../handlers/prefixCommands/getScore.js";
 import { setScoreConfigurationRegistrations } from "../../handlers/prefixCommands/setScore.js";
 import { sayConfigurationRegistrations } from "../say/config.js";
+import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommands/russianRoulette.js";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...awardConfigurationRegistrations,
@@ -14,6 +15,7 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...getScoreConfigurationRegistrations,
     ...setScoreConfigurationRegistrations,
     ...sayConfigurationRegistrations,
+    ...rouletteConfigurationRegistrations,
 ]
 
 export {

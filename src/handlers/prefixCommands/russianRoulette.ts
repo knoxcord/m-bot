@@ -1,12 +1,22 @@
 import { bold, GuildMember, heading, inlineCode, italic, Message, OmitPartialGroupDMChannel, subtext } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import configuration from "../../features/configuration/configuration.js";
-import { MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
+import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
+import { ConfigurationRegistration } from "src/features/configuration/configurationTypes.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
 };
+
+
+// Setup feature config
+export const RouletteMutedDurationSecondsConfigurationKey = 'ROULETTE_MUTED_DURATION_SECONDS';
+
+export const rouletteConfigurationRegistrations = <ConfigurationRegistration[]>[
+    ['Roulette Muted Duration Seconds', RouletteMutedDurationSecondsConfigurationKey],
+];
+
 
 const removeRole = (roleId: string, user: GuildMember) =>
     user.roles.remove(roleId);
@@ -82,7 +92,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
     try {
         if (canMute && MutedRoleId && didHit) {
             await targetUser.roles.add(MutedRoleId);
-            const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
+            const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, RouletteMutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
             replyMessageLines.push(subtext(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`));
             setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
         }
