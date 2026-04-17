@@ -5,6 +5,7 @@ import { modals } from './handlers/modals/index.js';
 import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands } from './handlers/prefixCommands/index.js';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
+import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.js';
 
 const CommandPrefix = "-";
 
@@ -88,6 +89,8 @@ client.on(Events.InteractionCreate, (interaction) => {
 		return;
 	}
 });
+
+client.on(Events.ChannelUpdate, handleChannelOrderUpdate);
 
 client.on(Events.MessageCreate, (message) => {
 	if (message.content.startsWith(CommandPrefix)) {

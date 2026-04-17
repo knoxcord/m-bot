@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noImplicitAny": true,
