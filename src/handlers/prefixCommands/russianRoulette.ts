@@ -2,7 +2,7 @@ import { bold, GuildMember, heading, inlineCode, italic, Message, OmitPartialGro
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import configuration from "../../features/configuration/configuration.js";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
-import { ConfigurationRegistration } from "src/features/configuration/configurationTypes.js";
+import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {

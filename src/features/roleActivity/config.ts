@@ -1,4 +1,4 @@
-import { ConfigurationRegistration } from "src/features/configuration/configurationTypes.js";
+import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
 import { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.js";
 
 export const TrackedRoleIdsConfigurationKey = 'TRACKED_ROLE_IDS';
