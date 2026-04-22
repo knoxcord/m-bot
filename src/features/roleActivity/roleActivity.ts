@@ -221,7 +221,7 @@ export const allRoleActivity = async (message: OmitPartialGroupDMChannel<Message
     }
 
     if (!authorUser.roles.cache.hasAny(...roleIdsThatCanGetScore)) {
-        await message.reply(getMissingPermissionResponse());
+        await message.reply(getMissingPermissionResponse(authorUser.id));
         return;
     }
 

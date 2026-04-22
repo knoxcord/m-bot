@@ -27,7 +27,7 @@ export const sayHandler = async (message: OmitPartialGroupDMChannel<Message<bool
     }
 
     if (!authorUser.roles.cache.hasAny(...roleIdsThatCanSay)) {
-        await message.reply(getMissingPermissionResponse());
+        await message.reply(getMissingPermissionResponse(authorUserId));
         return;
     }
 

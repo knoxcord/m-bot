@@ -3,6 +3,7 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import configuration from "../../features/configuration/configuration.js";
 import { RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
 import db from "../../database/db.js";
+import { getMissingPermissionResponse } from "../../shared/responses.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -33,7 +34,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
     }
 
     if (targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
-        await message.reply("Sorry, you are not authorized to retrieve stats for other users.");
+        await message.reply(getMissingPermissionResponse(authorUserId));
         return;
     }
 

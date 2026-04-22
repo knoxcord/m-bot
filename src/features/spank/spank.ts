@@ -1,4 +1,4 @@
-import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
+import { OmitPartialGroupDMChannel, Message, GuildMember, userMention } from "discord.js";
 import db from "../../database/db.js";
 import configuration from "../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
@@ -31,7 +31,7 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
 
     const authorUserId = message.author.id;
     if (targetUserId === authorUserId) {
-        await message.reply(`Trying to smack yourself? :thinking:`);
+        await message.reply("Take a stress pill and think things over.");
         return;
     }
 
@@ -69,19 +69,19 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
     const authorCanMute = authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
     const targetIsGlobalMutable = globalMutableRoleId && targetUser.roles.cache.has(globalMutableRoleId);
     if (!authorCanMute && !targetIsGlobalMutable) {
-        await message.reply(getMissingPermissionResponse());
+        await message.reply(getMissingPermissionResponse(authorUserId));
         return;
     }
 
     const globalMutableChannelId = configuration.getConfigurationValue(message.guildId, GlobalMutableChannelId);
     const isGlobalMutableChannel = globalMutableChannelId ? message.channelId === globalMutableChannelId : true;
     if (!authorCanMute && !isGlobalMutableChannel) {
-        await message.reply("You can't do that here");
+        await message.reply(`I'm sorry ${userMention(authorUserId)}. I'm afraid you can't do that here`);
         return;
     }
 
     if (targetUser.roles.highest.position >= myUser.roles.highest.position) {
-        await message.reply("Sorry, I dont have permission to mute that user");
+        await message.reply(`I'm sorry ${userMention(authorUserId)}. I'm afraid I can't do that`);
         return;
     }
 

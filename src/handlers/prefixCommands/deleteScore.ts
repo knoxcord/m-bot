@@ -30,7 +30,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
     }
 
     if (!authorUser.roles.cache.hasAny(...roleIdsThatCanSetScore)) {
-        await message.reply(getMissingPermissionResponse());
+        await message.reply(getMissingPermissionResponse(authorUser.id));
         return;
     }
 
