@@ -23,6 +23,7 @@ export enum CommandKey {
     Help = "help",
     RussianRoulette = "russianroulette",
     RussianRouletteStats = "russianroulettestats",
+    Shoot = "shoot",
 }
 
 export interface IPrefixCommand

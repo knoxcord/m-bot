@@ -14,6 +14,7 @@ import { TopMessagesLastHour } from "./topMessagesLastHour.js";
 import { Help } from "./help.js";
 import { RussianRoulette } from "./russianRoulette.js";
 import { RussianRouletteStats } from "./russianRouletteStats.js";
+import { Shoot } from "./shoot.js";
 
 const prefixCommands = [
     Roll,
@@ -35,7 +36,8 @@ const prefixCommands = [
     React,
     Help,
     RussianRoulette,
-    RussianRouletteStats
+    RussianRouletteStats,
+    Shoot,
 ] as const;
 
 export {
