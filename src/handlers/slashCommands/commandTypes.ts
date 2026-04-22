@@ -11,6 +11,7 @@ export enum CommandKey {
     SetupPresetRoleMessage = "setuppresetrolemessage",
     LocationInfo = "location-info",
     LocationManage = "location-manage",
+    SetActivity = "setactivity",
 }
 
 export interface ISlashCommand

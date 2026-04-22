@@ -4,6 +4,7 @@ import { LocationInfo } from "./locationInfo.js";
 import { LocationManage } from "./locationManage.js";
 import { Ping } from "./ping.js";
 import { Roll } from "./roll.js";
+import { SetActivity } from "./setActivity.js";
 import { Tarot } from "./tarot.js";
 import { Version } from "./version.js";
 
@@ -16,6 +17,7 @@ const slashCommands = [
     Feature,
     LocationInfo,
     LocationManage,
+    SetActivity,
 ] as const;
 
 export {
