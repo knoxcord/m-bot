@@ -54,6 +54,14 @@ class DatabaseManager {
                 Reason TEXT,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS RouletteStats (
+                GuildId TEXT NOT NULL,
+                UserId TEXT NOT NULL,
+                Invocations INTEGER NOT NULL DEFAULT 0,
+                Hits INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (GuildId, UserId)
+            );
             
             CREATE TABLE IF NOT EXISTS Awards (
                 GuildId TEXT NOT NULL,
@@ -182,6 +190,26 @@ class DatabaseManager {
     const result = statement.all(guildId, limit) as { SpankeeUserId: string, totalSpanks: number }[] | undefined;
     return result ? result : [];
 }
+
+    recordRouletteShot(guildId: string, userId: string, didHit: boolean) {
+        const hitIncrement = didHit ? 1 : 0;
+        const statement = this.db.prepare(`
+            INSERT INTO RouletteStats (GuildId, UserId, Invocations, Hits)
+            VALUES (?, ?, 1, ?)
+            ON CONFLICT (GuildId, UserId) DO UPDATE SET
+                Invocations = Invocations + 1,
+                Hits = Hits + ?
+        `);
+        return statement.run(guildId, userId, hitIncrement, hitIncrement);
+    }
+
+    getRouletteStatsForUser(guildId: string, userId: string) {
+        const statement = this.db.prepare(`
+            SELECT Invocations, Hits FROM RouletteStats WHERE GuildId = ? AND UserId = ?
+        `);
+        const result = statement.get(guildId, userId) as { Invocations: number, Hits: number } | undefined;
+        return result ?? { Invocations: 0, Hits: 0 };
+    }
 
     saveAward(guildId: string, userId: string, award: string) {
         const statement = this.db.prepare(`

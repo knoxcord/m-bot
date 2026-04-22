@@ -3,6 +3,7 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import configuration from "../../features/configuration/configuration.js";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
 import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
+import db from "../../database/db.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -88,6 +89,8 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         ? heading(bold(italic("BANG!")))
         : subtext(italic("click"))
     );
+
+    db.recordRouletteShot(message.guildId, targetUserId, didHit);
 
     try {
         if (canMute && MutedRoleId && didHit) {
