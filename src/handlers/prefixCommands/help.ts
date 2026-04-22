@@ -9,7 +9,7 @@ ${command.usage ? `\n${quote(command.usage)}` : ""}`;
 
 // This does not check whether the user can actually use any of the functions in the help message
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
-    const matchedCommand = prefixCommands.find(command => commandBody.startsWith(command.key));
+    const matchedCommand = prefixCommands.find(command => commandBody === command.key);
     if (matchedCommand) {
         const helpMessage = matchedCommand.description || matchedCommand.usage
             ? getHelpBlurb(matchedCommand)
