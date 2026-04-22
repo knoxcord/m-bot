@@ -1,4 +1,5 @@
-import { ActivityType, ChatInputCommandInteraction, inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { ActivityType, ChatInputCommandInteraction, MessageFlags, inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import config from "../../config.json" with { type: "json" };
 import { CommandKey, ISlashCommand } from "./commandTypes.js";
 
 const Key = CommandKey.SetActivity;
@@ -39,13 +40,18 @@ const builder = new SlashCommandBuilder()
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 
 const handler = async (interaction: ChatInputCommandInteraction) => {
+    if (interaction.user.id !== config.ownerId) {
+        await interaction.reply({ content: "Only the bot owner can use this command.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
     const text = interaction.options.getString(TextOption);
     const type = (interaction.options.getInteger(TypeOption) ?? ActivityType.Playing) as ActivityType;
     const url = interaction.options.getString(UrlOption) ?? undefined;
     const botUser = interaction.client.user;
 
     if (!botUser) {
-        await interaction.reply({ content: "Bot user is not available.", ephemeral: true });
+        await interaction.reply({ content: "Bot user is not available.", flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -56,7 +62,7 @@ const handler = async (interaction: ChatInputCommandInteraction) => {
     }
 
     if (type === ActivityType.Streaming && !url) {
-        await interaction.reply({ content: "A stream URL is required for Streaming activities, or Discord will fall back to Playing.", ephemeral: true });
+        await interaction.reply({ content: "A stream URL is required for Streaming activities, or Discord will fall back to Playing.", flags: MessageFlags.Ephemeral });
         return;
     }
 
