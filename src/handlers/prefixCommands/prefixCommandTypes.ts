@@ -36,4 +36,6 @@ export interface IPrefixCommand
     description?: string
     /** How to use the command */
     usage?: string
+    /** Sets that this command must be triggered using a bot mention instead of prefix. Useful when the prefix and command is shared with another bot */
+    mentionOnly?: boolean
 }

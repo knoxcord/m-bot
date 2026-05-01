@@ -27,5 +27,6 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
 export const Help: IPrefixCommand = {
     handler: handler,
     key: CommandKey.Help,
-    description: "Posts this message"
+    description: "Posts this message",
+    mentionOnly: true
 }
