@@ -398,7 +398,7 @@ class DatabaseManager {
         const searchTerm = `%${query}%`;
         const statement = this.db.prepare(`
             SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
-            ORDER BY CreatedDate DESC
+            ORDER BY CreatedAt DESC
             LIMIT 25
         `);
         return statement.all(guildId, searchTerm) as TopicRow[];
