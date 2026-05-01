@@ -9,7 +9,7 @@ class Topics {
         return db.getTopic(guildId, topicId);
     }
 
-    getRandomTopic(guildId: string): TopicRow {
+    getRandomTopic(guildId: string): TopicRow | undefined {
         return db.getRandomTopic(guildId);
     }
 

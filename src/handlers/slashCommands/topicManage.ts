@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import { CommandKey, ISlashCommand } from "./commandTypes.js";
 import topics from "../../features/topic/topics.js";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.js";
@@ -39,7 +39,7 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const topic = topics.getTopic(guildId, topicId);
 
     if (!topic) {
-        await interaction.reply({ content: `Topic not found.`, ephemeral: true });
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -47,8 +47,8 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
         .setTitle("Topic Info");
 
     embed.addFields({ name: "Topic text", value: topic.Topic });
-    embed.addFields({ name: "Added by userId", value: topic.AddedByUserId, inline: true });
-    embed.addFields({ name: "Created date", value: topic.CreatedAt, inline: true });
+    embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
+    embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
 
     await interaction.reply({ embeds: [embed] });
 };
@@ -59,7 +59,7 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
     const topic = topics.getTopic(guildId, topicId);
 
     if (!topic) {
-        await interaction.reply({ content: `Topic not found.`, ephemeral: true });
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -70,8 +70,8 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
         .setColor(0xFF0000)
 
     embed.addFields({ name: "Topic text", value: topic.Topic });
-    embed.addFields({ name: "Added by userId", value: topic.AddedByUserId, inline: true });
-    embed.addFields({ name: "Created date", value: topic.CreatedAt, inline: true });
+    embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
+    embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
 
     await interaction.reply({ embeds: [embed] });
 };

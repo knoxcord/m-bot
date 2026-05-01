@@ -147,7 +147,7 @@ class DatabaseManager {
             CREATE TABLE IF NOT EXISTS Topics (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 GuildId TEXT NOT NULL,
-                Topic Text,
+                Topic Text NOT NULL,
                 AddedByUserId TEXT NOT NULL,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
@@ -406,7 +406,7 @@ class DatabaseManager {
 
     getTopic(guildId: string, topicId: number) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND ID = ?
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND Id = ?
         `);
         return statement.get(guildId, topicId) as TopicRow | undefined;
     }
@@ -426,7 +426,7 @@ class DatabaseManager {
             ORDER BY RANDOM()
             LIMIT 1
         `);
-        return statement.get(guildId) as TopicRow;
+        return statement.get(guildId) as TopicRow | undefined;
     }
 
     addTopic(guildId: string, topic: string, userId: string) {

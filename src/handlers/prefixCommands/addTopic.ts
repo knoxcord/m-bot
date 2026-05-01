@@ -6,7 +6,7 @@ const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolea
     if (!message.guildId)
         return;
 
-    if (!commandBody) {
+    if (!commandBody.trim()) {
         await message.reply("You didn't add a topic, silly");
         return;
     }
