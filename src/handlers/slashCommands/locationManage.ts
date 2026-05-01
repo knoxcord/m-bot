@@ -1,6 +1,7 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import { CommandKey, ISlashCommand } from "./commandTypes.js";
 import locations from "../../features/locations/locations.js";
+import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.js";
 
 const Key = CommandKey.LocationManage;
 
@@ -283,7 +284,7 @@ const locationManageAutocompleteHandler = async (interaction: AutocompleteIntera
 
     await interaction.respond(
         results.map(location => ({
-            name: location.Name,
+            name: formatAutocompleteName(location.Name),
             value: location.Name,
         }))
     );

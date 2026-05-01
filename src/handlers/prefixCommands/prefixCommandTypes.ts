@@ -24,6 +24,8 @@ export enum CommandKey {
     RussianRoulette = "russianroulette",
     RussianRouletteStats = "russianroulettestats",
     Shoot = "shoot",
+    Topic = "topic",
+    AddTopic = "addtopic",
 }
 
 export interface IPrefixCommand

@@ -108,7 +108,7 @@ client.on(Events.MessageCreate, (message) => {
 	const meMention = `<@${client.user.id}>`;
 	if (message.content.startsWith(meMention)) {
 		// Index 1 here because there should be a space after the mention unlike when using command prefix
-		const messageCommand = message.content.slice(meMention.length).split(" ")[1].toLowerCase();
+		const messageCommand = message.content.slice(meMention.length).split(" ")[1]?.toLowerCase() ?? "";
 		const matchedCommand = prefixCommands.find(command => command.key === messageCommand);
 		if (matchedCommand) {
 			// Plus 1 for the space between mention and key

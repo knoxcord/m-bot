@@ -1,4 +1,5 @@
 import { Configure } from "./configure.js";
+import { TopicManage } from "./topicManage.js";
 import { Feature } from "./feature.js";
 import { LocationInfo } from "./locationInfo.js";
 import { LocationManage } from "./locationManage.js";
@@ -18,6 +19,7 @@ const slashCommands = [
     LocationInfo,
     LocationManage,
     SetActivity,
+    TopicManage,
 ] as const;
 
 export {

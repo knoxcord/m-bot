@@ -3,8 +3,6 @@ import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import configuration from "../../features/configuration/configuration.js";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
 import { RouletteMutedDurationSecondsConfigurationKey } from "./russianRoulette.js";
-import db from "../../database/db.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
