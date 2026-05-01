@@ -20,7 +20,6 @@ const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>
 export const Topic: IPrefixCommand = {
     handler: topicHandler,
     key: CommandKey.Topic,
-    mentionOnly: true,
     description: "Posts a discussion topic",
     usage: `Usage: ${inlineCode("topic")}`
 }
