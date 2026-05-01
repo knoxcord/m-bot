@@ -26,6 +26,7 @@ export enum CommandKey {
     Shoot = "shoot",
     Topic = "topic",
     AddTopic = "addtopic",
+    Bazooka = "bazooka",
 }
 
 export interface IPrefixCommand

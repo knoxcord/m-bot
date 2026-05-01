@@ -17,6 +17,7 @@ import { RussianRouletteStats } from "./russianRouletteStats.js";
 import { Shoot } from "./shoot.js";
 import { Topic } from "./topic.js";
 import { AddTopic } from "./addTopic.js";
+import { Bazooka } from "./bazooka.js";
 
 const prefixCommands = [
     Roll,
@@ -42,6 +43,7 @@ const prefixCommands = [
     Shoot,
     Topic,
     AddTopic,
+    Bazooka
 ] as const;
 
 export {
