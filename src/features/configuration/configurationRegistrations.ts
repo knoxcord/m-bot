@@ -8,6 +8,7 @@ import { setScoreConfigurationRegistrations } from "../../handlers/prefixCommand
 import { sayConfigurationRegistrations } from "../say/config.js";
 import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommands/russianRoulette.js";
 import { channelOrderConfigurationRegistrations } from "../channelOrder/config.js";
+import { addTopicConfigurationRegistrations } from "../../handlers/prefixCommands/addTopic.js";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...awardConfigurationRegistrations,
@@ -18,6 +19,7 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...sayConfigurationRegistrations,
     ...rouletteConfigurationRegistrations,
     ...channelOrderConfigurationRegistrations,
+    ...addTopicConfigurationRegistrations
 ]
 
 export {

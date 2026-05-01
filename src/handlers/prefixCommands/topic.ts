@@ -1,10 +1,19 @@
 import { inlineCode, Message, OmitPartialGroupDMChannel } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import topics from "../../features/topic/topics.js";
+import { FeatureFlagRegistration } from "../../features/featureFlags/featureFlagTypes.js";
+import featureFlags from "../../features/featureFlags/featureFlags.js";
+
+export const TopicsFeatureFlag = 'TOPICS';
+export const topicsFeatureFlagRegistrations = <FeatureFlagRegistration[]>[
+    ['Topics', TopicsFeatureFlag],
+];
 
 const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, _commandBody: string) => {
     if (!message.guildId)
         return;
+
+    if (!featureFlags.getFeatureFlag(message.guildId, TopicsFeatureFlag)) return;
 
     const topic = topics.getRandomTopic(message.guildId);
 
