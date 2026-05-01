@@ -29,6 +29,14 @@ export interface LocationImageRow {
     CreatedAt: string;
 }
 
+export interface TopicRow {
+    Id: number;
+    GuildId: string;
+    Topic: string;
+    AddedByUserId: string;
+    CreatedAt: string
+}
+
 class DatabaseManager {
     private db: Database.Database;
 
@@ -134,6 +142,14 @@ class DatabaseManager {
                 AddedByUserId TEXT NOT NULL,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (LocationId) REFERENCES Locations(Id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS Topics (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                GuildId TEXT NOT NULL,
+                Topic Text NOT NULL,
+                AddedByUserId TEXT NOT NULL,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `)
     }
@@ -376,6 +392,56 @@ class DatabaseManager {
             DELETE FROM LocationImages WHERE Id = ?
         `);
         return statement.run(imageId);
+    }
+
+    searchTopics(guildId: string, query: string) {
+        const searchTerm = `%${query}%`;
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
+            ORDER BY CreatedAt DESC
+            LIMIT 25
+        `);
+        return statement.all(guildId, searchTerm) as TopicRow[];
+    }
+
+    getTopic(guildId: string, topicId: number) {
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND Id = ?
+        `);
+        return statement.get(guildId, topicId) as TopicRow | undefined;
+    }
+
+    getRecentTopics(guildId: string) {
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ?
+            ORDER BY CreatedAt DESC
+            LIMIT 25;
+        `);
+        return statement.all(guildId) as TopicRow[];
+    }
+
+    getRandomTopic(guildId: string) {
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ?
+            ORDER BY RANDOM()
+            LIMIT 1
+        `);
+        return statement.get(guildId) as TopicRow | undefined;
+    }
+
+    addTopic(guildId: string, topic: string, userId: string) {
+        const statement = this.db.prepare(`
+            INSERT INTO Topics (GuildId, Topic, AddedByUserId)
+            VALUES (?, ?, ?)
+        `)
+        statement.run(guildId, topic, userId);
+    }
+
+    removeTopic(guildId: string, topicId: number) {
+        const statement = this.db.prepare(`
+            DELETE FROM Topics WHERE GuildId = ? AND Id = ?;
+        `);
+        statement.run(guildId, topicId);
     }
 
     /** This should only be accessed by the configuration class */

@@ -15,6 +15,8 @@ import { Help } from "./help.js";
 import { RussianRoulette } from "./russianRoulette.js";
 import { RussianRouletteStats } from "./russianRouletteStats.js";
 import { Shoot } from "./shoot.js";
+import { Topic } from "./topic.js";
+import { AddTopic } from "./addTopic.js";
 
 const prefixCommands = [
     Roll,
@@ -38,6 +40,8 @@ const prefixCommands = [
     RussianRoulette,
     RussianRouletteStats,
     Shoot,
+    Topic,
+    AddTopic,
 ] as const;
 
 export {

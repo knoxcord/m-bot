@@ -1,11 +1,14 @@
-import { OmitPartialGroupDMChannel, Message, bold, quote } from "discord.js";
+import { OmitPartialGroupDMChannel, Message, bold, quote, inlineCode } from "discord.js";
 import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
 import { prefixCommands } from "./index.js";
 
 const getHelpBlurb = (command: IPrefixCommand) => `\
 ${bold(command.key)} help:\
 ${command.description ? `\n${quote(command.description)}` : ""}\
-${command.usage ? `\n${quote(command.usage)}` : ""}`;
+${command.usage ? `\n${quote(command.usage)}` : ""}\
+${command.mentionOnly ? `\n(only works with bot mention)` : ""}`;
+
+const getShortHelpBlurb = (command: IPrefixCommand) => `${bold(command.key)} - ${command.description}`;
 
 // This does not check whether the user can actually use any of the functions in the help message
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
@@ -19,9 +22,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
     }
 
     const helpMessage = prefixCommands
-        .filter(command => command.description || command.usage)
-        .map(getHelpBlurb);
-    message.reply(helpMessage.join("\n\n"));
+        .filter(command => command.description)
+        .map(getShortHelpBlurb);
+    message.reply(`Use ${inlineCode("help <command>")} for more info on these:\n${helpMessage.join("\n")}`);
 }
 
 export const Help: IPrefixCommand = {
