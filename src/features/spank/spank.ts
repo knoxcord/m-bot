@@ -3,15 +3,13 @@ import db from "../../database/db.js";
 import configuration from "../configuration/configuration.js";
 import { getMissingPermissionResponse } from "../../shared/responses.js";
 import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
+import { scheduleTemporaryRole } from "../temporaryRoles/temporaryRoles.js";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
     Reason = "reason"
 };
-
-const removeRole = (roleId: string, user: GuildMember) =>
-    user.roles.remove(roleId);
 
 export const handleSpank = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
     const regexResult = commandBody.match(SpankRegex)?.groups;
@@ -102,5 +100,5 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
     const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
     await message.reply(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
-    setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
+    scheduleTemporaryRole(targetUser, MutedRoleId, muteDurationSeconds);
 }

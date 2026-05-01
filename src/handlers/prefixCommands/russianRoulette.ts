@@ -4,6 +4,7 @@ import configuration from "../../features/configuration/configuration.js";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
 import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
 import db from "../../database/db.js";
+import { scheduleTemporaryRole } from "../../features/temporaryRoles/temporaryRoles.js";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -18,9 +19,6 @@ export const rouletteConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Roulette Muted Duration Seconds', RouletteMutedDurationSecondsConfigurationKey],
 ];
 
-
-const removeRole = (roleId: string, user: GuildMember) =>
-    user.roles.remove(roleId);
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)
@@ -97,7 +95,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
             await targetUser.roles.add(MutedRoleId);
             const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, RouletteMutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
             replyMessageLines.push(subtext(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`));
-            setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
+            scheduleTemporaryRole(targetUser, MutedRoleId, muteDurationSeconds);
         }
     } catch (error) {
         console.error(`Failed to assigned muted role id ${MutedRoleId} to target user id ${targetUserId} with error ${error}`);

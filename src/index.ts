@@ -6,6 +6,7 @@ import { messageComponents } from './handlers/messageComponents/index.js';
 import { prefixCommands } from './handlers/prefixCommands/index.js';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.js';
+import { restoreTemporaryRoles } from './features/temporaryRoles/temporaryRoles.js';
 
 const CommandPrefix = "-";
 
@@ -19,6 +20,7 @@ const client = new Client({ intents: [
 client.once(Events.ClientReady, (readyClient) => {
 	console.info(`Ready! Logged in as ${readyClient.user.tag}`);
 	scheduleRoleActivityHourlyJob(readyClient);
+	restoreTemporaryRoles(readyClient).catch(error => console.error('Error restoring temporary roles:', error));
 });
 
 const slashCommandLookup = Object.fromEntries(
