@@ -1,5 +1,6 @@
 import { bold, ContainerBuilder, inlineCode, strikethrough, subtext } from "discord.js"
-import { DiceRollResult, RollAccentColors, RollDefinition } from "./rollTypes.js"
+import type { DiceRollResult, RollDefinition } from "./rollTypes.ts";
+import { RollAccentColors } from "./rollTypes.ts"
 
 const getKeepDropString = (rollDefinition: RollDefinition) => {
     if (rollDefinition.keepHighest)

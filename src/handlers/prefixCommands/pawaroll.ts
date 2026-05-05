@@ -1,7 +1,9 @@
-import { OmitPartialGroupDMChannel, Message, MessageFlags } from "discord.js";
-import { buildResponse } from "../../features/roll/builders.js";
-import { DiceRollResult, DieRollResult, RollDefinition } from "../../features/roll/rollTypes.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
+import type { OmitPartialGroupDMChannel, Message} from "discord.js";
+import { MessageFlags } from "discord.js";
+import { buildResponse } from "../../features/roll/builders.ts";
+import type { DiceRollResult, DieRollResult, RollDefinition } from "../../features/roll/rollTypes.ts";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
 
 const Key = CommandKey.PawaRoll
 

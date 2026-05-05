@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
+import type { AutocompleteInteraction, ChatInputCommandInteraction, SharedSlashCommand } from "discord.js";
 
 export enum CommandKey {
     Ping = "ping",

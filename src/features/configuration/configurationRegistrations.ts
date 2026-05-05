@@ -1,13 +1,14 @@
-import { ConfigurationRegistration } from "./configurationTypes.js";
+import type { ConfigurationRegistration } from "./configurationTypes.ts";
 
-import { awardConfigurationRegistrations } from "../award/config.js";
-import { spankConfigurationRegistrations } from "../spank/config.js";
-import { roleActivityConfigurationRegistrations } from "../roleActivity/config.js";
-import { getScoreConfigurationRegistrations } from "../../handlers/prefixCommands/getScore.js";
-import { setScoreConfigurationRegistrations } from "../../handlers/prefixCommands/setScore.js";
-import { sayConfigurationRegistrations } from "../say/config.js";
-import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommands/russianRoulette.js";
-import { channelOrderConfigurationRegistrations } from "../channelOrder/config.js";
+import { awardConfigurationRegistrations } from "../award/config.ts";
+import { spankConfigurationRegistrations } from "../spank/config.ts";
+import { roleActivityConfigurationRegistrations } from "../roleActivity/config.ts";
+import { getScoreConfigurationRegistrations } from "../../handlers/prefixCommands/getScore.ts";
+import { setScoreConfigurationRegistrations } from "../../handlers/prefixCommands/setScore.ts";
+import { sayConfigurationRegistrations } from "../say/config.ts";
+import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommands/russianRoulette.ts";
+import { channelOrderConfigurationRegistrations } from "../channelOrder/config.ts";
+import { topicConfigurationRegistrations } from "../topic/config.ts";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...awardConfigurationRegistrations,
@@ -18,6 +19,7 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...sayConfigurationRegistrations,
     ...rouletteConfigurationRegistrations,
     ...channelOrderConfigurationRegistrations,
+    ...topicConfigurationRegistrations
 ]
 
 export {

@@ -1,6 +1,8 @@
-import { OmitPartialGroupDMChannel, Message, inlineCode } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { handleSpank } from "../../features/spank/spank.js";
+import type { OmitPartialGroupDMChannel, Message} from "discord.js";
+import { inlineCode } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import { handleSpank } from "../../features/spank/spank.ts";
 
 const getCommand = (commandKey: string) => <IPrefixCommand>{
     handler: async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {

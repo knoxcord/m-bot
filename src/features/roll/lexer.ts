@@ -1,6 +1,7 @@
-import { Result } from "../../models/result.js"
-import { getLexorResultError, getLexorResultSuccess, RollDefinition } from "./rollTypes.js"
-import { assertValidDefinition } from "./validators.js"
+import type { Result } from "../../models/result.ts"
+import type { RollDefinition } from "./rollTypes.ts";
+import { getLexorResultError, getLexorResultSuccess } from "./rollTypes.ts"
+import { assertValidDefinition } from "./validators.ts"
 
 enum CapturingGroupEnum {
     NumberOfDice = "numberOfDice",

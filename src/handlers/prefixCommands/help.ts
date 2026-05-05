@@ -1,6 +1,8 @@
-import { OmitPartialGroupDMChannel, Message, bold, quote, inlineCode } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { prefixCommands } from "./index.js";
+import type { OmitPartialGroupDMChannel, Message} from "discord.js";
+import { bold, quote, inlineCode } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import { prefixCommands } from "./index.ts";
 
 const getHelpBlurb = (command: IPrefixCommand) => `\
 ${bold(command.key)} help:\

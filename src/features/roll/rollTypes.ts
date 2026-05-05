@@ -1,4 +1,4 @@
-import { Result } from "../../models/result.js";
+import type { Result } from "../../models/result.ts";
 
 export const RollSeparator = ",";
 

@@ -1,4 +1,4 @@
-import db from "../../database/db.js";
+import db from "../../database/db.ts";
 
 type ConfigurationMatrix = Map<string, Map<string, string>>;
 

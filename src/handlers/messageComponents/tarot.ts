@@ -1,9 +1,10 @@
-import { MessageComponentInteraction } from "discord.js";
-import { IMessageComponent, MessageComponentCustomIdPrefix } from "./messageComponentTypes.js";
-import db from "../../database/db.js";
-import { NextOrPrev, TarotCardReversedIndicator } from "../../features/tarot/types.js";
-import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.js";
-import { deck } from "../../features/tarot/deck.js";
+import type { MessageComponentInteraction } from "discord.js";
+import type { IMessageComponent} from "./messageComponentTypes.ts";
+import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
+import db from "../../database/db.ts";
+import { NextOrPrev, TarotCardReversedIndicator } from "../../features/tarot/types.ts";
+import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.ts";
+import { deck } from "../../features/tarot/deck.ts";
 
 const handler = async (interaction: MessageComponentInteraction) => {
     const messageId = interaction.message.id;

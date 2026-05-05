@@ -1,5 +1,7 @@
-import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
+import type { ChatInputCommandInteraction} from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
 import packageJson from "../../../package.json" with { type: "json" };
 
 const Key = CommandKey.Version

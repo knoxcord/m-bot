@@ -1,6 +1,7 @@
 import { inlineCode } from "discord.js";
-import { reactHandler } from "../../features/say/react.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
+import { reactHandler } from "../../features/say/react.ts";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
 
 export const React: IPrefixCommand = {
     handler: reactHandler,

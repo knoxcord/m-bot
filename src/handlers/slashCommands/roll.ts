@@ -1,11 +1,15 @@
-import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import { parseNotatedRolls } from "../../features/roll/lexer.js";
-import { RollDefinition, RollSeparator } from "../../features/roll/rollTypes.js";
-import { getErrorResult, getSuccessResult, Result } from "../../models/result.js";
-import { doRoll } from "../../features/roll/roll.js";
-import { buildResponse } from "../../features/roll/builders.js";
-import { assertValidDefinition, MaxNumberOfDice, MaxNumberOfSides, MinNumberOfDice, MinNumberOfSides } from "../../features/roll/validators.js";
+import type { ChatInputCommandInteraction} from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import { parseNotatedRolls } from "../../features/roll/lexer.ts";
+import type { RollDefinition} from "../../features/roll/rollTypes.ts";
+import { RollSeparator } from "../../features/roll/rollTypes.ts";
+import type { Result } from "../../models/result.ts";
+import { getErrorResult, getSuccessResult } from "../../models/result.ts";
+import { doRoll } from "../../features/roll/roll.ts";
+import { buildResponse } from "../../features/roll/builders.ts";
+import { assertValidDefinition, MaxNumberOfDice, MaxNumberOfSides, MinNumberOfDice, MinNumberOfSides } from "../../features/roll/validators.ts";
 
 const Key = CommandKey.Roll
 const Description = "Roll dice";

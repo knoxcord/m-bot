@@ -1,7 +1,7 @@
-import { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
-import db from "../../database/db.js";
-import configuration from "../configuration/configuration.js";
-import { RoleIdsThatCanAwardConfigurationKey } from "./config.js";
+import type { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
+import db from "../../database/db.ts";
+import configuration from "../configuration/configuration.ts";
+import { RoleIdsThatCanAwardConfigurationKey } from "./config.ts";
 
 const AwardRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {

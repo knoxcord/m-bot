@@ -1,8 +1,11 @@
-import { APIApplicationCommandOptionChoice, ChatInputCommandInteraction, inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
-import configuration from "../../features/configuration/configuration.js";
-import { configurationRegistrations } from "../../features/configuration/configurationRegistrations.js";
+import type { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
+import { inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
+import configuration from "../../features/configuration/configuration.ts";
+import { configurationRegistrations } from "../../features/configuration/configurationRegistrations.ts";
+import { AutocompleteResultLimit, formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.Configure;
 const Description = "Gets or sets configuration values";
@@ -11,22 +14,16 @@ enum ConfigurationSubcommandEnum {
     Set = 'set',
 }
 
-const getConfigurationKeyChoices = (configRegistrations: ConfigurationRegistration[]) =>
-    configRegistrations.map(([key, name]) => (<APIApplicationCommandOptionChoice<string>>{
-        name: key,
-        value: name
-    }));
-
 const ensureNoDuplicateKeys = (configRegistrations: ConfigurationRegistration[]) => {
-    const keys = new Set<string>();
-    configRegistrations.forEach(([key, _]) => {
-        if (keys.has(key))
-            throw "Encountered duplicate configuration key";
+    const seen = new Set<string>();
+    configRegistrations.forEach(([, key]) => {
+        if (seen.has(key))
+            throw `Encountered duplicate configuration key: ${key}`;
+        seen.add(key);
     })
 }
 
 export const getConfigurationCommandBuilder = () => {
-    const configKeyChoices = getConfigurationKeyChoices(configurationRegistrations);
     ensureNoDuplicateKeys(configurationRegistrations);
 
     return new SlashCommandBuilder()
@@ -40,7 +37,7 @@ export const getConfigurationCommandBuilder = () => {
                     option.setName('field')
                         .setDescription('The configuration field to retrieve')
                         .setRequired(true)
-                        .addChoices(configKeyChoices)))
+                        .setAutocomplete(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName(ConfigurationSubcommandEnum.Set)
@@ -49,7 +46,7 @@ export const getConfigurationCommandBuilder = () => {
                     option.setName('field')
                         .setDescription('The configuration field to set')
                         .setRequired(true)
-                        .addChoices(configKeyChoices))
+                        .setAutocomplete(true))
                 .addStringOption(option =>
                     option.setName('value')
                         .setDescription('The value to set')
@@ -83,8 +80,23 @@ const configurationCommandHandler = async (interaction: ChatInputCommandInteract
     }
 };
 
+const configurationAutocompleteHandler = async (interaction: AutocompleteInteraction) => {
+    const focused = interaction.options.getFocused().toLowerCase();
+    const matches = configurationRegistrations
+        .filter(([name]) => name.toLowerCase().includes(focused))
+        .slice(0, AutocompleteResultLimit);
+
+    await interaction.respond(
+        matches.map(([name, key]) => <ApplicationCommandOptionChoiceData<string>>({
+            name: formatAutocompleteName(name),
+            value: key,
+        }))
+    );
+};
+
 export const Configure: ISlashCommand = {
     builder: getConfigurationCommandBuilder(),
     handler: configurationCommandHandler,
+    autocompleteHandler: configurationAutocompleteHandler,
     key: Key
 }

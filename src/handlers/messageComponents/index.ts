@@ -1,7 +1,9 @@
-import { Tarot } from "./tarot.js";
+import { Tarot } from "./tarot.ts";
+import { TopicVoteComponent } from "./topicVote.ts";
 
 const messageComponents = [
     Tarot,
+    TopicVoteComponent,
 ];
 
 export {

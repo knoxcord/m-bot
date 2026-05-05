@@ -1,4 +1,5 @@
-import { DiceRollResult, getDieRollResult, RollDefinition } from "./rollTypes.js";
+import type { DiceRollResult, RollDefinition } from "./rollTypes.ts";
+import { getDieRollResult } from "./rollTypes.ts";
 
 const rollDie = (numberOfSides: number) => Math.ceil(Math.random() * numberOfSides)
 
