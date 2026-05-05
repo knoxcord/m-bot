@@ -40,15 +40,24 @@ const authorMultiplier = (addedByUserId: string, preloadedUserId: string | null 
 const voteMultiplier = (upvotes: number, downvotes: number, step: number, floor: number, ceiling: number) =>
     clamp(1 + step * (upvotes - downvotes), floor, ceiling);
 
-export const computeWeight = (row: TopicWeightingRow, options: WeightOptions = {}) => {
+export interface WeightBreakdown {
+    recency: number;
+    author: number;
+    vote: number;
+    total: number;
+}
+
+export const computeWeightBreakdown = (row: TopicWeightingRow, options: WeightOptions = {}): WeightBreakdown => {
     const now = options.now ?? new Date();
     const config = options.config ?? { ...TopicWeightDefaults };
-    return (
-        recencyMultiplier(row.LastShownAt, now, config.recencyWindowHours, config.recencyFloor)
-        * authorMultiplier(row.AddedByUserId, options.preloadedUserId, config.preloadedUserMultiplier)
-        * voteMultiplier(row.Upvotes, row.Downvotes, config.voteStep, config.voteFloor, config.voteCeiling)
-    );
+    const recency = recencyMultiplier(row.LastShownAt, now, config.recencyWindowHours, config.recencyFloor);
+    const author = authorMultiplier(row.AddedByUserId, options.preloadedUserId, config.preloadedUserMultiplier);
+    const vote = voteMultiplier(row.Upvotes, row.Downvotes, config.voteStep, config.voteFloor, config.voteCeiling);
+    return { recency, author, vote, total: recency * author * vote };
 };
+
+export const computeWeight = (row: TopicWeightingRow, options: WeightOptions = {}) =>
+    computeWeightBreakdown(row, options).total;
 
 export const pickWeighted = (rows: TopicWeightingRow[], options: WeightOptions = {}): TopicWeightingRow | undefined => {
     if (rows.length === 0) return undefined;

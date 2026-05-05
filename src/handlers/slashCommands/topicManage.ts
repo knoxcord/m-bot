@@ -3,6 +3,8 @@ import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } 
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import topics from "../../features/topic/topics.ts";
+import { computeWeightBreakdown } from "../../features/topic/topicWeights.ts";
+import { resolveWeightOptions } from "../../features/topic/topicWeightConfig.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.TopicManage;
@@ -61,6 +63,14 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
     });
     embed.addFields({ name: "Upvotes", value: `${topic.Upvotes}`, inline: true });
     embed.addFields({ name: "Downvotes", value: `${topic.Downvotes}`, inline: true });
+
+    embed.addFields({ name: "​", value: "─────────────────────────────" });
+
+    const breakdown = computeWeightBreakdown(topic, resolveWeightOptions(guildId));
+    embed.addFields({ name: "Recency multiplier", value: breakdown.recency.toFixed(3), inline: true });
+    embed.addFields({ name: "Author multiplier", value: breakdown.author.toFixed(3), inline: true });
+    embed.addFields({ name: "Vote multiplier", value: breakdown.vote.toFixed(3), inline: true });
+    embed.addFields({ name: "Calculated weight", value: breakdown.total.toFixed(3), inline: true });
 
     await interaction.reply({ embeds: [embed] });
 };
