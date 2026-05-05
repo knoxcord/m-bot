@@ -1,7 +1,9 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import { FieldId, ICard, NextOrPrev, PullType, TarotCustomIdKey, TarotImagesPath  } from "./types.js";
-import { ModalCustomId } from "../../handlers/modals/modalTypes.js";
-import { getKey } from "./helpers.js";
+import type { APIEmbedField} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import type { ICard} from "./types.ts";
+import { FieldId, NextOrPrev, PullType, TarotCustomIdKey, TarotImagesPath  } from "./types.ts";
+import { ModalCustomId } from "../../handlers/modals/modalTypes.ts";
+import { getKey } from "./helpers.ts";
 
 const examplePurposes = [
     "Tell me about my future",

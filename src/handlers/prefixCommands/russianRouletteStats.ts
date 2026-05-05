@@ -1,9 +1,11 @@
-import { bold, GuildMember, inlineCode, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import configuration from "../../features/configuration/configuration.js";
-import { RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.js";
-import db from "../../database/db.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
+import { bold, inlineCode } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import configuration from "../../features/configuration/configuration.ts";
+import { RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
+import db from "../../database/db.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {

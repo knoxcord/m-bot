@@ -10,8 +10,12 @@
     "sourceMap": true,
     "strict": true,
     "rootDir": "./src",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
   },
   "include": [
     "src/**/*"
   ]
+  // NOTE: tsconfig.prod.json overrides "exclude", so if that's ever added here
+  //   then tsconfig.prod.json should probably be updated as well.
 }

@@ -1,8 +1,8 @@
-import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import configuration from "../configuration/configuration.js";
-import { RoleIdsThatCanSayConfigurationKey } from "./config.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { Say } from "../../handlers/prefixCommands/say.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
+import configuration from "../configuration/configuration.ts";
+import { RoleIdsThatCanSayConfigurationKey } from "./config.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
+import { Say } from "../../handlers/prefixCommands/say.ts";
 
 const ChannelMentionRegex = /^(?:<#)?(\d+)>?/;
 

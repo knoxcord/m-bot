@@ -1,7 +1,9 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import locations from "../../features/locations/locations.js";
-import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.js";
+import type { AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import locations from "../../features/locations/locations.ts";
+import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.LocationInfo;
 

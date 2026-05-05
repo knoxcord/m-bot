@@ -1,7 +1,9 @@
-import { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import topics from "../../features/topic/topics.js";
-import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.js";
+import type { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
+import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import topics from "../../features/topic/topics.ts";
+import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.TopicManage;
 
@@ -49,6 +51,16 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
     embed.addFields({ name: "Topic text", value: topic.Topic });
     embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
     embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
+    embed.addFields({ name: "Times shown", value: `${topic.ShownCount}`, inline: true });
+    embed.addFields({
+        name: "Last shown",
+        value: topic.LastShownAt
+            ? `<t:${Math.floor(new Date(`${topic.LastShownAt}Z`).getTime() / 1000)}:R>`
+            : "never",
+        inline: true,
+    });
+    embed.addFields({ name: "Upvotes", value: `${topic.Upvotes}`, inline: true });
+    embed.addFields({ name: "Downvotes", value: `${topic.Downvotes}`, inline: true });
 
     await interaction.reply({ embeds: [embed] });
 };

@@ -1,4 +1,4 @@
-import { ICard } from "./types.js";
+import type { ICard } from "./types.ts";
 
 // Keywords come from https://labyrinthos.co/blogs/tarot-card-meanings-list
 export const deck: ICard[] = [

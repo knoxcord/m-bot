@@ -1,13 +1,13 @@
-import { Configure } from "./configure.js";
-import { TopicManage } from "./topicManage.js";
-import { Feature } from "./feature.js";
-import { LocationInfo } from "./locationInfo.js";
-import { LocationManage } from "./locationManage.js";
-import { Ping } from "./ping.js";
-import { Roll } from "./roll.js";
-import { SetActivity } from "./setActivity.js";
-import { Tarot } from "./tarot.js";
-import { Version } from "./version.js";
+import { Configure } from "./configure.ts";
+import { TopicManage } from "./topicManage.ts";
+import { Feature } from "./feature.ts";
+import { LocationInfo } from "./locationInfo.ts";
+import { LocationManage } from "./locationManage.ts";
+import { Ping } from "./ping.ts";
+import { Roll } from "./roll.ts";
+import { SetActivity } from "./setActivity.ts";
+import { Tarot } from "./tarot.ts";
+import { Version } from "./version.ts";
 
 const slashCommands = [
     Ping,

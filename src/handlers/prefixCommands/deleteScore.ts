@@ -1,9 +1,10 @@
-import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import db from "../../database/db.js";
-import configuration from "../../features/configuration/configuration.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { RoleIdsThatCanSetScoreConfigurationKey } from "./setScore.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import db from "../../database/db.ts";
+import configuration from "../../features/configuration/configuration.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
+import { RoleIdsThatCanSetScoreConfigurationKey } from "./setScore.ts";
 
 const DeleteScoreRegex = /<?@?(?<userId>\d+)>?/;
 const enum DeleteScoreRegexCapturingGroups {

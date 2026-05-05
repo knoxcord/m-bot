@@ -1,5 +1,5 @@
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
-import { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.js";
+import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
+import type { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.ts";
 
 export const TrackedRoleIdsConfigurationKey = 'TRACKED_ROLE_IDS';
 export const RoleActivityChannelIdConfigurationKey = 'ROLE_ACTIVITY_CHANNEL_ID';

@@ -1,9 +1,11 @@
-import { OmitPartialGroupDMChannel, Message, MessageFlags, inlineCode } from "discord.js";
-import { buildResponse } from "../../features/roll/builders.js";
-import { doRoll } from "../../features/roll/roll.js";
-import { RollSeparator } from "../../features/roll/rollTypes.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { parseNotatedRolls } from "../../features/roll/lexer.js";
+import type { OmitPartialGroupDMChannel, Message} from "discord.js";
+import { MessageFlags, inlineCode } from "discord.js";
+import { buildResponse } from "../../features/roll/builders.ts";
+import { doRoll } from "../../features/roll/roll.ts";
+import { RollSeparator } from "../../features/roll/rollTypes.ts";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import { parseNotatedRolls } from "../../features/roll/lexer.ts";
 
 const Key = CommandKey.Roll
 

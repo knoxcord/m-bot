@@ -1,5 +1,5 @@
-import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import db from "../../database/db.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
+import db from "../../database/db.ts";
 
 const RecentReasonsLimit = 5;
 const TopSpankeesLimit = 5;

@@ -1,8 +1,9 @@
-import { OmitPartialGroupDMChannel, Message, GuildMember, userMention } from "discord.js";
-import db from "../../database/db.js";
-import configuration from "../configuration/configuration.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.js";
+import type { OmitPartialGroupDMChannel, Message, GuildMember} from "discord.js";
+import { userMention } from "discord.js";
+import db from "../../database/db.ts";
+import configuration from "../configuration/configuration.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
+import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.ts";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {

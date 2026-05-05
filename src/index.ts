@@ -1,11 +1,12 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
+import type { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
+import { Client, Events, GatewayIntentBits } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import { slashCommands } from './handlers/slashCommands/index.js';
-import { modals } from './handlers/modals/index.js';
-import { messageComponents } from './handlers/messageComponents/index.js';
-import { prefixCommands } from './handlers/prefixCommands/index.js';
-import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.js';
-import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.js';
+import { slashCommands } from './handlers/slashCommands/index.ts';
+import { modals } from './handlers/modals/index.ts';
+import { messageComponents } from './handlers/messageComponents/index.ts';
+import { prefixCommands } from './handlers/prefixCommands/index.ts';
+import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.ts';
+import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
 
 const CommandPrefix = "-";
 
