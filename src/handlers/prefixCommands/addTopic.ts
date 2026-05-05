@@ -16,6 +16,18 @@ const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolea
         return;
     }
 
+    const customEmojiPattern = /<a?:(\w+):(\d+)>/g;
+    const inaccessibleEmojiNames: string[] = [];
+    for (const match of commandBody.matchAll(customEmojiPattern)) {
+        if (!message.client.emojis.cache.has(match[2])) {
+            inaccessibleEmojiNames.push(inlineCode(match[1]));
+        }
+    }
+    if (inaccessibleEmojiNames.length > 0) {
+        await message.reply(`I don't have access to the following emoji, so I can't save this topic: ${inaccessibleEmojiNames.join(", ")}`);
+        return;
+    }
+
     const roleIdsThatCanAddTopic = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanAddTopicsConfigurationKey)?.split(',') ?? [];
 
     // If empty then anyone is allowed
