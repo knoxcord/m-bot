@@ -37,6 +37,9 @@ export interface TopicRow {
     CreatedAt: string;
     LastShownAt: string | null;
     ShownCount: number;
+}
+
+export interface TopicWithVotesRow extends TopicRow {
     Upvotes: number;
     Downvotes: number;
 }
@@ -47,6 +50,11 @@ export interface TopicWeightingRow {
     LastShownAt: string | null;
     Upvotes: number;
     Downvotes: number;
+}
+
+export enum TopicVote {
+    Up = 0,
+    Down = 1,
 }
 
 class DatabaseManager {
@@ -163,12 +171,17 @@ class DatabaseManager {
                 AddedByUserId TEXT NOT NULL,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS TopicVotes (
+                TopicId INTEGER NOT NULL,
+                UserId TEXT NOT NULL,
+                Vote INTEGER NOT NULL,
+                PRIMARY KEY (TopicId, UserId)
+            );
         `)
 
         this.addColumnIfMissing('Topics', 'LastShownAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'ShownCount', 'INTEGER NOT NULL DEFAULT 0');
-        this.addColumnIfMissing('Topics', 'Upvotes', 'INTEGER NOT NULL DEFAULT 0');
-        this.addColumnIfMissing('Topics', 'Downvotes', 'INTEGER NOT NULL DEFAULT 0');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -420,7 +433,7 @@ class DatabaseManager {
     searchTopics(guildId: string, query: string) {
         const searchTerm = `%${query}%`;
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
             FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
             ORDER BY CreatedAt DESC
             LIMIT 25
@@ -430,15 +443,21 @@ class DatabaseManager {
 
     getTopic(guildId: string, topicId: number) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
-            FROM Topics WHERE GuildId = ? AND Id = ?
+            SELECT
+                t.Id, t.GuildId, t.Topic, t.AddedByUserId, t.CreatedAt, t.LastShownAt, t.ShownCount,
+                COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Up} THEN 1 ELSE 0 END), 0) AS Upvotes,
+                COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
+            FROM Topics t
+            LEFT JOIN TopicVotes v ON v.TopicId = t.Id
+            WHERE t.GuildId = ? AND t.Id = ?
+            GROUP BY t.Id
         `);
-        return statement.get(guildId, topicId) as TopicRow | undefined;
+        return statement.get(guildId, topicId) as TopicWithVotesRow | undefined;
     }
 
     getRecentTopics(guildId: string) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
             FROM Topics WHERE GuildId = ?
             ORDER BY CreatedAt DESC
             LIMIT 25;
@@ -452,27 +471,74 @@ class DatabaseManager {
             UPDATE Topics
             SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
             WHERE Id = (SELECT Id FROM Topics WHERE GuildId = ? ORDER BY RANDOM() LIMIT 1)
-            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
         `);
         return statement.get(guildId) as TopicRow | undefined;
     }
 
     getTopicsForWeighting(guildId: string) {
         const statement = this.db.prepare(`
-            SELECT Id, AddedByUserId, LastShownAt, Upvotes, Downvotes FROM Topics WHERE GuildId = ?
+            SELECT
+                t.Id, t.AddedByUserId, t.LastShownAt,
+                COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Up} THEN 1 ELSE 0 END), 0) AS Upvotes,
+                COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
+            FROM Topics t
+            LEFT JOIN TopicVotes v ON v.TopicId = t.Id
+            WHERE t.GuildId = ?
+            GROUP BY t.Id
         `);
         return statement.all(guildId) as TopicWeightingRow[];
     }
 
-    /** Increments ShownCount, sets LastShownAt for the given topic, and returns the updated row. */
+    getTopicVoteCounts(topicId: number) {
+        const statement = this.db.prepare(`
+            SELECT
+                COALESCE(SUM(CASE WHEN Vote = ${TopicVote.Up} THEN 1 ELSE 0 END), 0) AS Upvotes,
+                COALESCE(SUM(CASE WHEN Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
+            FROM TopicVotes WHERE TopicId = ?
+        `);
+        return statement.get(topicId) as { Upvotes: number, Downvotes: number };
+    }
+
+    /** Toggles off if the user already voted this direction, otherwise sets/swaps the vote. */
+    applyTopicVote(topicId: number, userId: string, clicked: TopicVote) {
+        const getCurrent = this.db.prepare(`
+            SELECT Vote FROM TopicVotes WHERE TopicId = ? AND UserId = ?
+        `);
+        const clearVote = this.db.prepare(`
+            DELETE FROM TopicVotes WHERE TopicId = ? AND UserId = ?
+        `);
+        const upsertVote = this.db.prepare(`
+            INSERT INTO TopicVotes (TopicId, UserId, Vote) VALUES (?, ?, ?)
+            ON CONFLICT (TopicId, UserId) DO UPDATE SET Vote = excluded.Vote
+        `);
+
+        const txn = this.db.transaction(() => {
+            const current = getCurrent.get(topicId, userId) as { Vote: number } | undefined;
+            if (current?.Vote === clicked) {
+                clearVote.run(topicId, userId);
+            } else {
+                upsertVote.run(topicId, userId, clicked);
+            }
+        });
+        txn();
+        return this.getTopicVoteCounts(topicId);
+    }
+
+    /** Increments ShownCount, sets LastShownAt for the given topic, and returns the updated row with vote counts. */
     markTopicShownAndReturn(guildId: string, topicId: number) {
         const statement = this.db.prepare(`
             UPDATE Topics
             SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
             WHERE GuildId = ? AND Id = ?
-            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
         `);
-        return statement.get(guildId, topicId) as TopicRow | undefined;
+        const txn = this.db.transaction(() => {
+            const row = statement.get(guildId, topicId) as TopicRow | undefined;
+            if (!row) return undefined;
+            return { ...row, ...this.getTopicVoteCounts(row.Id) };
+        });
+        return txn();
     }
 
     addTopic(guildId: string, topic: string, userId: string) {

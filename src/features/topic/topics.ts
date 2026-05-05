@@ -1,7 +1,5 @@
 import db from "../../database/db.ts";
-import type { TopicRow } from "../../database/db.ts";
-import featureFlags from "../featureFlags/featureFlags.ts";
-import { TopicWeightedSelectionFeatureFlag } from "./config.ts";
+import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/db.ts";
 import { pickWeighted } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
 
@@ -14,16 +12,20 @@ class Topics {
         return db.getTopic(guildId, topicId);
     }
 
-    getRandomTopic(guildId: string): TopicRow | undefined {
-        if (!featureFlags.getFeatureFlag(guildId, TopicWeightedSelectionFeatureFlag)) {
-            return db.pickRandomTopicAndMarkShown(guildId);
-        }
-
+    getWeightedRandomTopic(guildId: string): TopicWithVotesRow | undefined {
         const candidates = db.getTopicsForWeighting(guildId);
         const picked = pickWeighted(candidates, resolveWeightOptions(guildId));
         if (!picked) return undefined;
 
         return db.markTopicShownAndReturn(guildId, picked.Id);
+    }
+
+    getRandomTopic(guildId: string): TopicRow | undefined {
+        return db.pickRandomTopicAndMarkShown(guildId);
+    }
+
+    recordVote(topicId: number, userId: string, direction: TopicVote) {
+        return db.applyTopicVote(topicId, userId, direction);
     }
 
     searchTopics(guildId: string, query: string): TopicRow[] {

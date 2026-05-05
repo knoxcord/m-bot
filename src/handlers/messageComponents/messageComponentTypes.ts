@@ -1,8 +1,10 @@
 import type { MessageComponentInteraction } from "discord.js";
 import { TarotCustomIdKey } from "../../features/tarot/types.ts";
+import { TopicVoteCustomIdKey } from "../../features/topic/types.ts";
 
 export enum MessageComponentCustomIdPrefix {
     Tarot = TarotCustomIdKey,
+    TopicVote = TopicVoteCustomIdKey,
 }
 
 export interface IMessageComponent {
