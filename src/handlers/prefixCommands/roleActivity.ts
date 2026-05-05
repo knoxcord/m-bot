@@ -1,6 +1,7 @@
-import { OmitPartialGroupDMChannel, Message } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { reportAdHocActivityForServer, getHourWindowForDate } from "../../features/roleActivity/roleActivity.js";
+import type { OmitPartialGroupDMChannel, Message } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import { reportAdHocActivityForServer, getHourWindowForDate } from "../../features/roleActivity/roleActivity.ts";
 
 const Key = CommandKey.RoleActivity
 

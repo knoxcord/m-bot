@@ -1,4 +1,4 @@
-import { Message, OmitPartialGroupDMChannel } from "discord.js";
+import type { Message, OmitPartialGroupDMChannel } from "discord.js";
 
 export enum CommandKey {
     Roll = "roll",

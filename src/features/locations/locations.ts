@@ -1,4 +1,6 @@
-import db, { LocationRow, LocationImageRow } from "../../database/db.js";
+import type { LocationRow, LocationImageRow } from "../../database/db.ts";
+import db from "../../database/db.ts";
+import { AutocompleteResultLimit } from "../../shared/autocompleteOptionFormatter.ts";
 
 class Locations {
     addLocation(guildId: string, name: string, addedByUserId: string, address?: string, description?: string, keywords?: string, hours?: string, url?: string) {
@@ -14,7 +16,7 @@ class Locations {
     }
 
     searchLocations(guildId: string, query: string): LocationRow[] {
-        if (!query) return db.getAllLocations(guildId).slice(0, 25);
+        if (!query) return db.getAllLocations(guildId).slice(0, AutocompleteResultLimit);
         return db.searchLocations(guildId, query);
     }
 

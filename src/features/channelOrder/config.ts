@@ -1,5 +1,5 @@
-import { ConfigurationRegistration } from "../configuration/configurationTypes.js";
-import { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.js";
+import type { ConfigurationRegistration } from "../configuration/configurationTypes.ts";
+import type { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.ts";
 
 export const ChannelOrderLogChannelIdConfigurationKey = 'CHANNEL_ORDER_LOG_CHANNEL_ID';
 

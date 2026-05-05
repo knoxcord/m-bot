@@ -1,14 +1,11 @@
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import topics from "../../features/topic/topics.js";
-import { OmitPartialGroupDMChannel, Message, inlineCode, GuildMember } from "discord.js";
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
-import configuration from "../../features/configuration/configuration.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
-
-export const RoleIdsThatCanAddTopicsConfigurationKey = 'ROLE_IDS_THAT_CAN_ADD_TOPICS';
-export const addTopicConfigurationRegistrations = <ConfigurationRegistration[]>[
-    ['Role Ids That Can Add Topics', RoleIdsThatCanAddTopicsConfigurationKey]
-];
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import topics from "../../features/topic/topics.ts";
+import type { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
+import { inlineCode } from "discord.js";
+import configuration from "../../features/configuration/configuration.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
+import { RoleIdsThatCanAddTopicsConfigurationKey } from "../../features/topic/config.ts";
 
 const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)

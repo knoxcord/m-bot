@@ -1,4 +1,4 @@
-import { Tarot } from "./tarot.js";
+import { Tarot } from "./tarot.ts";
 
 const messageComponents = [
     Tarot,

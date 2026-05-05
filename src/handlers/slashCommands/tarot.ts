@@ -1,6 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
-import { buildTarotModal } from "../../features/tarot/builders.js";
+import type { CacheType, ChatInputCommandInteraction} from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import { buildTarotModal } from "../../features/tarot/builders.ts";
 
 const Key = CommandKey.Tarot;
 const Description = "Starts a tarot read";

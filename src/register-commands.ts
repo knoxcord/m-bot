@@ -1,6 +1,7 @@
-import { REST, Routes, SharedSlashCommand } from 'discord.js';
+import type { SharedSlashCommand } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 import config from './config.json' with { type: "json" };
-import { slashCommands } from './handlers/slashCommands/index.js';
+import { slashCommands } from './handlers/slashCommands/index.ts';
 
 
 // Construct and prepare an instance of the REST module

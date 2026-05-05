@@ -1,4 +1,4 @@
-import { RollDefinition } from "./rollTypes.js";
+import type { RollDefinition } from "./rollTypes.ts";
 
 export const MinNumberOfDice = 1;
 export const MaxNumberOfDice = 100;

@@ -1,10 +1,12 @@
-import { OmitPartialGroupDMChannel, Message, userMention, blockQuote, GuildMember } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { getPreviousHourWindow } from "../../features/roleActivity/roleActivity.js";
-import db from "../../database/db.js";
-import configuration from "../../features/configuration/configuration.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
-import { RoleIdsThatCanGetScoreConfigurationKey } from "./getScore.js";
+import type { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
+import { userMention, blockQuote } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import { getPreviousHourWindow } from "../../features/roleActivity/roleActivity.ts";
+import db from "../../database/db.ts";
+import configuration from "../../features/configuration/configuration.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
+import { RoleIdsThatCanGetScoreConfigurationKey } from "./getScore.ts";
 
 const Key = CommandKey.TopMessagesLastHour;
 

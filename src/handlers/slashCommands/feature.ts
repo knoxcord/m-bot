@@ -1,8 +1,11 @@
-import { APIApplicationCommandOptionChoice, ChatInputCommandInteraction, inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import { FeatureFlagRegistration } from "../../features/featureFlags/featureFlagTypes.js";
-import { featureFlagRegistrations } from "../../features/featureFlags/featureFlagRegistrations.js";
-import featureFlags from "../../features/featureFlags/featureFlags.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
+import type { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
+import { inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import type { FeatureFlagRegistration } from "../../features/featureFlags/featureFlagTypes.ts";
+import { featureFlagRegistrations } from "../../features/featureFlags/featureFlagRegistrations.ts";
+import featureFlags from "../../features/featureFlags/featureFlags.ts";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
+import { AutocompleteResultLimit, formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.Feature;
 const Description = "Gets, enables, or disables feature flags";
@@ -12,22 +15,16 @@ enum FeatureFlagSubcommandEnum {
     Disable = 'disable',
 }
 
-const getFeatureFlagKeyChoices = (flagRegistrations: FeatureFlagRegistration[]) =>
-    flagRegistrations.map(([key, name]) => (<APIApplicationCommandOptionChoice<string>>{
-        name: key,
-        value: name
-    }));
-
 const ensureNoDuplicateKeys = (flagRegistrations: FeatureFlagRegistration[]) => {
-    const keys = new Set<string>();
-    flagRegistrations.forEach(([key, _]) => {
-        if (keys.has(key))
-            throw "Encountered duplicate feature flag key";
+    const seen = new Set<string>();
+    flagRegistrations.forEach(([, key]) => {
+        if (seen.has(key))
+            throw `Encountered duplicate feature flag key: ${key}`;
+        seen.add(key);
     })
 }
 
 const getFeatureFlagCommandBuilder = () => {
-    const flagKeyChoices = getFeatureFlagKeyChoices(featureFlagRegistrations);
     ensureNoDuplicateKeys(featureFlagRegistrations);
 
     return new SlashCommandBuilder()
@@ -41,7 +38,7 @@ const getFeatureFlagCommandBuilder = () => {
                     option.setName('flag')
                         .setDescription('The feature flag to retrieve')
                         .setRequired(true)
-                        .addChoices(flagKeyChoices)))
+                        .setAutocomplete(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName(FeatureFlagSubcommandEnum.Enable)
@@ -50,7 +47,7 @@ const getFeatureFlagCommandBuilder = () => {
                     option.setName('flag')
                         .setDescription('The feature flag to enable')
                         .setRequired(true)
-                        .addChoices(flagKeyChoices)))
+                        .setAutocomplete(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName(FeatureFlagSubcommandEnum.Disable)
@@ -59,7 +56,7 @@ const getFeatureFlagCommandBuilder = () => {
                     option.setName('flag')
                         .setDescription('The feature flag to disable')
                         .setRequired(true)
-                        .addChoices(flagKeyChoices)))
+                        .setAutocomplete(true)))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 }
 
@@ -92,8 +89,23 @@ const featureFlagCommandHandler = async (interaction: ChatInputCommandInteractio
     }
 };
 
+const featureFlagAutocompleteHandler = async (interaction: AutocompleteInteraction) => {
+    const focused = interaction.options.getFocused().toLowerCase();
+    const matches = featureFlagRegistrations
+        .filter(([name]) => name.toLowerCase().includes(focused))
+        .slice(0, AutocompleteResultLimit);
+
+    await interaction.respond(
+        matches.map(([name, key]) => <ApplicationCommandOptionChoiceData<string>>({
+            name: formatAutocompleteName(name),
+            value: key,
+        }))
+    );
+};
+
 export const Feature: ISlashCommand = {
     builder: getFeatureFlagCommandBuilder(),
     handler: featureFlagCommandHandler,
+    autocompleteHandler: featureFlagAutocompleteHandler,
     key: Key
 }

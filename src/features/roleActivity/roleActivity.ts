@@ -1,12 +1,13 @@
 // The code in this file was hasily written for april fools 2026. It probably has bugs
 
-import { blockQuote, Client, Constants, Guild, GuildMember, Message, OmitPartialGroupDMChannel, TextChannel, userMention } from "discord.js";
-import configuration from "../configuration/configuration.js";
-import db from "../../database/db.js";
-import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag, ActivityByUserFeatureFlag, ActivityByUserReportingFeatureFlag } from "./config.js";
-import featureFlags from "../featureFlags/featureFlags.js";
-import { RoleIdsThatCanGetScoreConfigurationKey } from "../../handlers/prefixCommands/getScore.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
+import type { Client, Guild, GuildMember, Message, OmitPartialGroupDMChannel, TextChannel} from "discord.js";
+import { blockQuote, Constants, userMention } from "discord.js";
+import configuration from "../configuration/configuration.ts";
+import db from "../../database/db.ts";
+import { TrackedRoleIdsConfigurationKey, RoleActivityChannelIdConfigurationKey, RoleActivityFeatureFlag, RoleActivityReportingFeatureFlag, RoleActivityHolographicFeatureFlag, ActivityByUserFeatureFlag, ActivityByUserReportingFeatureFlag } from "./config.ts";
+import featureFlags from "../featureFlags/featureFlags.ts";
+import { RoleIdsThatCanGetScoreConfigurationKey } from "../../handlers/prefixCommands/getScore.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
 
 export const getHourWindowForDate = (date: Date): string => {
     const d = new Date(date);

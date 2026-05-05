@@ -1,9 +1,10 @@
-import { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
-import db from "../../database/db.js";
-import configuration from "../../features/configuration/configuration.js";
-import { getMissingPermissionResponse } from "../../shared/responses.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
+import db from "../../database/db.ts";
+import configuration from "../../features/configuration/configuration.ts";
+import { getMissingPermissionResponse } from "../../shared/responses.ts";
 
 const GetScoreRegex = /<?@?(?<userId>\d+)>?/;
 const enum GetScoreRegexCapturingGroups {

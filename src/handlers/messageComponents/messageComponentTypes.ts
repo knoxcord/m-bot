@@ -1,5 +1,5 @@
-import { MessageComponentInteraction } from "discord.js";
-import { TarotCustomIdKey } from "../../features/tarot/types.js";
+import type { MessageComponentInteraction } from "discord.js";
+import { TarotCustomIdKey } from "../../features/tarot/types.ts";
 
 export enum MessageComponentCustomIdPrefix {
     Tarot = TarotCustomIdKey,

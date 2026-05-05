@@ -1,4 +1,4 @@
-import { ConfigurationRegistration } from "../../features/configuration/configurationTypes.js";
+import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
 
 export const RoleIdsThatCanAwardConfigurationKey = 'ROLE_IDS_THAT_CAN_AWARD';
 

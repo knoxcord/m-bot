@@ -1,7 +1,8 @@
-import { channelMention, DMChannel, Guild, NonThreadGuildBasedChannel, TextChannel } from "discord.js";
-import configuration from "../configuration/configuration.js";
-import featureFlags from "../featureFlags/featureFlags.js";
-import { ChannelOrderLogChannelIdConfigurationKey, ChannelOrderLoggingFeatureFlag } from "./config.js";
+import type { DMChannel, Guild, NonThreadGuildBasedChannel, TextChannel } from "discord.js";
+import { channelMention } from "discord.js";
+import configuration from "../configuration/configuration.ts";
+import featureFlags from "../featureFlags/featureFlags.ts";
+import { ChannelOrderLogChannelIdConfigurationKey, ChannelOrderLoggingFeatureFlag } from "./config.ts";
 
 const DEBOUNCE_MS = 2000;
 

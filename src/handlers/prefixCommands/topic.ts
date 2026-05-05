@@ -1,13 +1,10 @@
-import { inlineCode, Message, OmitPartialGroupDMChannel } from "discord.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
-import topics from "../../features/topic/topics.js";
-import { FeatureFlagRegistration } from "../../features/featureFlags/featureFlagTypes.js";
-import featureFlags from "../../features/featureFlags/featureFlags.js";
-
-export const TopicsFeatureFlag = 'TOPICS';
-export const topicsFeatureFlagRegistrations = <FeatureFlagRegistration[]>[
-    ['Topics', TopicsFeatureFlag],
-];
+import type { Message, OmitPartialGroupDMChannel } from "discord.js";
+import { inlineCode } from "discord.js";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
+import topics from "../../features/topic/topics.ts";
+import featureFlags from "../../features/featureFlags/featureFlags.ts";
+import { TopicsFeatureFlag } from "../../features/topic/config.ts";
 
 const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, _commandBody: string) => {
     if (!message.guildId)
@@ -21,7 +18,7 @@ const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>
         await message.reply("There aren't any topics available for this server. Why don't you try adding some using the addtopic command?")
         return;
     }
-    
+
     // TODO: hydrate template values?
     await message.channel.send(topic.Topic);
 }

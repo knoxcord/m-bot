@@ -1,5 +1,6 @@
-import { awardHandler } from "../../features/award/award.js";
-import { CommandKey, IPrefixCommand } from "./prefixCommandTypes.js";
+import { awardHandler } from "../../features/award/award.ts";
+import type { IPrefixCommand } from "./prefixCommandTypes.ts";
+import { CommandKey } from "./prefixCommandTypes.ts";
 
 export const Award: IPrefixCommand = {
     handler: awardHandler,

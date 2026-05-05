@@ -1,4 +1,4 @@
-import db from "../../database/db.js";
+import db from "../../database/db.ts";
 
 type FeatureFlagMatrix = Map<string, Map<string, boolean>>;
 

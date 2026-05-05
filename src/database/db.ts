@@ -34,7 +34,19 @@ export interface TopicRow {
     GuildId: string;
     Topic: string;
     AddedByUserId: string;
-    CreatedAt: string
+    CreatedAt: string;
+    LastShownAt: string | null;
+    ShownCount: number;
+    Upvotes: number;
+    Downvotes: number;
+}
+
+export interface TopicWeightingRow {
+    Id: number;
+    AddedByUserId: string;
+    LastShownAt: string | null;
+    Upvotes: number;
+    Downvotes: number;
 }
 
 class DatabaseManager {
@@ -152,6 +164,17 @@ class DatabaseManager {
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `)
+
+        this.addColumnIfMissing('Topics', 'LastShownAt', 'DATETIME');
+        this.addColumnIfMissing('Topics', 'ShownCount', 'INTEGER NOT NULL DEFAULT 0');
+        this.addColumnIfMissing('Topics', 'Upvotes', 'INTEGER NOT NULL DEFAULT 0');
+        this.addColumnIfMissing('Topics', 'Downvotes', 'INTEGER NOT NULL DEFAULT 0');
+    }
+
+    private addColumnIfMissing(table: string, column: string, definition: string) {
+        const columns = this.db.pragma(`table_info(${table})`) as { name: string }[];
+        if (columns.some(c => c.name === column)) return;
+        this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
     }
 
     savePullResult(messageId: string, userId: string, pullResult: string) {
@@ -397,7 +420,8 @@ class DatabaseManager {
     searchTopics(guildId: string, query: string) {
         const searchTerm = `%${query}%`;
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
             ORDER BY CreatedAt DESC
             LIMIT 25
         `);
@@ -406,27 +430,49 @@ class DatabaseManager {
 
     getTopic(guildId: string, topicId: number) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ? AND Id = ?
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            FROM Topics WHERE GuildId = ? AND Id = ?
         `);
         return statement.get(guildId, topicId) as TopicRow | undefined;
     }
 
     getRecentTopics(guildId: string) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ?
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+            FROM Topics WHERE GuildId = ?
             ORDER BY CreatedAt DESC
             LIMIT 25;
         `);
         return statement.all(guildId) as TopicRow[];
     }
 
-    getRandomTopic(guildId: string) {
+    /** Atomically picks a random topic, increments ShownCount, sets LastShownAt, and returns the updated row. */
+    pickRandomTopicAndMarkShown(guildId: string) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt FROM Topics WHERE GuildId = ?
-            ORDER BY RANDOM()
-            LIMIT 1
+            UPDATE Topics
+            SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
+            WHERE Id = (SELECT Id FROM Topics WHERE GuildId = ? ORDER BY RANDOM() LIMIT 1)
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
         `);
         return statement.get(guildId) as TopicRow | undefined;
+    }
+
+    getTopicsForWeighting(guildId: string) {
+        const statement = this.db.prepare(`
+            SELECT Id, AddedByUserId, LastShownAt, Upvotes, Downvotes FROM Topics WHERE GuildId = ?
+        `);
+        return statement.all(guildId) as TopicWeightingRow[];
+    }
+
+    /** Increments ShownCount, sets LastShownAt for the given topic, and returns the updated row. */
+    markTopicShownAndReturn(guildId: string, topicId: number) {
+        const statement = this.db.prepare(`
+            UPDATE Topics
+            SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
+            WHERE GuildId = ? AND Id = ?
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, Upvotes, Downvotes
+        `);
+        return statement.get(guildId, topicId) as TopicRow | undefined;
     }
 
     addTopic(guildId: string, topic: string, userId: string) {

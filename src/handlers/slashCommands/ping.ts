@@ -1,5 +1,7 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CommandKey, ISlashCommand } from "./commandTypes.js";
+import type { ChatInputCommandInteraction} from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
+import type { ISlashCommand } from "./commandTypes.ts";
+import { CommandKey } from "./commandTypes.ts";
 
 const Key = CommandKey.Ping
 const Description = "Replies with pong";

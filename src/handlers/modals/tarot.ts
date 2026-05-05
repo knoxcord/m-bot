@@ -1,10 +1,13 @@
-import { MessageFlags, ModalSubmitInteraction } from "discord.js";
-import { FieldId, PullType, ICard } from "../../features/tarot/types.js";
-import { deck } from "../../features/tarot/deck.js";
-import db from "../../database/db.js";
-import { getKey } from "../../features/tarot/helpers.js";
-import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.js";
-import { IModal, ModalCustomId } from "./modalTypes.js";
+import type { ModalSubmitInteraction } from "discord.js";
+import { MessageFlags } from "discord.js";
+import type { ICard } from "../../features/tarot/types.ts";
+import { FieldId, PullType } from "../../features/tarot/types.ts";
+import { deck } from "../../features/tarot/deck.ts";
+import db from "../../database/db.ts";
+import { getKey } from "../../features/tarot/helpers.ts";
+import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.ts";
+import type { IModal} from "./modalTypes.ts";
+import { ModalCustomId } from "./modalTypes.ts";
 
 const PullTypeMap: Record<PullType, number> = {
     [PullType.Single]: 1,
