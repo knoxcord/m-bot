@@ -1,4 +1,4 @@
-import type { Guild, Message, OmitPartialGroupDMChannel } from "discord.js";
+import type { Client, Guild, Message, OmitPartialGroupDMChannel } from "discord.js";
 import configuration from "../configuration/configuration.ts";
 import featureFlags from "../featureFlags/featureFlags.ts";
 import topics from "./topics.ts";
@@ -7,8 +7,11 @@ import {
     AutoTopicChannelIdConfigurationKey,
     AutoTopicFeatureFlag,
     AutoTopicInactivityMinutesConfigurationKey,
+    AutoTopicQuietHoursEndConfigurationKey,
+    AutoTopicQuietHoursStartConfigurationKey,
     TopicsFeatureFlag,
 } from "./config.ts";
+import { getUtcMinutesOfDay, isWithinDailyWindow, parseHhMmToMinutes } from "./quietHours.ts";
 
 // Prevent spamming due to bad config
 const MINIMUM_AUTO_TOPIC_INACTIVITY_MINUTES = 1;
@@ -27,6 +30,21 @@ const clearGuildTimer = (guildId: string) => {
     }
 };
 
+const isInQuietHours = (guildId: string, now: Date = new Date()): boolean => {
+    const rawStart = configuration.getConfigurationValue(guildId, AutoTopicQuietHoursStartConfigurationKey);
+    const rawEnd = configuration.getConfigurationValue(guildId, AutoTopicQuietHoursEndConfigurationKey);
+    if (!rawStart || !rawEnd) return false;
+
+    const start = parseHhMmToMinutes(rawStart);
+    const end = parseHhMmToMinutes(rawEnd);
+    if (start === undefined || end === undefined) {
+        console.warn(`Found invalid auto topic quiet hours for guildId ${guildId}: start="${rawStart}" end="${rawEnd}" (expected HH:MM, 24h UTC)`);
+        return false;
+    }
+
+    return isWithinDailyWindow(getUtcMinutesOfDay(now), start, end);
+};
+
 const resolveInactivityMs = (guildId: string): number | undefined => {
     const raw = configuration.getConfigurationValue(guildId, AutoTopicInactivityMinutesConfigurationKey);
     if (!raw) return undefined;
@@ -43,6 +61,7 @@ const postAutoTopic = async (guild: Guild) => {
 
     if (!featureFlags.getFeatureFlag(guildId, TopicsFeatureFlag)) return;
     if (!featureFlags.getFeatureFlag(guildId, AutoTopicFeatureFlag)) return;
+    if (isInQuietHours(guildId)) return;
 
     const channelId = configuration.getConfigurationValue(guildId, AutoTopicChannelIdConfigurationKey);
     if (!channelId) return;
@@ -58,15 +77,13 @@ const postAutoTopic = async (guild: Guild) => {
     await channel.send(buildTopicMessage(topic));
 };
 
-export const handleAutoTopicMessage = (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
-    if (!message.guildId || !message.guild) return;
-
-    const guildId = message.guildId;
-    const guild = message.guild;
+const scheduleAutoTopicTimer = (guild: Guild) => {
+    const guildId = guild.id;
 
     clearGuildTimer(guildId);
 
     if (!featureFlags.getFeatureFlag(guildId, AutoTopicFeatureFlag)) return;
+    if (isInQuietHours(guildId)) return;
 
     const inactivityMs = resolveInactivityMs(guildId);
     if (inactivityMs === undefined) return;
@@ -79,4 +96,15 @@ export const handleAutoTopicMessage = (message: OmitPartialGroupDMChannel<Messag
     }, inactivityMs);
 
     guildTimers.set(guildId, { timeoutId });
+};
+
+export const handleAutoTopicMessage = (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
+    if (!message.guildId || !message.guild) return;
+    scheduleAutoTopicTimer(message.guild);
+};
+
+export const initializeAutoTopicTimers = (client: Client) => {
+    for (const guild of client.guilds.cache.values()) {
+        scheduleAutoTopicTimer(guild);
+    }
 };
