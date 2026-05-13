@@ -3,9 +3,12 @@ import type { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.t
 
 export const TopicsFeatureFlag = 'TOPICS';
 export const TopicWeightedSelectionFeatureFlag = 'TOPIC_WEIGHTED_SELECTION';
+export const AutoTopicFeatureFlag = 'AUTO_TOPIC';
 
 export const RoleIdsThatCanAddTopicsConfigurationKey = 'ROLE_IDS_THAT_CAN_ADD_TOPICS';
 export const PreloadedTopicsUserIdConfigurationKey = 'PRELOADED_TOPICS_USER_ID';
+export const AutoTopicChannelIdConfigurationKey = 'AUTO_TOPIC_CHANNEL_ID';
+export const AutoTopicInactivityMinutesConfigurationKey = 'AUTO_TOPIC_INACTIVITY_MINUTES';
 
 export const TopicWeightConfigurationKeys = {
     RecencyWindowHours: 'TOPIC_WEIGHT_RECENCY_WINDOW_HOURS',
@@ -19,6 +22,8 @@ export const TopicWeightConfigurationKeys = {
 export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Role Ids That Can Add Topics', RoleIdsThatCanAddTopicsConfigurationKey],
     ['Preloaded Topics User Id', PreloadedTopicsUserIdConfigurationKey],
+    ['Auto Topic Channel Id', AutoTopicChannelIdConfigurationKey],
+    ['Auto Topic Inactivity Minutes', AutoTopicInactivityMinutesConfigurationKey],
     ['Topic Weight: Recency Window Hours', TopicWeightConfigurationKeys.RecencyWindowHours],
     ['Topic Weight: Recency Floor', TopicWeightConfigurationKeys.RecencyFloor],
     ['Topic Weight: Preloaded User Multiplier', TopicWeightConfigurationKeys.PreloadedUserMultiplier],
@@ -30,4 +35,5 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
 export const topicFeatureFlagRegistrations = <FeatureFlagRegistration[]>[
     ['Topics', TopicsFeatureFlag],
     ['Topic Weighted Selection', TopicWeightedSelectionFeatureFlag],
+    ['Auto Topic', AutoTopicFeatureFlag],
 ];

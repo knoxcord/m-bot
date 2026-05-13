@@ -7,6 +7,7 @@ import { messageComponents } from './handlers/messageComponents/index.ts';
 import { prefixCommands } from './handlers/prefixCommands/index.ts';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.ts';
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
+import { handleAutoTopicMessage } from './features/topic/autoTopic.ts';
 
 const CommandPrefix = "-";
 
@@ -120,6 +121,7 @@ client.on(Events.MessageCreate, (message) => {
 	}
 
 	handleRoleActivityMessage(message);
+	handleAutoTopicMessage(message);
 
 	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${message.guild?.members.me?.displayName ?? client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))
