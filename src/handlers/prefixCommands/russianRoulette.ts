@@ -1,4 +1,4 @@
-import type { GuildMember, Message, OmitPartialGroupDMChannel} from "discord.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import { bold, heading, inlineCode, italic, subtext } from "discord.js";
 import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
@@ -6,6 +6,7 @@ import configuration from "../../features/configuration/configuration.ts";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
 import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
 import db from "../../database/db.ts";
+import { scheduleTemporaryRole } from "../../features/temporaryRoles/temporaryRoles.ts";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -22,9 +23,6 @@ export const rouletteConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Roulette Allowed Channel Ids', RouletteAllowedChannelIdsConfigurationKey]
 ];
 
-
-const removeRole = (roleId: string, user: GuildMember) =>
-    user.roles.remove(roleId);
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)
@@ -107,7 +105,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
             await targetUser.roles.add(MutedRoleId);
             const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, RouletteMutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
             replyMessageLines.push(subtext(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`));
-            setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
+            scheduleTemporaryRole(targetUser, MutedRoleId, muteDurationSeconds);
         }
     } catch (error) {
         console.error(`Failed to assigned muted role id ${MutedRoleId} to target user id ${targetUserId} with error ${error}`);

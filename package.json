@@ -2,7 +2,7 @@
   "name": "m-bot",
   "packageManager": "yarn@4.10.3",
   "type": "module",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "scripts": {
     "lint": "eslint",
     "test": "tsc && node --test './build/**/*.test.js'",

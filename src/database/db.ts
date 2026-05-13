@@ -57,6 +57,13 @@ export enum TopicVote {
     Down = 1,
 }
 
+export interface TemporaryRoleAssignmentRow {
+    GuildId: string;
+    UserId: string;
+    RoleId: string;
+    ExpiresAt: number;
+}
+
 class DatabaseManager {
     private db: Database.Database;
 
@@ -177,6 +184,14 @@ class DatabaseManager {
                 UserId TEXT NOT NULL,
                 Vote INTEGER NOT NULL,
                 PRIMARY KEY (TopicId, UserId)
+            );
+
+            CREATE TABLE IF NOT EXISTS TemporaryRoleAssignments (
+                GuildId TEXT NOT NULL,
+                UserId TEXT NOT NULL,
+                RoleId TEXT NOT NULL,
+                ExpiresAt INTEGER NOT NULL,
+                PRIMARY KEY (GuildId, UserId, RoleId)
             );
         `)
 
@@ -550,6 +565,28 @@ class DatabaseManager {
             UPDATE Topics SET Topic = ? WHERE GuildId = ? AND Id = ?
         `);
         return statement.run(topic, guildId, topicId);
+    }
+
+    saveTemporaryRoleAssignment(guildId: string, userId: string, roleId: string, expiresAt: number) {
+        const statement = this.db.prepare(`
+            INSERT OR REPLACE INTO TemporaryRoleAssignments (GuildId, UserId, RoleId, ExpiresAt)
+            VALUES (?, ?, ?, ?)
+        `);
+        return statement.run(guildId, userId, roleId, expiresAt);
+    }
+
+    deleteTemporaryRoleAssignment(guildId: string, userId: string, roleId: string) {
+        const statement = this.db.prepare(`
+            DELETE FROM TemporaryRoleAssignments WHERE GuildId = ? AND UserId = ? AND RoleId = ?
+        `);
+        return statement.run(guildId, userId, roleId);
+    }
+
+    getAllTemporaryRoleAssignments() {
+        const statement = this.db.prepare(`
+            SELECT GuildId, UserId, RoleId, ExpiresAt FROM TemporaryRoleAssignments
+        `);
+        return statement.all() as TemporaryRoleAssignmentRow[];
     }
 
     /** This should only be accessed by the configuration class */

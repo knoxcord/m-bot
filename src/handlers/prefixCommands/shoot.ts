@@ -1,18 +1,16 @@
-import type { GuildMember, Message, OmitPartialGroupDMChannel} from "discord.js";
+import type { GuildMember, Message, OmitPartialGroupDMChannel } from "discord.js";
 import { bold, heading, inlineCode, italic, subtext } from "discord.js";
 import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
 import configuration from "../../features/configuration/configuration.ts";
 import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
 import { RouletteMutedDurationSecondsConfigurationKey } from "./russianRoulette.ts";
+import { scheduleTemporaryRole } from "../../features/temporaryRoles/temporaryRoles.ts";
 
 const TargetRegex = /<?@?(?<userId>\d+)>?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
 };
-
-const removeRole = (roleId: string, user: GuildMember) =>
-    user.roles.remove(roleId);
 
 const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)
@@ -50,7 +48,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
 
     const replyMessageLines: string[] = [
         heading(bold(italic("BANG!"))),
-    ];    // If user is attempting to target someone else but doesnt have permission
+    ];
+
+    // If user is attempting to target someone else but doesnt have permission
     const handSlip = targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
     if (handSlip) {
         replyMessageLines.unshift(italic('Your hand slips as you aim the gun at your target...'));
@@ -80,7 +80,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
             await targetUser.roles.add(MutedRoleId);
             const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, RouletteMutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
             replyMessageLines.push(subtext(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`));
-            setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
+            scheduleTemporaryRole(targetUser, MutedRoleId, muteDurationSeconds);
         }
     } catch (error) {
         console.error(`Failed to assigned muted role id ${MutedRoleId} to target user id ${targetUserId} with error ${error}`);

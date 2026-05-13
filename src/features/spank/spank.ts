@@ -1,18 +1,16 @@
-import type { OmitPartialGroupDMChannel, Message, GuildMember} from "discord.js";
+import type { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js";
 import { userMention } from "discord.js";
 import db from "../../database/db.ts";
 import configuration from "../configuration/configuration.ts";
 import { getMissingPermissionResponse } from "../../shared/responses.ts";
 import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.ts";
+import { scheduleTemporaryRole } from "../temporaryRoles/temporaryRoles.ts";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
     UserId = "userId",
     Reason = "reason"
 };
-
-const removeRole = (roleId: string, user: GuildMember) =>
-    user.roles.remove(roleId);
 
 export const handleSpank = async (commandBody: string, message: OmitPartialGroupDMChannel<Message<true>>) => {
     const regexResult = commandBody.match(SpankRegex)?.groups;
@@ -103,5 +101,5 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
     const muteDurationSeconds = parseInt(configuration.getConfigurationValue(message.guildId, MutedDurationSecondsConfigurationKey) ?? "", 10) || 10;
     await message.reply(`Muted ${targetUser.user.displayName} for ${muteDurationSeconds} seconds`)
     db.saveSpank(message.id, message.guildId, authorUser.user.id, targetUser.user.id, spankReason)
-    setTimeout(async () => await removeRole(MutedRoleId, targetUser), muteDurationSeconds * 1000);
+    scheduleTemporaryRole(targetUser, MutedRoleId, muteDurationSeconds);
 }

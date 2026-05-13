@@ -8,6 +8,7 @@ import { prefixCommands } from './handlers/prefixCommands/index.ts';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.ts';
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
 import { handleAutoTopicMessage, initializeAutoTopicTimers } from './features/topic/autoTopic.ts';
+import { restoreTemporaryRoles } from './features/temporaryRoles/temporaryRoles.ts';
 
 const CommandPrefix = "-";
 
@@ -22,6 +23,7 @@ client.once(Events.ClientReady, (readyClient) => {
 	console.info(`Ready! Logged in as ${readyClient.user.tag}`);
 	scheduleRoleActivityHourlyJob(readyClient);
 	initializeAutoTopicTimers(readyClient);
+	restoreTemporaryRoles(readyClient).catch(error => console.error('Error restoring temporary roles:', error));
 });
 
 const slashCommandLookup = Object.fromEntries(

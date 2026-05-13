@@ -24,6 +24,7 @@ export enum CommandKey {
     RussianRoulette = "russianroulette",
     RussianRouletteStats = "russianroulettestats",
     Shoot = "shoot",
+    Unmute = "unmute",
     Topic = "topic",
     AddTopic = "addtopic",
     Bazooka = "bazooka",

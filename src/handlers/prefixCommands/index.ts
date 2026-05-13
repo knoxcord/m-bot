@@ -15,6 +15,7 @@ import { Help } from "./help.ts";
 import { RussianRoulette } from "./russianRoulette.ts";
 import { RussianRouletteStats } from "./russianRouletteStats.ts";
 import { Shoot } from "./shoot.ts";
+import { Unmute } from "./unmute.ts";
 import { Topic } from "./topic.ts";
 import { AddTopic } from "./addTopic.ts";
 import { Bazooka } from "./bazooka.ts";
@@ -41,6 +42,7 @@ const prefixCommands = [
     RussianRoulette,
     RussianRouletteStats,
     Shoot,
+    Unmute,
     Topic,
     AddTopic,
     Bazooka
