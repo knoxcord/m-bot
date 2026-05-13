@@ -48,7 +48,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
 
     const replyMessageLines: string[] = [
         heading(bold(italic("BANG!"))),
-    ];    // If user is attempting to target someone else but doesnt have permission
+    ];
+
+    // If user is attempting to target someone else but doesnt have permission
     const handSlip = targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
     if (handSlip) {
         replyMessageLines.unshift(italic('Your hand slips as you aim the gun at your target...'));

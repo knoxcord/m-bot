@@ -44,7 +44,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
 
     const replyMessageLines: string[] = [
         heading(bold(italic("BANG!"))),
-    ];    // If user is attempting to target someone else but doesnt have permission
+    ];
 
     let canMute = true;
     const myUser = message.guild.members.me;

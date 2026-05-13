@@ -30,7 +30,8 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
     }
     if (!authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
-        await message.reply(getMissingPermissionResponse(authorUser.id));        return;
+        await message.reply(getMissingPermissionResponse(authorUser.id));
+        return;
     }
 
     const regexResult = commandBody.match(TargetRegex)?.groups;
