@@ -6,12 +6,14 @@ import topics from "../../features/topic/topics.ts";
 import { computeWeightBreakdown } from "../../features/topic/topicWeights.ts";
 import { resolveWeightOptions } from "../../features/topic/topicWeightConfig.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
+import { buildTopicEditModal } from "../../features/topic/builders.ts";
 
 const Key = CommandKey.TopicManage;
 
 enum TopicManageSubcommand {
     Remove = "remove",
-    Get = "get"
+    Get = "get",
+    Edit = "edit",
 }
 
 const builder = new SlashCommandBuilder()
@@ -26,13 +28,22 @@ const builder = new SlashCommandBuilder()
                     .setDescription("The topic to get (search by text)")
                     .setRequired(true)
                     .setAutocomplete(true)))
-    .addSubcommand(subcommand => 
+    .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Remove)
             .setDescription("Remove a topic")
             .addIntegerOption(option =>
                 option.setName("topic")
                     .setDescription("The topic to remove (search by text)")
+                    .setRequired(true)
+                    .setAutocomplete(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName(TopicManageSubcommand.Edit)
+            .setDescription("Edit a topic's text via a modal")
+            .addIntegerOption(option =>
+                option.setName("topic")
+                    .setDescription("The topic to edit (search by text)")
                     .setRequired(true)
                     .setAutocomplete(true)))
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
@@ -99,6 +110,19 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
 };
 
 
+const handleEdit = async (interaction: ChatInputCommandInteraction) => {
+    const topicId = interaction.options.getInteger("topic", true);
+    const guildId = interaction.guildId ?? "";
+    const topic = topics.getTopic(guildId, topicId);
+
+    if (!topic) {
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    await interaction.showModal(buildTopicEditModal(topic.Id, topic.Topic));
+};
+
 const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
@@ -108,6 +132,9 @@ const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
             break;
         case TopicManageSubcommand.Remove:
             await handleRemove(interaction);
+            break;
+        case TopicManageSubcommand.Edit:
+            await handleEdit(interaction);
             break;
     }
 };

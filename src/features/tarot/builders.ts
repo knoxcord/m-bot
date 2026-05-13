@@ -2,7 +2,7 @@ import type { APIEmbedField} from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import type { ICard} from "./types.ts";
 import { FieldId, NextOrPrev, PullType, TarotCustomIdKey, TarotImagesPath  } from "./types.ts";
-import { ModalCustomId } from "../../handlers/modals/modalTypes.ts";
+import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import { getKey } from "./helpers.ts";
 
 const examplePurposes = [
@@ -64,7 +64,7 @@ const getTarotIsPublicInput = () => {
         .setStringSelectMenuComponent(tarotIsPublicInput);
 }
 export const buildTarotModal = () => new ModalBuilder()
-    .setCustomId(ModalCustomId.Tarot)
+    .setCustomId(ModalCustomIdPrefix.Tarot)
     .setTitle("New Tarot Read")
     .addLabelComponents(
         getTarotPurposeInput(),

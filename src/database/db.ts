@@ -556,6 +556,13 @@ class DatabaseManager {
         statement.run(guildId, topicId);
     }
 
+    updateTopicText(guildId: string, topicId: number, topic: string) {
+        const statement = this.db.prepare(`
+            UPDATE Topics SET Topic = ? WHERE GuildId = ? AND Id = ?
+        `);
+        return statement.run(topic, guildId, topicId);
+    }
+
     /** This should only be accessed by the configuration class */
     setConfigurationValue(guildId: string, key: string, value: string, userId: string) {
         const statement = this.db.prepare(`
