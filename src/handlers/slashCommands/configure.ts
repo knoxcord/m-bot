@@ -12,6 +12,7 @@ const Description = "Gets or sets configuration values";
 enum ConfigurationSubcommandEnum {
     Get = 'get',
     Set = 'set',
+    Unset = 'unset',
 }
 
 const ensureNoDuplicateKeys = (configRegistrations: ConfigurationRegistration[]) => {
@@ -51,6 +52,15 @@ export const getConfigurationCommandBuilder = () => {
                     option.setName('value')
                         .setDescription('The value to set')
                         .setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName(ConfigurationSubcommandEnum.Unset)
+                .setDescription('Clear a configuration value')
+                .addStringOption(option =>
+                    option.setName('field')
+                        .setDescription('The configuration field to clear')
+                        .setRequired(true)
+                        .setAutocomplete(true)))
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 }
 
@@ -70,6 +80,12 @@ const handleSet = async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply(`Set field ${inlineCode(field)} to ${inlineCode(value)}`);
 }
 
+const handleUnset = async (interaction: ChatInputCommandInteraction) => {
+    const field = interaction.options.getString('field', true);
+    configuration.unsetConfigurationValue(interaction.guildId ?? "", field);
+    await interaction.reply(`Cleared field ${inlineCode(field)}`);
+}
+
 const configurationCommandHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
@@ -77,6 +93,8 @@ const configurationCommandHandler = async (interaction: ChatInputCommandInteract
         await handleGet(interaction);
     } else if (subcommand === ConfigurationSubcommandEnum.Set) {
         await handleSet(interaction);
+    } else if (subcommand === ConfigurationSubcommandEnum.Unset) {
+        await handleUnset(interaction);
     }
 };
 

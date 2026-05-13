@@ -20,10 +20,6 @@ class Topics {
         return db.markTopicShownAndReturn(guildId, picked.Id);
     }
 
-    getRandomTopic(guildId: string): TopicRow | undefined {
-        return db.pickRandomTopicAndMarkShown(guildId);
-    }
-
     recordVote(topicId: number, userId: string, direction: TopicVote) {
         return db.applyTopicVote(topicId, userId, direction);
     }

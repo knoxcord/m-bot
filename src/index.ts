@@ -7,6 +7,7 @@ import { messageComponents } from './handlers/messageComponents/index.ts';
 import { prefixCommands } from './handlers/prefixCommands/index.ts';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.ts';
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
+import { handleAutoTopicMessage, initializeAutoTopicTimers } from './features/topic/autoTopic.ts';
 
 const CommandPrefix = "-";
 
@@ -20,6 +21,7 @@ const client = new Client({ intents: [
 client.once(Events.ClientReady, (readyClient) => {
 	console.info(`Ready! Logged in as ${readyClient.user.tag}`);
 	scheduleRoleActivityHourlyJob(readyClient);
+	initializeAutoTopicTimers(readyClient);
 });
 
 const slashCommandLookup = Object.fromEntries(
@@ -120,6 +122,7 @@ client.on(Events.MessageCreate, (message) => {
 	}
 
 	handleRoleActivityMessage(message);
+	handleAutoTopicMessage(message);
 
 	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${message.guild?.members.me?.displayName ?? client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))
