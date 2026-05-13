@@ -31,7 +31,10 @@ const resolveInactivityMs = (guildId: string): number | undefined => {
     const raw = configuration.getConfigurationValue(guildId, AutoTopicInactivityMinutesConfigurationKey);
     if (!raw) return undefined;
     const minutes = Number(raw);
-    if (!Number.isFinite(minutes) || minutes < MINIMUM_AUTO_TOPIC_INACTIVITY_MINUTES) return undefined;
+    if (!Number.isFinite(minutes) || minutes < MINIMUM_AUTO_TOPIC_INACTIVITY_MINUTES) {
+        console.warn(`Found invalid ${AutoTopicInactivityMinutesConfigurationKey} setting for guildId ${guildId}: ${raw}`);
+        return undefined;
+    }
     return minutes * 60 * 1000;
 };
 

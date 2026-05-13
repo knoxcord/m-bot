@@ -562,6 +562,14 @@ class DatabaseManager {
     }
 
     /** This should only be accessed by the configuration class */
+    deleteConfigurationValue(guildId: string, key: string) {
+        const statement = this.db.prepare(`
+            DELETE FROM Configuration WHERE GuildId = ? AND Key = ?
+        `)
+        return statement.run(guildId, key);
+    }
+
+    /** This should only be accessed by the configuration class */
     getConfigurationValue(guildId: string, key: string) {
         const statement = this.db.prepare(`
             SELECT Value FROM Configuration WHERE GuildId = ? AND Key = ?
