@@ -1,5 +1,8 @@
-import { Client, GuildMember } from "discord.js";
+import type { Client, GuildMember } from "discord.js";
 import db from "../../database/db.js";
+
+const getAssignmentKey = (guildId: string, userId: string, roleId: string) => `${guildId}:${userId}:${roleId}`;
+const pendingTimeouts = new Map<string, NodeJS.Timeout>();
 
 const removeTemporaryRole = async (guildId: string, userId: string, roleId: string, member: GuildMember) => {
     try {
@@ -8,7 +11,16 @@ const removeTemporaryRole = async (guildId: string, userId: string, roleId: stri
         console.warn(`Failed to remove temporary role ${roleId} from user ${userId} in guild ${guildId}: ${error}`);
     } finally {
         db.deleteTemporaryRoleAssignment(guildId, userId, roleId);
+        pendingTimeouts.delete(getAssignmentKey(guildId, userId, roleId));
     }
+}
+
+const scheduleRemoval = (guildId: string, userId: string, roleId: string, member: GuildMember, delayMs: number) => {
+    const key = getAssignmentKey(guildId, userId, roleId);
+    const existing = pendingTimeouts.get(key);
+    if (existing) clearTimeout(existing);
+    const timeout = setTimeout(() => removeTemporaryRole(guildId, userId, roleId, member), delayMs);
+    pendingTimeouts.set(key, timeout);
 }
 
 export const scheduleTemporaryRole = (member: GuildMember, roleId: string, durationSeconds: number) => {
@@ -18,7 +30,17 @@ export const scheduleTemporaryRole = (member: GuildMember, roleId: string, durat
 
     // TODO: This just replaces, should we do a more intelligent update using whatever expiresAt is larger?
     db.saveTemporaryRoleAssignment(guildId, userId, roleId, expiresAt);
-    setTimeout(() => removeTemporaryRole(guildId, userId, roleId, member), durationSeconds * 1000);
+    scheduleRemoval(guildId, userId, roleId, member, durationSeconds * 1000);
+}
+
+export const cancelTemporaryRole = async (member: GuildMember, roleId: string) => {
+    const guildId = member.guild.id;
+    const userId = member.id;
+    const key = getAssignmentKey(guildId, userId, roleId);
+    const existing = pendingTimeouts.get(key);
+    if (existing) clearTimeout(existing);
+    pendingTimeouts.delete(key);
+    await removeTemporaryRole(guildId, userId, roleId, member);
 }
 
 export const restoreTemporaryRoles = async (client: Client) => {
@@ -50,6 +72,6 @@ export const restoreTemporaryRoles = async (client: Client) => {
             continue;
         }
 
-        setTimeout(() => removeTemporaryRole(assignment.GuildId, assignment.UserId, assignment.RoleId, member), remainingMs);
+        scheduleRemoval(assignment.GuildId, assignment.UserId, assignment.RoleId, member, remainingMs);
     }
 }
