@@ -15,9 +15,11 @@ const enum SnowflakeRegexCapturingGroups {
 
 // Setup feature config
 export const RouletteMutedDurationSecondsConfigurationKey = 'ROULETTE_MUTED_DURATION_SECONDS';
+export const RouletteAllowedChannelIdsConfigurationKey = 'ROULETTE_ALLOWED_CHANNEL_IDS';
 
 export const rouletteConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Roulette Muted Duration Seconds', RouletteMutedDurationSecondsConfigurationKey],
+    ['Roulette Allowed Channel Ids', RouletteAllowedChannelIdsConfigurationKey]
 ];
 
 
@@ -53,6 +55,17 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
+    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
+    if (roleIdsThatCanMute.length < 1) {
+        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    }
+    const authorCanMute = authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+
+    // Allow restriction to specific channel(s) for users without mute permission
+    const allowedChannelIds = configuration.getConfigurationValue(message.guildId, RouletteAllowedChannelIdsConfigurationKey)?.split(',') ?? [];
+    if (!authorCanMute && allowedChannelIds.length > 0 && !allowedChannelIds.includes(message.channelId))
+        return;
+
     let targetUser: GuildMember;
     try {
         targetUser = await message.guild.members.fetch(targetUserId);
@@ -62,14 +75,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
-    }
-
     const replyMessageLines: string[] = [];
     // If user is attempting to target someone else but doesnt have permission
-    const handSlip = targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+    const handSlip = targetUserId != authorUserId && !authorCanMute;
     if (handSlip) {
         replyMessageLines.push(italic('Your hand slips as you aim the gun at your target...'));
         targetUser = authorUser;
