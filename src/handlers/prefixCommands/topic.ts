@@ -4,7 +4,7 @@ import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
 import topics from "../../features/topic/topics.ts";
 import featureFlags from "../../features/featureFlags/featureFlags.ts";
-import { TopicsFeatureFlag, TopicWeightedSelectionFeatureFlag } from "../../features/topic/config.ts";
+import { TopicsFeatureFlag } from "../../features/topic/config.ts";
 import { buildTopicMessage } from "../../features/topic/builders.ts";
 
 const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, _commandBody: string) => {
@@ -14,25 +14,14 @@ const topicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>
     if (!featureFlags.getFeatureFlag(message.guildId, TopicsFeatureFlag)) return;
 
     // TODO: hydrate template values?
-    if (featureFlags.getFeatureFlag(message.guildId, TopicWeightedSelectionFeatureFlag) === true) {
-        const topic = topics.getWeightedRandomTopic(message.guildId);
+    const topic = topics.getWeightedRandomTopic(message.guildId);
 
-        if (!topic) {
-            await message.reply("There aren't any topics available for this server. Why don't you try adding some using the addtopic command?")
-            return;
-        }
-
-        await message.channel.send(buildTopicMessage(topic));
-    } else {
-        const topic = topics.getRandomTopic(message.guildId);
-
-        if (!topic) {
-            await message.reply("There aren't any topics available for this server. Why don't you try adding some using the addtopic command?")
-            return;
-        }
-
-        await message.channel.send(topic.Topic);
+    if (!topic) {
+        await message.reply("There aren't any topics available for this server. Why don't you try adding some using the addtopic command?")
+        return;
     }
+
+    await message.channel.send(buildTopicMessage(topic));
 }
 
 export const Topic: IPrefixCommand = {

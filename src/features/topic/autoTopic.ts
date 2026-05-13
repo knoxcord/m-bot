@@ -7,7 +7,6 @@ import {
     AutoTopicChannelIdConfigurationKey,
     AutoTopicFeatureFlag,
     AutoTopicInactivityMinutesConfigurationKey,
-    TopicWeightedSelectionFeatureFlag,
     TopicsFeatureFlag,
 } from "./config.ts";
 

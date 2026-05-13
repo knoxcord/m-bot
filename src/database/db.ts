@@ -465,17 +465,6 @@ class DatabaseManager {
         return statement.all(guildId) as TopicRow[];
     }
 
-    /** Atomically picks a random topic, increments ShownCount, sets LastShownAt, and returns the updated row. */
-    pickRandomTopicAndMarkShown(guildId: string) {
-        const statement = this.db.prepare(`
-            UPDATE Topics
-            SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
-            WHERE Id = (SELECT Id FROM Topics WHERE GuildId = ? ORDER BY RANDOM() LIMIT 1)
-            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
-        `);
-        return statement.get(guildId) as TopicRow | undefined;
-    }
-
     getTopicsForWeighting(guildId: string) {
         const statement = this.db.prepare(`
             SELECT

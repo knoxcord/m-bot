@@ -2,7 +2,6 @@ import type { ConfigurationRegistration } from "../configuration/configurationTy
 import type { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.ts";
 
 export const TopicsFeatureFlag = 'TOPICS';
-export const TopicWeightedSelectionFeatureFlag = 'TOPIC_WEIGHTED_SELECTION';
 export const AutoTopicFeatureFlag = 'AUTO_TOPIC';
 
 export const RoleIdsThatCanAddTopicsConfigurationKey = 'ROLE_IDS_THAT_CAN_ADD_TOPICS';
@@ -34,6 +33,5 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
 
 export const topicFeatureFlagRegistrations = <FeatureFlagRegistration[]>[
     ['Topics', TopicsFeatureFlag],
-    ['Topic Weighted Selection', TopicWeightedSelectionFeatureFlag],
     ['Auto Topic', AutoTopicFeatureFlag],
 ];
