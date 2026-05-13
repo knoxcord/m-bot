@@ -30,8 +30,14 @@ class Configuration {
         // Update cache
         if (!this.configValues.has(guildId))
             this.configValues.set(guildId, new Map<string, string>());
-        
+
         this.configValues.get(guildId)?.set(key, value);
+        console.info("Updated configuration:\n", this.configValues);
+    }
+
+    unsetConfigurationValue = (guildId: string, key: string) => {
+        db.deleteConfigurationValue(guildId, key);
+        this.configValues.get(guildId)?.delete(key);
         console.info("Updated configuration:\n", this.configValues);
     }
 }

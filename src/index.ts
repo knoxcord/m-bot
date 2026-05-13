@@ -7,6 +7,7 @@ import { messageComponents } from './handlers/messageComponents/index.ts';
 import { prefixCommands } from './handlers/prefixCommands/index.ts';
 import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './features/roleActivity/roleActivity.ts';
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
+import { handleAutoTopicMessage, initializeAutoTopicTimers } from './features/topic/autoTopic.ts';
 import { restoreTemporaryRoles } from './features/temporaryRoles/temporaryRoles.ts';
 
 const CommandPrefix = "-";
@@ -21,6 +22,7 @@ const client = new Client({ intents: [
 client.once(Events.ClientReady, (readyClient) => {
 	console.info(`Ready! Logged in as ${readyClient.user.tag}`);
 	scheduleRoleActivityHourlyJob(readyClient);
+	initializeAutoTopicTimers(readyClient);
 	restoreTemporaryRoles(readyClient).catch(error => console.error('Error restoring temporary roles:', error));
 });
 
@@ -41,9 +43,10 @@ const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheTy
 	console.warn(`Received command "${interaction.commandName}" with no matching handler. Did you forget to register commands?`)
 }
 
-const modalSubmitHandlerLookup = Object.fromEntries(modals.map(modal => [modal.customId, modal.handler]));
+const modalSubmitHandlerLookup = Object.fromEntries(modals.map(modal => [modal.customIdPrefix, modal.handler]));
 const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
-	const modalSubmitHandler = modalSubmitHandlerLookup[interaction.customId];
+	const interactionCustomIdPrefix = interaction.customId.split(':')[0];
+	const modalSubmitHandler = modalSubmitHandlerLookup[interactionCustomIdPrefix];
 
 	if (modalSubmitHandler) {
 		modalSubmitHandler(interaction).catch(error => console.error(`Error handling modal submit for "${interaction.customId}":`, error));
@@ -121,6 +124,7 @@ client.on(Events.MessageCreate, (message) => {
 	}
 
 	handleRoleActivityMessage(message);
+	handleAutoTopicMessage(message);
 
 	const insultPattern = new RegExp(`fuck(?:\\syou)?\\s+(?:<@!?${client.user.id}>|${message.guild?.members.me?.displayName ?? client.user.displayName})`, 'i');
 	if (insultPattern.test(message.content))

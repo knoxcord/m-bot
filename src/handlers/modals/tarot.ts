@@ -7,7 +7,7 @@ import db from "../../database/db.ts";
 import { getKey } from "../../features/tarot/helpers.ts";
 import { buildTarotActionRow, buildTarotDisplay } from "../../features/tarot/builders.ts";
 import type { IModal} from "./modalTypes.ts";
-import { ModalCustomId } from "./modalTypes.ts";
+import { ModalCustomIdPrefix } from "./modalTypes.ts";
 
 const PullTypeMap: Record<PullType, number> = {
     [PullType.Single]: 1,
@@ -95,6 +95,6 @@ export const handleTarotModalSubmit = async (interaction: ModalSubmitInteraction
 }
 
 export const Tarot: IModal = {
-    customId: ModalCustomId.Tarot,
+    customIdPrefix: ModalCustomIdPrefix.Tarot,
     handler: handleTarotModalSubmit
 }
