@@ -39,9 +39,10 @@ const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheTy
 	console.warn(`Received command "${interaction.commandName}" with no matching handler. Did you forget to register commands?`)
 }
 
-const modalSubmitHandlerLookup = Object.fromEntries(modals.map(modal => [modal.customId, modal.handler]));
+const modalSubmitHandlerLookup = Object.fromEntries(modals.map(modal => [modal.customIdPrefix, modal.handler]));
 const handleModalSubmit = (interaction: ModalSubmitInteraction<CacheType>) => {
-	const modalSubmitHandler = modalSubmitHandlerLookup[interaction.customId];
+	const interactionCustomIdPrefix = interaction.customId.split(':')[0];
+	const modalSubmitHandler = modalSubmitHandlerLookup[interactionCustomIdPrefix];
 
 	if (modalSubmitHandler) {
 		modalSubmitHandler(interaction).catch(error => console.error(`Error handling modal submit for "${interaction.customId}":`, error));

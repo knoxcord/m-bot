@@ -6,6 +6,7 @@ import { inlineCode } from "discord.js";
 import configuration from "../../features/configuration/configuration.ts";
 import { getMissingPermissionResponse } from "../../shared/responses.ts";
 import { RoleIdsThatCanAddTopicsConfigurationKey } from "../../features/topic/config.ts";
+import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
 
 const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)
@@ -16,15 +17,9 @@ const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolea
         return;
     }
 
-    const customEmojiPattern = /<a?:(\w+):(\d+)>/g;
-    const inaccessibleEmojiNames: string[] = [];
-    for (const match of commandBody.matchAll(customEmojiPattern)) {
-        if (!message.client.emojis.cache.has(match[2])) {
-            inaccessibleEmojiNames.push(inlineCode(match[1]));
-        }
-    }
+    const inaccessibleEmojiNames = findInaccessibleCustomEmoji(commandBody, message.client);
     if (inaccessibleEmojiNames.length > 0) {
-        await message.reply(`I don't have access to the following emoji, so I can't save this topic: ${inaccessibleEmojiNames.join(", ")}`);
+        await message.reply(buildInaccessibleEmojiMessage(inaccessibleEmojiNames));
         return;
     }
 

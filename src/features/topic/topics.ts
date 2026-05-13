@@ -36,6 +36,10 @@ class Topics {
     removeTopic(guildId: string, id: number) {
         return db.removeTopic(guildId, id);
     }
+
+    updateTopicText(guildId: string, id: number, topic: string) {
+        return db.updateTopicText(guildId, id, topic);
+    }
 };
 
 export default new Topics();
