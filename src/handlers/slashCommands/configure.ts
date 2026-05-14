@@ -64,8 +64,17 @@ export const getConfigurationCommandBuilder = () => {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 }
 
+const knownConfigurationKeys = new Set(configurationRegistrations.map(([, key]) => key));
+
+const isKnownField = async (interaction: ChatInputCommandInteraction, field: string) => {
+    if (knownConfigurationKeys.has(field)) return true;
+    await interaction.reply(`Unknown configuration field ${inlineCode(field)}`);
+    return false;
+}
+
 const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const field = interaction.options.getString('field', true);
+    if (!(await isKnownField(interaction, field))) return;
     const configVal = configuration.getConfigurationValue(interaction.guildId ?? "", field);
     if (!configVal)
         await interaction.reply(`Field ${inlineCode(field)} is not set`);
@@ -75,6 +84,7 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
 
 const handleSet = async (interaction: ChatInputCommandInteraction) => {
     const field = interaction.options.getString('field', true);
+    if (!(await isKnownField(interaction, field))) return;
     const value = interaction.options.getString('value', true);
     configuration.setConfigurationValue(interaction.guildId ?? "", field, value, interaction.user.id)
     await interaction.reply(`Set field ${inlineCode(field)} to ${inlineCode(value)}`);
@@ -82,6 +92,7 @@ const handleSet = async (interaction: ChatInputCommandInteraction) => {
 
 const handleUnset = async (interaction: ChatInputCommandInteraction) => {
     const field = interaction.options.getString('field', true);
+    if (!(await isKnownField(interaction, field))) return;
     configuration.unsetConfigurationValue(interaction.guildId ?? "", field);
     await interaction.reply(`Cleared field ${inlineCode(field)}`);
 }

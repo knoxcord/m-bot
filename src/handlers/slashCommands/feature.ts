@@ -60,20 +60,31 @@ const getFeatureFlagCommandBuilder = () => {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 }
 
+const knownFeatureFlagKeys = new Set(featureFlagRegistrations.map(([, key]) => key));
+
+const isKnownFlag = async (interaction: ChatInputCommandInteraction, flag: string) => {
+    if (knownFeatureFlagKeys.has(flag)) return true;
+    await interaction.reply(`Unknown feature flag ${inlineCode(flag)}`);
+    return false;
+}
+
 const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const flag = interaction.options.getString('flag', true);
+    if (!(await isKnownFlag(interaction, flag))) return;
     const enabled = featureFlags.getFeatureFlag(interaction.guildId ?? "", flag);
     await interaction.reply(`Feature flag ${inlineCode(flag)} is ${enabled ? 'enabled' : 'disabled'}`);
 }
 
 const handleEnable = async (interaction: ChatInputCommandInteraction) => {
     const flag = interaction.options.getString('flag', true);
+    if (!(await isKnownFlag(interaction, flag))) return;
     featureFlags.setFeatureFlag(interaction.guildId ?? "", flag, true, interaction.user.id);
     await interaction.reply(`Enabled feature flag ${inlineCode(flag)}`);
 }
 
 const handleDisable = async (interaction: ChatInputCommandInteraction) => {
     const flag = interaction.options.getString('flag', true);
+    if (!(await isKnownFlag(interaction, flag))) return;
     featureFlags.setFeatureFlag(interaction.guildId ?? "", flag, false, interaction.user.id);
     await interaction.reply(`Disabled feature flag ${inlineCode(flag)}`);
 }
