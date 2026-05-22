@@ -38,9 +38,13 @@ export const cancelTemporaryRole = async (member: GuildMember, roleId: string) =
     const userId = member.id;
     const key = getAssignmentKey(guildId, userId, roleId);
     const existing = pendingTimeouts.get(key);
-    if (existing) clearTimeout(existing);
+    if (!existing)
+        return false;
+
+    clearTimeout(existing);
     pendingTimeouts.delete(key);
     await removeTemporaryRole(guildId, userId, roleId, member);
+    return true;
 }
 
 export const restoreTemporaryRoles = async (client: Client) => {

@@ -10,6 +10,7 @@ export const AutoTopicChannelIdConfigurationKey = 'AUTO_TOPIC_CHANNEL_ID';
 export const AutoTopicInactivityMinutesConfigurationKey = 'AUTO_TOPIC_INACTIVITY_MINUTES';
 export const AutoTopicQuietHoursStartConfigurationKey = 'AUTO_TOPIC_QUIET_HOURS_START_UTC';
 export const AutoTopicQuietHoursEndConfigurationKey = 'AUTO_TOPIC_QUIET_HOURS_END_UTC';
+export const ChannelIdsWhereTopicsCanBeAddedConfigurationKey = 'CHANNEL_IDS_WHERE_TOPICS_CAN_BE_ADDED';
 
 export const TopicWeightConfigurationKeys = {
     RecencyWindowHours: 'TOPIC_WEIGHT_RECENCY_WINDOW_HOURS',
@@ -33,6 +34,7 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Topic Weight: Vote Step', TopicWeightConfigurationKeys.VoteStep],
     ['Topic Weight: Vote Floor', TopicWeightConfigurationKeys.VoteFloor],
     ['Topic Weight: Vote Ceiling', TopicWeightConfigurationKeys.VoteCeiling],
+    ['Channel Ids Where Topics Can Be Added (Unset Means Anywhere)', ChannelIdsWhereTopicsCanBeAddedConfigurationKey],
 ];
 
 export const topicFeatureFlagRegistrations = <FeatureFlagRegistration[]>[

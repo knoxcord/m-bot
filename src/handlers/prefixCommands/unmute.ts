@@ -57,15 +57,17 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
+    let didUnmute = false;
     try {
-        await cancelTemporaryRole(targetUser, mutedRoleId);
+        didUnmute = await cancelTemporaryRole(targetUser, mutedRoleId);
     } catch (error) {
         console.error(`Failed to cancel temporary role ${mutedRoleId} for user ${targetUserId} with error ${error}`);
         await message.reply("Failed to unmute the user.");
         return;
     }
 
-    await message.reply(`Unmuted ${targetUser.user.displayName}`);
+    if(didUnmute)
+        await message.react("👍");
 }
 
 export const Unmute: IPrefixCommand = {
@@ -73,5 +75,4 @@ export const Unmute: IPrefixCommand = {
     key: CommandKey.Unmute,
     description: 'Unmutes a target user (requires mute permission)',
     usage: `Usage: ${inlineCode("unmute <@user|userId>")} (requires mute permission)`,
-    mentionOnly: true,
 }

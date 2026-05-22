@@ -5,11 +5,16 @@ import type { OmitPartialGroupDMChannel, Message, GuildMember } from "discord.js
 import { inlineCode } from "discord.js";
 import configuration from "../../features/configuration/configuration.ts";
 import { getMissingPermissionResponse } from "../../shared/responses.ts";
-import { RoleIdsThatCanAddTopicsConfigurationKey } from "../../features/topic/config.ts";
+import { ChannelIdsWhereTopicsCanBeAddedConfigurationKey, RoleIdsThatCanAddTopicsConfigurationKey } from "../../features/topic/config.ts";
 import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
 
 const addTopicHandler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, commandBody: string) => {
     if (!message.guildId || !message.guild)
+        return;
+
+    // If set, only allow adding topics in configured channels
+    const channelIdsWhereTopisCanBeAdded = configuration.getConfigurationValue(message.guildId, ChannelIdsWhereTopicsCanBeAddedConfigurationKey)?.split(',') ?? [];
+    if (channelIdsWhereTopisCanBeAdded.length && !channelIdsWhereTopisCanBeAdded.includes(message.channelId))
         return;
 
     if (!commandBody.trim()) {
