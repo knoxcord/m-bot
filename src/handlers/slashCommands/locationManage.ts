@@ -1,5 +1,5 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import locations from "../../features/locations/locations.ts";
@@ -139,7 +139,7 @@ const handleAdd = async (interaction: ChatInputCommandInteraction) => {
 
     const existing = locations.getLocation(guildId, name);
     if (existing) {
-        await interaction.reply({ content: `A location named "${name}" already exists in this server.`, ephemeral: true });
+        await interaction.reply({ content: `A location named "${name}" already exists in this server.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -165,19 +165,19 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
 
     const existing = locations.getLocation(guildId, name);
     if (!existing) {
-        await interaction.reply({ content: `Location "${name}" not found.`, ephemeral: true });
+        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
     if (!newName && !address && !description && !keywords && !hours && !url) {
-        await interaction.reply({ content: "No changes provided. Specify at least one field to update.", ephemeral: true });
+        await interaction.reply({ content: "No changes provided. Specify at least one field to update.", flags: MessageFlags.Ephemeral });
         return;
     }
 
     if (newName && newName !== name) {
         const conflict = locations.getLocation(guildId, newName);
         if (conflict) {
-            await interaction.reply({ content: `A location named "${newName}" already exists in this server.`, ephemeral: true });
+            await interaction.reply({ content: `A location named "${newName}" already exists in this server.`, flags: MessageFlags.Ephemeral });
             return;
         }
     }
@@ -193,7 +193,7 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
 
     const existing = locations.getLocation(guildId, name);
     if (!existing) {
-        await interaction.reply({ content: `Location "${name}" not found.`, ephemeral: true });
+        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -208,7 +208,7 @@ const handleAddImage = async (interaction: ChatInputCommandInteraction) => {
 
     const location = locations.getLocation(guildId, name);
     if (!location) {
-        await interaction.reply({ content: `Location "${name}" not found.`, ephemeral: true });
+        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -222,13 +222,13 @@ const handleGetImages = async (interaction: ChatInputCommandInteraction) => {
 
     const location = locations.getLocation(guildId, name);
     if (!location) {
-        await interaction.reply({ content: `Location "${name}" not found.`, ephemeral: true });
+        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
     const images = locations.getImages(location.Id);
     if (images.length === 0) {
-        await interaction.reply({ content: `**${name}** has no images.`, ephemeral: true });
+        await interaction.reply({ content: `**${name}** has no images.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
@@ -239,7 +239,7 @@ const handleGetImages = async (interaction: ChatInputCommandInteraction) => {
             .setColor(0x2B82D1)
     );
 
-    await interaction.reply({ content: `Images for **${name}**:`, embeds, ephemeral: true });
+    await interaction.reply({ content: `Images for **${name}**:`, embeds, flags: MessageFlags.Ephemeral });
 };
 
 const handleRemoveImage = async (interaction: ChatInputCommandInteraction) => {
@@ -247,7 +247,7 @@ const handleRemoveImage = async (interaction: ChatInputCommandInteraction) => {
     const result = locations.removeImage(imageId);
 
     if (result.changes === 0) {
-        await interaction.reply({ content: `Image with ID ${imageId} not found.`, ephemeral: true });
+        await interaction.reply({ content: `Image with ID ${imageId} not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 

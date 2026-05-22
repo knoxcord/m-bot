@@ -1,5 +1,5 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import locations from "../../features/locations/locations.ts";
@@ -22,7 +22,7 @@ const locationInfoHandler = async (interaction: ChatInputCommandInteraction) => 
     const location = locations.getLocation(guildId, name);
 
     if (!location) {
-        await interaction.reply({ content: `Location "${name}" not found.`, ephemeral: true });
+        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
         return;
     }
 
