@@ -1,6 +1,6 @@
 import type { SharedSlashCommand } from 'discord.js';
 import { REST, Routes } from 'discord.js';
-import config from './config.json' with { type: "json" };
+import config from './config.ts';
 import { slashCommands } from './handlers/slashCommands/index.ts';
 
 

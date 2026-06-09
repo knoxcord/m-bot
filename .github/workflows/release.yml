@@ -1,0 +1,56 @@
+name: Release on merge
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # needed to create the git tag + GitHub Release
+
+# Don't cancel an in-flight release; let each push finish serially.
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn build-prod
+
+      - name: Package release tarball
+        id: pkg
+        # Bundle the compiled output plus the files the server needs to install
+        # matching (incl. native) deps: package.json, yarn.lock, .yarnrc.yml.
+        run: |
+          version=$(jq -r .version package.json)
+          tarball="m-bot-v${version}.tgz"
+          tar -czf "$tarball" build package.json yarn.lock .yarnrc.yml
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ steps.pkg.outputs.version }}"
+          tarball="${{ steps.pkg.outputs.tarball }}"
+          gh release create "v${version}" "$tarball" \
+            --title "v${version}" \
+            --generate-notes

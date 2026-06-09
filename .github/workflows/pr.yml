@@ -1,0 +1,107 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Cancel superseded runs when new commits are pushed to the same PR.
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify version was incremented
+        run: |
+          base_ref="${{ github.base_ref }}"
+          git fetch --depth=1 origin "$base_ref"
+          base=$(git show "FETCH_HEAD:package.json" | jq -r .version)
+          head=$(jq -r .version package.json)
+          echo "base ($base_ref) = $base"
+          echo "head (PR)        = $head"
+          if [ "$base" = "$head" ]; then
+            echo "::error file=package.json::Version not incremented (still $head). Bump \"version\" in package.json."
+            exit 1
+          fi
+          highest=$(printf '%s\n%s\n' "$base" "$head" | sort -V | tail -1)
+          if [ "$highest" != "$head" ]; then
+            echo "::error file=package.json::Version $head is lower than base $base. It must be incremented."
+            exit 1
+          fi
+          echo "Version bump OK: $base -> $head"
+
+  lint:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Lint
+        run: yarn lint
+
+  test:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Test
+        # `yarn test` is `tsc && node --test` — the tsc compile also typechecks
+        # the full project (incl. test files) before running the tests.
+        run: yarn test
+
+  build-prod:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn build-prod
