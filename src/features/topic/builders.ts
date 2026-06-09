@@ -8,11 +8,11 @@ export const buildTopicVoteRow = (topicId: number, upvotes: number, downvotes: n
     new ActionRowBuilder<ButtonBuilder>().setComponents(
         new ButtonBuilder()
             .setCustomId(`${TopicVoteCustomIdKey}:${TopicVote.Up}:${topicId}`)
-            .setLabel(`👍 ${upvotes}`)
+            .setLabel(`👍 Good Topic: ${upvotes}`)
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
             .setCustomId(`${TopicVoteCustomIdKey}:${TopicVote.Down}:${topicId}`)
-            .setLabel(`👎 ${downvotes}`)
+            .setLabel(`👎 Bad Topic: ${downvotes}`)
             .setStyle(ButtonStyle.Secondary),
     );
 
