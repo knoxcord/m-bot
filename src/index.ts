@@ -10,6 +10,7 @@ import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.t
 import { handleAutoTopicMessage, initializeAutoTopicTimers } from './features/topic/autoTopic.ts';
 import { restoreTemporaryRoles } from './features/temporaryRoles/temporaryRoles.ts';
 
+// mock code change
 const CommandPrefix = "-";
 
 const client = new Client({ intents: [
