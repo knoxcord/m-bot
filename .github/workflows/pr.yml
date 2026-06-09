@@ -1,0 +1,63 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Cancel superseded runs when new commits are pushed to the same PR.
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        # Activates the yarn 4.x pinned in package.json's "packageManager".
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Verify version was incremented
+        # Fail fast (before the slow build) if package.json version wasn't bumped past main.
+        run: |
+          base_ref="${{ github.base_ref }}"
+          git fetch --depth=1 origin "$base_ref"
+          base=$(git show "FETCH_HEAD:package.json" | jq -r .version)
+          head=$(jq -r .version package.json)
+          echo "base ($base_ref) = $base"
+          echo "head (PR)        = $head"
+          if [ "$base" = "$head" ]; then
+            echo "::error file=package.json::Version not incremented (still $head). Bump \"version\" in package.json."
+            exit 1
+          fi
+          highest=$(printf '%s\n%s\n' "$base" "$head" | sort -V | tail -1)
+          if [ "$highest" != "$head" ]; then
+            echo "::error file=package.json::Version $head is lower than base $base. It must be incremented."
+            exit 1
+          fi
+          echo "Version bump OK: $base -> $head"
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        # Full project incl. test files (build-prod excludes *.test.ts).
+        run: yarn tsc --noEmit
+
+      - name: Build
+        run: yarn build-prod
