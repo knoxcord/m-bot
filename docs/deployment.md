@@ -51,6 +51,19 @@ Override with env vars if not:
 APP_DIR=/srv/m-bot PM2_APP=m-bot ./deploy.sh
 ```
 
+### config.json (secrets)
+
+`config.json` holds secrets, is gitignored, and is **not** part of the release.
+The bot reads it at runtime from the **project root** (`<APP_DIR>/config.json`)
+via `src/config.ts`. Create it once on the server from the tracked template and
+it persists across deploys (the deploy only replaces `build/`):
+
+```bash
+cp example.config.json ~/m-bot/config.json   # then fill in real values
+```
+
+See `example.config.json` for the expected fields.
+
 ## Routine deploy
 
 SSH into the server and run:

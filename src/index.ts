@@ -1,6 +1,6 @@
 import type { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
-import config from './config.json' with { type: "json" };
+import config from './config.ts';
 import { slashCommands } from './handlers/slashCommands/index.ts';
 import { modals } from './handlers/modals/index.ts';
 import { messageComponents } from './handlers/messageComponents/index.ts';

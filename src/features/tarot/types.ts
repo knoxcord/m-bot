@@ -1,4 +1,4 @@
-import config from '../../config.json' with { type: 'json' }
+import config from '../../config.ts'
 
 export const TarotCustomIdKey = "tarot";
 export const TarotCardReversedIndicator = "!";
