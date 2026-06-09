@@ -5,8 +5,9 @@ can be downloaded and deployed.
 
 ## Flow
 
-1. **PR to `main`** — `.github/workflows/pr.yml` runs lint, typecheck, build,
-   and verifies `package.json` `version` was incremented past `main`.
+1. **PR to `main`** — `.github/workflows/pr.yml` verifies `package.json`
+   `version` was incremented past `main`, then runs lint, tests, and the
+   production build.
 2. **Merge to `main`** — `.github/workflows/release.yml` builds on a GitHub
    runner and publishes a GitHub Release `v<version>` whose asset is
    `m-bot-v<version>.tgz` (contains `build/`, `package.json`, `yarn.lock`,

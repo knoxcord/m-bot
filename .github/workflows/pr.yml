@@ -13,27 +13,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  version-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        # Activates the yarn 4.x pinned in package.json's "packageManager".
-        run: corepack enable
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
       - name: Verify version was incremented
-        # Fail fast (before the slow build) if package.json version wasn't bumped past main.
         run: |
           base_ref="${{ github.base_ref }}"
           git fetch --depth=1 origin "$base_ref"
@@ -52,12 +38,70 @@ jobs:
           fi
           echo "Version bump OK: $base -> $head"
 
+  lint:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
       - name: Lint
         run: yarn lint
 
-      - name: Typecheck
-        # Full project incl. test files (build-prod excludes *.test.ts).
-        run: yarn tsc --noEmit
+  test:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Test
+        # `yarn test` is `tsc && node --test` — the tsc compile also typechecks
+        # the full project (incl. test files) before running the tests.
+        run: yarn test
+
+  build-prod:
+    needs: version-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Build
         run: yarn build-prod
