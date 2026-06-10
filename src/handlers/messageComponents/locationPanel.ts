@@ -4,7 +4,7 @@ import type { IMessageComponent } from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
 import locations from "../../features/locations/locations.ts";
 import { LocationPanelAction } from "../../features/locations/types.ts";
-import { buildAddImageModal, buildImagePanel, buildLocationDetailsModal, buildLocationPanel, buildLocationRenameModal } from "../../features/locations/builders.ts";
+import { buildAddImageModal, buildImageCarousel, buildImagePanel, buildLocationDetailsModal, buildLocationPanel, buildLocationRenameModal } from "../../features/locations/builders.ts";
 
 const handler = async (interaction: MessageComponentInteraction) => {
     const [, action, locationIdRaw, imageIdRaw] = interaction.customId.split(":");
@@ -33,7 +33,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
             await interaction.update({ content: `🗑️ Deleted **${location.Name}**.`, embeds: [], components: [] });
             break;
         case LocationPanelAction.Done:
-            await interaction.update({ content: `✅ Saved **${location.Name}**.`, ...buildLocationPanel(location), components: [] });
+            await interaction.update({ content: `✅ Saved **${location.Name}**.`, ...buildLocationPanel(location, true), components: [] });
             break;
         case LocationPanelAction.ManageImages:
             await interaction.reply({ ...buildImagePanel(location, locations.getImages(locationId)), flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
@@ -44,6 +44,9 @@ const handler = async (interaction: MessageComponentInteraction) => {
         case LocationPanelAction.DeleteImage:
             locations.removeImage(Number(imageIdRaw));
             await interaction.update(buildImagePanel(location, locations.getImages(locationId)));
+            break;
+        case LocationPanelAction.DoneImages:
+            await interaction.update(buildImageCarousel(location, locations.getImages(locationId)));
             break;
         default:
             console.warn(`Unknown location panel action: ${action}`);

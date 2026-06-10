@@ -10,6 +10,7 @@ export enum LocationPanelAction {
     ManageImages = "images",
     AddImage = "img-add",
     DeleteImage = "img-del",
+    DoneImages = "img-done",
 }
 
 /** Text input custom ids used within the location editor modals */

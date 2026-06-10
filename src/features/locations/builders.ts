@@ -14,7 +14,7 @@ const displayValue = (value: string | null) => (value && value.trim() ? value : 
 const panelButton = (action: LocationPanelAction, locationId: number) =>
     new ButtonBuilder().setCustomId(`${LocationPanelCustomIdKey}:${action}:${locationId}`);
 
-export const buildLocationPanel = (location: LocationRow) => {
+export const buildLocationPanel = (location: LocationRow, isComplete: boolean = false) => {
     const embed = new EmbedBuilder()
         .setTitle(`📍 ${location.Name}`)
         .setColor(PanelColor)
@@ -25,7 +25,7 @@ export const buildLocationPanel = (location: LocationRow) => {
             { name: "Hours", value: displayValue(location.Hours), inline: true },
             { name: "URL", value: displayValue(location.Url) },
         )
-        .setFooter({ text: "Changes save automatically. Press Done when finished." });
+        .setFooter(isComplete ? null : { text: "Changes save automatically. Press Done when finished." });
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().setComponents(
         panelButton(LocationPanelAction.EditDetails, location.Id).setLabel("Edit details").setStyle(ButtonStyle.Primary),
@@ -35,7 +35,7 @@ export const buildLocationPanel = (location: LocationRow) => {
         panelButton(LocationPanelAction.Done, location.Id).setLabel("Done").setStyle(ButtonStyle.Success),
     );
 
-    return { embeds: [embed], components: [buttons] };
+    return { embeds: [embed], components: isComplete ? [] :[buttons] };
 };
 
 // A Components V2 message renders its top-level components top-to-bottom, which lets us place each
@@ -72,7 +72,38 @@ export const buildImagePanel = (location: LocationRow, images: LocationImageRow[
 
     components.push(new ActionRowBuilder<ButtonBuilder>().setComponents(
         panelButton(LocationPanelAction.AddImage, location.Id).setLabel("Add image").setStyle(ButtonStyle.Success),
+        panelButton(LocationPanelAction.DoneImages, location.Id).setLabel("Done").setStyle(ButtonStyle.Primary),
     ));
+    components.push(new TextDisplayBuilder().setContent("-# Changes save automatically. Press Done when finished."));
+
+    return { components, flags: MessageFlags.IsComponentsV2 as const };
+};
+
+// On "Done" we collapse the per-image edit rows into a single gallery so the images read as one carousel
+// (the location-info look) rather than individual lines. A single MediaGallery with multiple items groups
+// natively in Components V2 — the classic matching-embedUrl trick only applies to non-V2 embeds, which this
+// message can't switch to once it carries the IsComponentsV2 flag.
+export const buildImageCarousel = (location: LocationRow, images: LocationImageRow[]) => {
+    const managed = images.slice(0, MaxManagedImages);
+    const gallery = new MediaGalleryBuilder();
+    let shown = 0;
+
+    managed.forEach(image => {
+        const normalized = normalizeUrl(image.ImageUrl);
+        if (normalized) {
+            gallery.addItems(new MediaGalleryItemBuilder().setURL(normalized));
+            shown++;
+        }
+    });
+
+    const header = shown === 0
+        ? `**${location.Name}** has no images.`
+        : `Images for **${location.Name}**:`;
+
+    const components: (TextDisplayBuilder | MediaGalleryBuilder)[] = [
+        new TextDisplayBuilder().setContent(header),
+    ];
+    if (shown > 0) components.push(gallery);
 
     return { components, flags: MessageFlags.IsComponentsV2 as const };
 };
