@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction} from "discord.js";
 import { ActivityType, MessageFlags, inlineCode, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import config from "../../config.json" with { type: "json" };
+import config from "../../config.ts";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 
