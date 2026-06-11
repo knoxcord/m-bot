@@ -64,7 +64,7 @@ const handleAdd = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    await interaction.reply({ ...buildLocationPanel(location), flags: MessageFlags.Ephemeral });
+    await interaction.reply({ ...buildLocationPanel(location, locations.getImages(location.Id)), flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
 };
 
 const handleEdit = async (interaction: ChatInputCommandInteraction) => {
@@ -77,7 +77,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    await interaction.reply({ ...buildLocationPanel(location), flags: MessageFlags.Ephemeral });
+    await interaction.reply({ ...buildLocationPanel(location, locations.getImages(location.Id)), flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
 };
 
 const handleRemove = async (interaction: ChatInputCommandInteraction) => {

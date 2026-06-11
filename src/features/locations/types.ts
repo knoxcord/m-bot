@@ -6,11 +6,15 @@ export enum LocationPanelAction {
     EditDetails = "details",
     Rename = "rename",
     Delete = "delete",
+    ConfirmDelete = "delete-confirm",
+    CancelDelete = "delete-cancel",
+    Refresh = "refresh",
     Done = "done",
     ManageImages = "images",
     AddImage = "img-add",
     DeleteImage = "img-del",
     DoneImages = "img-done",
+    Help = "help",
 }
 
 /** Text input custom ids used within the location editor modals */

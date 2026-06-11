@@ -1,9 +1,9 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
-import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import locations from "../../features/locations/locations.ts";
-import { normalizeUrl } from "../../shared/urlHelpers.ts";
+import { buildLocationContainer } from "../../features/locations/builders.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 
 const Key = CommandKey.LocationInfo;
@@ -28,36 +28,9 @@ const locationInfoHandler = async (interaction: ChatInputCommandInteraction) => 
     }
 
     const images = locations.getImages(location.Id);
+    const container = buildLocationContainer(location, images);
 
-    // In order to have multiple images show as the same embed, you have to set all the embeds to the
-    //   same url. So we'll use the location url if available, else we'll use the first image. If there
-    //   are no images then it doesnt matter because we wont have the additional embeds.
-    // setURL throws on malformed URLs, so normalize/guard against legacy rows lacking a scheme.
-    const websiteUrl = location.Url ? normalizeUrl(location.Url) : null;
-    const embedUrl = websiteUrl ?? images?.[0]?.ImageUrl;
-
-    const embed = new EmbedBuilder()
-        .setTitle(location.Name)
-        .setColor(0x2B82D1)
-        .setURL(embedUrl);
-
-    if (location.Description) embed.setDescription(location.Description);
-    if (location.Address) embed.addFields({ name: "Address", value: location.Address, inline: true });
-    if (location.Hours) embed.addFields({ name: "Hours", value: location.Hours, inline: true });
-    if (location.Url) embed.addFields({ name: "Website", value: location.Url });
-    if (images.length > 0) embed.setImage(images[0].ImageUrl);
-
-    embed.setTimestamp(new Date(location.CreatedAt));
-
-    const embeds = [embed];
-    for (const img of images.slice(1, 9)) {
-        embeds.push(new EmbedBuilder()
-            .setImage(img.ImageUrl)
-            .setColor(0x2B82D1)
-            .setURL(embedUrl));
-    }
-
-    await interaction.reply({ embeds });
+    await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
 };
 
 const locationInfoAutocompleteHandler = async (interaction: AutocompleteInteraction) => {

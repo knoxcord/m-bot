@@ -4,7 +4,7 @@ import type { IModal } from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import locations from "../../features/locations/locations.ts";
 import { LocationFieldId, LocationPanelAction } from "../../features/locations/types.ts";
-import { buildImagePanel, buildLocationPanel } from "../../features/locations/builders.ts";
+import { buildImagePanel, buildLocationPanel, buildNotice } from "../../features/locations/builders.ts";
 import { normalizeUrl } from "../../shared/urlHelpers.ts";
 
 /** Reads a modal text input, returning null when blank so the field is cleared. */
@@ -16,10 +16,10 @@ const readField = (interaction: ModalSubmitInteraction, fieldId: LocationFieldId
 const refreshPanel = async (interaction: ModalMessageModalSubmitInteraction, locationId: number) => {
     const updated = locations.getLocationById(locationId);
     if (!updated) {
-        await interaction.update({ content: "This location no longer exists.", embeds: [], components: [] });
+        await interaction.update(buildNotice("This location no longer exists."));
         return;
     }
-    await interaction.update(buildLocationPanel(updated));
+    await interaction.update(buildLocationPanel(updated, locations.getImages(updated.Id)));
 };
 
 const handleDetails = async (interaction: ModalMessageModalSubmitInteraction, locationId: number) => {
@@ -45,7 +45,7 @@ const handleDetails = async (interaction: ModalMessageModalSubmitInteraction, lo
 const handleRename = async (interaction: ModalMessageModalSubmitInteraction, locationId: number) => {
     const location = locations.getLocationById(locationId);
     if (!location) {
-        await interaction.update({ content: "This location no longer exists.", embeds: [], components: [] });
+        await interaction.update(buildNotice("This location no longer exists."));
         return;
     }
 
@@ -70,7 +70,7 @@ const handleRename = async (interaction: ModalMessageModalSubmitInteraction, loc
 const handleAddImage = async (interaction: ModalMessageModalSubmitInteraction, locationId: number) => {
     const location = locations.getLocationById(locationId);
     if (!location) {
-        await interaction.update({ content: "This location no longer exists.", embeds: [], components: [] });
+        await interaction.update(buildNotice("This location no longer exists."));
         return;
     }
 

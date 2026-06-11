@@ -4,7 +4,7 @@ import type { IMessageComponent } from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
 import locations from "../../features/locations/locations.ts";
 import { LocationPanelAction } from "../../features/locations/types.ts";
-import { buildAddImageModal, buildImageCarousel, buildImagePanel, buildLocationDetailsModal, buildLocationPanel, buildLocationRenameModal } from "../../features/locations/builders.ts";
+import { buildAddImageModal, buildDeleteConfirmation, buildImageCarousel, buildImagePanel, buildLocationDetailsModal, buildLocationPanel, buildLocationRenameModal, buildNotice, buildHelpMessage } from "../../features/locations/builders.ts";
 
 const handler = async (interaction: MessageComponentInteraction) => {
     const [, action, locationIdRaw, imageIdRaw] = interaction.customId.split(":");
@@ -17,7 +17,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
 
     const location = locations.getLocationById(locationId);
     if (!location) {
-        await interaction.update({ content: "This location no longer exists.", embeds: [], components: [] });
+        await interaction.update(buildNotice("This location no longer exists."));
         return;
     }
 
@@ -29,11 +29,20 @@ const handler = async (interaction: MessageComponentInteraction) => {
             await interaction.showModal(buildLocationRenameModal(location));
             break;
         case LocationPanelAction.Delete:
+            await interaction.update(buildDeleteConfirmation(location));
+            break;
+        case LocationPanelAction.ConfirmDelete:
             locations.removeLocationById(locationId);
-            await interaction.update({ content: `🗑️ Deleted **${location.Name}**.`, embeds: [], components: [] });
+            await interaction.update(buildNotice(`🗑️ Deleted **${location.Name}**.`));
+            break;
+        case LocationPanelAction.CancelDelete:
+            await interaction.update(buildLocationPanel(location, locations.getImages(locationId)));
+            break;
+        case LocationPanelAction.Refresh:
+            await interaction.update(buildLocationPanel(location, locations.getImages(locationId)));
             break;
         case LocationPanelAction.Done:
-            await interaction.update({ content: `✅ Saved **${location.Name}**.`, ...buildLocationPanel(location, true), components: [] });
+            await interaction.update(buildLocationPanel(location, locations.getImages(locationId), true));
             break;
         case LocationPanelAction.ManageImages:
             await interaction.reply({ ...buildImagePanel(location, locations.getImages(locationId)), flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
@@ -47,6 +56,9 @@ const handler = async (interaction: MessageComponentInteraction) => {
             break;
         case LocationPanelAction.DoneImages:
             await interaction.update(buildImageCarousel(location, locations.getImages(locationId)));
+            break;
+        case LocationPanelAction.Help:
+            await interaction.reply(buildHelpMessage());
             break;
         default:
             console.warn(`Unknown location panel action: ${action}`);
