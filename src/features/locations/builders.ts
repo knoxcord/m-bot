@@ -12,8 +12,8 @@ const MaxManagedImages = 10;
 const panelButton = (action: LocationPanelAction, locationId: number) =>
     new ButtonBuilder().setCustomId(`${LocationPanelCustomIdKey}:${action}:${locationId}`);
 
-// Shared "what you see is what you get" renderer: /location-info and the edit panel render the same
-// Components V2 container, so editors see exactly what viewers will get. Callers append buttons/footers.
+// Shared renderer, /location-info and the edit panel render the same container, so editors see exactly
+//   what viewers will get. Callers append buttons/footers.
 export const buildLocationContainer = (location: LocationRow, images: LocationImageRow[]) => {
     const container = new ContainerBuilder().setAccentColor(PanelColor);
 
@@ -51,15 +51,14 @@ export const buildLocationContainer = (location: LocationRow, images: LocationIm
     return container;
 };
 
-// "Added by @user on <date>" credit, shown only on the edit panel (not the public /location-info view).
+// "Added by @user on <date>" credit
 const creditLine = (location: LocationRow) => {
     const created = Math.floor(new Date(location.CreatedAt).getTime() / 1000);
     const when = Number.isFinite(created) ? ` on <t:${created}:D>` : "";
     return `-# Added by <@${location.AddedByUserId}>${when}`;
 };
 
-// The edit panel is the same container plus the action buttons and the auto-save footer (or, once the
-// editor presses Done, a read-only confirmation with the buttons stripped).
+// The edit panel is the same container plus the action buttons and footer
 export const buildLocationPanel = (location: LocationRow, images: LocationImageRow[], isComplete: boolean = false) => {
     const container = buildLocationContainer(location, images);
     container.addSeparatorComponents(new SeparatorBuilder());
@@ -107,7 +106,7 @@ export const buildDeleteConfirmation = (location: LocationRow) => {
 };
 
 // A Components V2 message renders its top-level components top-to-bottom, which lets us place each
-// image's delete button directly beneath the image (classic embeds + action rows can't interleave).
+//   image's delete button directly beneath the image (classic embeds + action rows can't interleave).
 export const buildImagePanel = (location: LocationRow, images: LocationImageRow[]) => {
     const managed = images.slice(0, MaxManagedImages);
 
@@ -147,10 +146,8 @@ export const buildImagePanel = (location: LocationRow, images: LocationImageRow[
     return { components, flags: MessageFlags.IsComponentsV2 as const };
 };
 
-// On "Done" we collapse the per-image edit rows into a single gallery so the images read as one carousel
-// (the location-info look) rather than individual lines. A single MediaGallery with multiple items groups
-// natively in Components V2 — the classic matching-embedUrl trick only applies to non-V2 embeds, which this
-// message can't switch to once it carries the IsComponentsV2 flag.
+// On "Done" collapse the per-image edit rows into a single gallery so the images read as one carousel
+//   (the location-info look) rather than individual lines
 export const buildImageCarousel = (location: LocationRow, images: LocationImageRow[]) => {
     const managed = images.slice(0, MaxManagedImages);
     const gallery = new MediaGalleryBuilder();
@@ -182,8 +179,6 @@ const textInputLabel = (
     label: string,
     style: TextInputStyle,
     value: string | null,
-    // description shows as plain helper text under the label (always visible, ~100 chars, no markdown);
-    // placeholder is an in-box hint that only shows while the field is empty.
     options: { required?: boolean; maxLength?: number; description?: string; placeholder?: string } = {},
 ) => {
     const input = new TextInputBuilder()
@@ -230,8 +225,6 @@ export const buildAddImageModal = (locationId: number) =>
             textInputLabel(LocationFieldId.Image, "Image URL", TextInputStyle.Short, null, { required: true, maxLength: 500 }),
         );
 
-// Info only, so this is an ephemeral message rather than a modal: a modal always forces a Submit button,
-// which wrongly implies a form. Plain message content still renders the markdown links.
 const HelpText = [
     "All details fields are optional and will only be shown if they contain text. You can use [markdown formatting](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline) in these fields.",
     "You can use emoji and mentions (channel, role, user, etc) in these fields, but you must use [escaped syntax](https://c.r74n.com/discord/formatting#EscapeMentions).",

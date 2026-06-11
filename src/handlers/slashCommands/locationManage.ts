@@ -11,7 +11,6 @@ const Key = CommandKey.LocationManage;
 enum LocationManageSubcommand {
     Add = "add",
     Edit = "edit",
-    Remove = "remove",
 }
 
 const LocationOptionName = "name";
@@ -34,15 +33,6 @@ const builder = new SlashCommandBuilder()
             .addStringOption(option =>
                 option.setName(LocationOptionName)
                     .setDescription("The location to edit")
-                    .setRequired(true)
-                    .setAutocomplete(true)))
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName(LocationManageSubcommand.Remove)
-            .setDescription("Remove a location")
-            .addStringOption(option =>
-                option.setName(LocationOptionName)
-                    .setDescription("The location to remove")
                     .setRequired(true)
                     .setAutocomplete(true)))
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
@@ -80,20 +70,6 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply({ ...buildLocationPanel(location, locations.getImages(location.Id)), flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
 };
 
-const handleRemove = async (interaction: ChatInputCommandInteraction) => {
-    const guildId = interaction.guildId ?? "";
-    const name = interaction.options.getString(LocationOptionName, true);
-
-    const existing = locations.getLocation(guildId, name);
-    if (!existing) {
-        await interaction.reply({ content: `Location "${name}" not found.`, flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    locations.removeLocation(guildId, name);
-    await interaction.reply(`Removed location **${name}**.`);
-};
-
 const locationManageHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
@@ -103,9 +79,6 @@ const locationManageHandler = async (interaction: ChatInputCommandInteraction) =
             break;
         case LocationManageSubcommand.Edit:
             await handleEdit(interaction);
-            break;
-        case LocationManageSubcommand.Remove:
-            await handleRemove(interaction);
             break;
     }
 };

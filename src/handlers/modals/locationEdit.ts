@@ -42,6 +42,8 @@ const handleDetails = async (interaction: ModalMessageModalSubmitInteraction, lo
     await refreshPanel(interaction, locationId);
 };
 
+// Rename is separate because name is the only field that's really required and because
+//   you can only have up to 5 inputs on a single modal
 const handleRename = async (interaction: ModalMessageModalSubmitInteraction, locationId: number) => {
     const location = locations.getLocationById(locationId);
     if (!location) {
