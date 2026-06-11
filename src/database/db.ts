@@ -378,6 +378,14 @@ class DatabaseManager {
         return statement.get(guildId, name) as LocationRow | undefined;
     }
 
+    getLocationById(id: number) {
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, Name, Address, Description, Keywords, Hours, Url, AddedByUserId, CreatedAt
+            FROM Locations WHERE Id = ?
+        `);
+        return statement.get(id) as LocationRow | undefined;
+    }
+
     getAllLocations(guildId: string) {
         const statement = this.db.prepare(`
             SELECT * FROM Locations WHERE GuildId = ? ORDER BY Name ASC
@@ -414,6 +422,33 @@ class DatabaseManager {
             guildId,
             currentName
         );
+    }
+
+    updateLocationById(id: number, name?: string, address?: string | null, description?: string | null, keywords?: string | null, hours?: string | null, url?: string | null) {
+        const location = this.getLocationById(id);
+        if (!location) return;
+
+        const statement = this.db.prepare(`
+            UPDATE Locations
+            SET Name = ?, Address = ?, Description = ?, Keywords = ?, Hours = ?, Url = ?
+            WHERE Id = ?
+        `);
+        return statement.run(
+            name ?? location.Name,
+            address !== undefined ? address : location.Address,
+            description !== undefined ? description : location.Description,
+            keywords !== undefined ? keywords : location.Keywords,
+            hours !== undefined ? hours : location.Hours,
+            url !== undefined ? url : location.Url,
+            id
+        );
+    }
+
+    removeLocationById(id: number) {
+        const statement = this.db.prepare(`
+            DELETE FROM Locations WHERE Id = ?
+        `);
+        return statement.run(id);
     }
 
     removeLocation(guildId: string, name: string) {

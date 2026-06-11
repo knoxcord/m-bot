@@ -3,6 +3,7 @@ import type { ModalSubmitInteraction } from "discord.js";
 export enum ModalCustomIdPrefix {
     Tarot = "tarot",
     TopicEdit = "topic-edit",
+    LocationEdit = "location-edit",
 }
 
 export interface IModal{

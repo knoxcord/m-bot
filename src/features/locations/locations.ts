@@ -11,6 +11,10 @@ class Locations {
         return db.getLocation(guildId, name);
     }
 
+    getLocationById(id: number): LocationRow | undefined {
+        return db.getLocationById(id);
+    }
+
     getAllLocations(guildId: string): LocationRow[] {
         return db.getAllLocations(guildId);
     }
@@ -24,8 +28,16 @@ class Locations {
         return db.updateLocation(guildId, currentName, name, address, description, keywords, hours, url);
     }
 
+    updateLocationById(id: number, name?: string, address?: string | null, description?: string | null, keywords?: string | null, hours?: string | null, url?: string | null) {
+        return db.updateLocationById(id, name, address, description, keywords, hours, url);
+    }
+
     removeLocation(guildId: string, name: string) {
         return db.removeLocation(guildId, name);
+    }
+
+    removeLocationById(id: number) {
+        return db.removeLocationById(id);
     }
 
     addImage(locationId: number, imageUrl: string, addedByUserId: string) {
