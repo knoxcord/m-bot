@@ -13,6 +13,7 @@ const parseConfigFloat = (guildId: string, key: string, fallback: number) => {
 export const resolveWeightOptions = (guildId: string): WeightOptions => ({
     preloadedUserId: configuration.getConfigurationValue(guildId, PreloadedTopicsUserIdConfigurationKey),
     config: {
+        recencyCooldownHours: parseConfigFloat(guildId, TopicWeightConfigurationKeys.RecencyCooldownHours, TopicWeightDefaults.recencyCooldownHours),
         recencyWindowHours: parseConfigFloat(guildId, TopicWeightConfigurationKeys.RecencyWindowHours, TopicWeightDefaults.recencyWindowHours),
         recencyFloor: parseConfigFloat(guildId, TopicWeightConfigurationKeys.RecencyFloor, TopicWeightDefaults.recencyFloor),
         preloadedUserMultiplier: parseConfigFloat(guildId, TopicWeightConfigurationKeys.PreloadedUserMultiplier, TopicWeightDefaults.preloadedUserMultiplier),

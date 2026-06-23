@@ -48,6 +48,36 @@ describe("computeWeight: recency", () => {
         const w = computeWeight(baseRow({ LastShownAt: hoursAgo(config.recencyWindowHours * 10) }), { now: NOW });
         assert.equal(w, 1);
     });
+
+    it("topic shown within the cooldown window has weight 0", () => {
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        const w = computeWeight(baseRow({ LastShownAt: hoursAgo(12) }), { now: NOW, config: cooldownConfig });
+        assert.equal(w, 0);
+    });
+
+    it("recency ramp starts only after the cooldown ends", () => {
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        // Halfway through the window, measured from the end of cooldown.
+        const w = computeWeight(
+            baseRow({ LastShownAt: hoursAgo(cooldownConfig.recencyCooldownHours + cooldownConfig.recencyWindowHours / 2) }),
+            { now: NOW, config: cooldownConfig },
+        );
+        closeTo(w, 0.5);
+    });
+
+    it("topic just past the cooldown is at the recency floor, not mid-ramp", () => {
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        const w = computeWeight(
+            baseRow({ LastShownAt: hoursAgo(cooldownConfig.recencyCooldownHours + 0.1) }),
+            { now: NOW, config: cooldownConfig },
+        );
+        closeTo(w, config.recencyFloor);
+    });
+
+    it("cooldown of 0 disables the hard cooldown", () => {
+        const w = computeWeight(baseRow({ LastShownAt: hoursAgo(0.1) }), { now: NOW, config });
+        closeTo(w, config.recencyFloor);
+    });
 });
 
 describe("computeWeight: author", () => {
@@ -124,5 +154,20 @@ describe("pickWeighted", () => {
         const heavy = baseRow({ Id: 1 });
         const light = baseRow({ Id: 2, Downvotes: 100 });
         assert.equal(pickWeighted([heavy, light]), light);
+    });
+
+    it("never selects a topic inside its cooldown window", () => {
+        mock.method(Math, "random", () => 0.0);
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        const cooled = baseRow({ Id: 1, LastShownAt: hoursAgo(1) });
+        const eligible = baseRow({ Id: 2 });
+        assert.equal(pickWeighted([cooled, eligible], { now: NOW, config: cooldownConfig }), eligible);
+    });
+
+    it("returns undefined when every topic is in cooldown", () => {
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        const cooledA = baseRow({ Id: 1, LastShownAt: hoursAgo(1) });
+        const cooledB = baseRow({ Id: 2, LastShownAt: hoursAgo(2) });
+        assert.equal(pickWeighted([cooledA, cooledB], { now: NOW, config: cooldownConfig }), undefined);
     });
 });

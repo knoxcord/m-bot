@@ -1,6 +1,7 @@
 import type { TopicWeightingRow } from "../../database/db.ts";
 
 export const TopicWeightDefaults = {
+    recencyCooldownHours: 0,
     recencyWindowHours: 168,
     recencyFloor: 0.05,
     preloadedUserMultiplier: 0.3,
@@ -10,6 +11,7 @@ export const TopicWeightDefaults = {
 } as const;
 
 export interface ResolvedWeightConfig {
+    recencyCooldownHours: number;
     recencyWindowHours: number;
     recencyFloor: number;
     preloadedUserMultiplier: number;
@@ -27,11 +29,15 @@ export interface WeightOptions {
 const clamp = (value: number, min: number, max: number) =>
     Math.min(max, Math.max(min, value));
 
-const recencyMultiplier = (lastShownAt: string | null, now: Date, windowHours: number, floor: number) => {
+const recencyMultiplier = (lastShownAt: string | null, now: Date, cooldownHours: number, windowHours: number, floor: number) => {
     if (!lastShownAt) return 1;
     const shownMs = new Date(`${lastShownAt}Z`).getTime();
     const hoursSince = (now.getTime() - shownMs) / (1000 * 60 * 60);
-    return clamp(hoursSince / windowHours, floor, 1);
+    // Hard cooldown: a topic shown within this window is never eligible.
+    if (cooldownHours > 0 && hoursSince < cooldownHours) return 0;
+    // The recency bias ramp starts only once the cooldown has ended.
+    const hoursSinceCooldownEnded = hoursSince - cooldownHours;
+    return clamp(hoursSinceCooldownEnded / windowHours, floor, 1);
 };
 
 const authorMultiplier = (addedByUserId: string, preloadedUserId: string | null | undefined, multiplier: number) =>
@@ -50,7 +56,7 @@ export interface WeightBreakdown {
 export const computeWeightBreakdown = (row: TopicWeightingRow, options: WeightOptions = {}): WeightBreakdown => {
     const now = options.now ?? new Date();
     const config = options.config ?? { ...TopicWeightDefaults };
-    const recency = recencyMultiplier(row.LastShownAt, now, config.recencyWindowHours, config.recencyFloor);
+    const recency = recencyMultiplier(row.LastShownAt, now, config.recencyCooldownHours, config.recencyWindowHours, config.recencyFloor);
     const author = authorMultiplier(row.AddedByUserId, options.preloadedUserId, config.preloadedUserMultiplier);
     const vote = voteMultiplier(row.Upvotes, row.Downvotes, config.voteStep, config.voteFloor, config.voteCeiling);
     return { recency, author, vote, total: recency * author * vote };
@@ -62,14 +68,19 @@ export const computeWeight = (row: TopicWeightingRow, options: WeightOptions = {
 export const pickWeighted = (rows: TopicWeightingRow[], options: WeightOptions = {}): TopicWeightingRow | undefined => {
     if (rows.length === 0) return undefined;
 
-    const weights = rows.map(row => computeWeight(row, options));
-    const total = weights.reduce((sum, w) => sum + w, 0);
-    if (total <= 0) return rows[Math.floor(Math.random() * rows.length)];
+    // Drop zero-weight rows (e.g. topics inside their cooldown window) so they
+    // can never be selected, even via the all-zero fallback below.
+    const eligible = rows
+        .map(row => ({ row, weight: computeWeight(row, options) }))
+        .filter(entry => entry.weight > 0);
+    if (eligible.length === 0) return undefined;
+
+    const total = eligible.reduce((sum, entry) => sum + entry.weight, 0);
 
     let target = Math.random() * total;
-    for (let i = 0; i < rows.length; i++) {
-        target -= weights[i];
-        if (target <= 0) return rows[i];
+    for (const entry of eligible) {
+        target -= entry.weight;
+        if (target <= 0) return entry.row;
     }
-    return rows[rows.length - 1];
+    return eligible[eligible.length - 1].row;
 };

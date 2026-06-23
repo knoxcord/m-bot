@@ -2,7 +2,7 @@
   "name": "m-bot",
   "packageManager": "yarn@4.10.3",
   "type": "module",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "scripts": {
     "lint": "eslint",
     "test": "tsc && node --test './build/**/*.test.js'",
@@ -10,7 +10,7 @@
     "build-prod": "tsc -p tsconfig.prod.json",
     "start": "tsc && node ./build",
     "start-prod": "NODE_ENV=production && pm2 start ./build/index.js",
-    "register-commands": "node ./build/register-commands.js"
+    "register-commands": "echo \"Reminder: This does not automatically build the code. Run `yarn build` if needed\" && node ./build/register-commands.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

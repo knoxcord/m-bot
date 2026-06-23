@@ -13,6 +13,7 @@ export const AutoTopicQuietHoursEndConfigurationKey = 'AUTO_TOPIC_QUIET_HOURS_EN
 export const ChannelIdsWhereTopicsCanBeAddedConfigurationKey = 'CHANNEL_IDS_WHERE_TOPICS_CAN_BE_ADDED';
 
 export const TopicWeightConfigurationKeys = {
+    RecencyCooldownHours: 'TOPIC_WEIGHT_RECENCY_COOLDOWN_HOURS',
     RecencyWindowHours: 'TOPIC_WEIGHT_RECENCY_WINDOW_HOURS',
     RecencyFloor: 'TOPIC_WEIGHT_RECENCY_FLOOR',
     PreloadedUserMultiplier: 'TOPIC_WEIGHT_PRELOADED_USER_MULTIPLIER',
@@ -28,7 +29,8 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Auto Topic Inactivity Minutes', AutoTopicInactivityMinutesConfigurationKey],
     ['Auto Topic Quiet Hours Start (UTC, HH:MM)', AutoTopicQuietHoursStartConfigurationKey],
     ['Auto Topic Quiet Hours End (UTC, HH:MM)', AutoTopicQuietHoursEndConfigurationKey],
-    ['Topic Weight: Recency Window Hours', TopicWeightConfigurationKeys.RecencyWindowHours],
+    ['Topic Weight: Recency Cooldown Hours (Topic Never Shown Within This Window)', TopicWeightConfigurationKeys.RecencyCooldownHours],
+    ['Topic Weight: Recency Window Hours (Recency Bias Returns To Normal Over This Window After Cooldown)', TopicWeightConfigurationKeys.RecencyWindowHours],
     ['Topic Weight: Recency Floor', TopicWeightConfigurationKeys.RecencyFloor],
     ['Topic Weight: Preloaded User Multiplier', TopicWeightConfigurationKeys.PreloadedUserMultiplier],
     ['Topic Weight: Vote Step', TopicWeightConfigurationKeys.VoteStep],
