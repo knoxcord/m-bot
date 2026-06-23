@@ -55,13 +55,23 @@ describe("computeWeight: recency", () => {
         assert.equal(w, 0);
     });
 
-    it("topic shown after the cooldown window is weighted normally", () => {
+    it("recency ramp starts only after the cooldown ends", () => {
         const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        // Halfway through the window, measured from the end of cooldown.
         const w = computeWeight(
-            baseRow({ LastShownAt: hoursAgo(cooldownConfig.recencyWindowHours / 2) }),
+            baseRow({ LastShownAt: hoursAgo(cooldownConfig.recencyCooldownHours + cooldownConfig.recencyWindowHours / 2) }),
             { now: NOW, config: cooldownConfig },
         );
         closeTo(w, 0.5);
+    });
+
+    it("topic just past the cooldown is at the recency floor, not mid-ramp", () => {
+        const cooldownConfig = { ...config, recencyCooldownHours: 24 };
+        const w = computeWeight(
+            baseRow({ LastShownAt: hoursAgo(cooldownConfig.recencyCooldownHours + 0.1) }),
+            { now: NOW, config: cooldownConfig },
+        );
+        closeTo(w, config.recencyFloor);
     });
 
     it("cooldown of 0 disables the hard cooldown", () => {

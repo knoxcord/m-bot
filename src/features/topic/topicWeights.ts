@@ -35,7 +35,9 @@ const recencyMultiplier = (lastShownAt: string | null, now: Date, cooldownHours:
     const hoursSince = (now.getTime() - shownMs) / (1000 * 60 * 60);
     // Hard cooldown: a topic shown within this window is never eligible.
     if (cooldownHours > 0 && hoursSince < cooldownHours) return 0;
-    return clamp(hoursSince / windowHours, floor, 1);
+    // The recency bias ramp starts only once the cooldown has ended.
+    const hoursSinceCooldownEnded = hoursSince - cooldownHours;
+    return clamp(hoursSinceCooldownEnded / windowHours, floor, 1);
 };
 
 const authorMultiplier = (addedByUserId: string, preloadedUserId: string | null | undefined, multiplier: number) =>
