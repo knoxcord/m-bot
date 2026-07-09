@@ -12,6 +12,7 @@ enum TopicManageSubcommand {
     Remove = "remove",
     Get = "get",
     Edit = "edit",
+    ResetLastShown = "reset-last-shown",
 }
 
 const builder = new SlashCommandBuilder()
@@ -42,6 +43,15 @@ const builder = new SlashCommandBuilder()
             .addIntegerOption(option =>
                 option.setName("topic")
                     .setDescription("The topic to edit (search by text)")
+                    .setRequired(true)
+                    .setAutocomplete(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName(TopicManageSubcommand.ResetLastShown)
+            .setDescription("Clear a topic's last shown time and decrement its shown count")
+            .addIntegerOption(option =>
+                option.setName("topic")
+                    .setDescription("The topic to reset (search by text)")
                     .setRequired(true)
                     .setAutocomplete(true)))
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
@@ -98,6 +108,28 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
     await interaction.showModal(buildTopicEditModal(topic.Id, topic.Topic));
 };
 
+const handleResetLastShown = async (interaction: ChatInputCommandInteraction) => {
+    const topicId = interaction.options.getInteger("topic", true);
+    const guildId = interaction.guildId ?? "";
+    const topic = topics.getTopic(guildId, topicId);
+
+    if (!topic) {
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const updated = topics.resetTopicLastShown(guildId, topicId);
+
+    if (!updated) {
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const embed = buildTopicInfoEmbed(updated, guildId);
+
+    await interaction.reply({ embeds: [embed] });
+};
+
 const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
@@ -110,6 +142,9 @@ const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
             break;
         case TopicManageSubcommand.Edit:
             await handleEdit(interaction);
+            break;
+        case TopicManageSubcommand.ResetLastShown:
+            await handleResetLastShown(interaction);
             break;
     }
 };

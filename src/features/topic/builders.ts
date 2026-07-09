@@ -51,12 +51,11 @@ export const buildTopicDeleteConfirmRow = (topicId: number) =>
 
 export const buildTopicInfoEmbed = (topic: TopicWithVotesRow, guildId: string) => {
     const embed = new EmbedBuilder()
-        .setTitle("Topic Info");
+        .setTitle(`Topic ID: ${topic.Id}`);
 
     embed.addFields({ name: "Topic text", value: topic.Topic });
     embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
     embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
-    embed.addFields({ name: "Times shown", value: `${topic.ShownCount}`, inline: true });
     embed.addFields({
         name: "Last shown",
         value: topic.LastShownAt
@@ -64,6 +63,7 @@ export const buildTopicInfoEmbed = (topic: TopicWithVotesRow, guildId: string) =
             : "never",
         inline: true,
     });
+    embed.addFields({ name: "Times shown", value: `${topic.ShownCount}`, inline: true });
     embed.addFields({ name: "Upvotes", value: `${topic.Upvotes}`, inline: true });
     embed.addFields({ name: "Downvotes", value: `${topic.Downvotes}`, inline: true });
 

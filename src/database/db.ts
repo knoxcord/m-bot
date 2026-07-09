@@ -580,6 +580,22 @@ class DatabaseManager {
         return txn();
     }
 
+    /** Clears LastShownAt and decrements ShownCount (floored at 0), returning the updated row with vote counts. */
+    resetTopicLastShownAndReturn(guildId: string, topicId: number) {
+        const statement = this.db.prepare(`
+            UPDATE Topics
+            SET LastShownAt = NULL, ShownCount = MAX(ShownCount - 1, 0)
+            WHERE GuildId = ? AND Id = ?
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
+        `);
+        const txn = this.db.transaction(() => {
+            const row = statement.get(guildId, topicId) as TopicRow | undefined;
+            if (!row) return undefined;
+            return { ...row, ...this.getTopicVoteCounts(row.Id) };
+        });
+        return txn();
+    }
+
     addTopic(guildId: string, topic: string, userId: string) {
         const statement = this.db.prepare(`
             INSERT INTO Topics (GuildId, Topic, AddedByUserId)
