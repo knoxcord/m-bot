@@ -2,11 +2,15 @@ import { EmbedBuilder, type MessageComponentInteraction, type ModalSubmitInterac
 import configuration from "../../features/configuration/configuration.ts";
 import { TopicLogChannelIdConfigurationKey } from "../../features/topic/config.ts";
 
-export const logTopicCreate = async (interaction: ModalSubmitInteraction, guildId: string, topicText: string) => {
+const getLogChannel = (interaction: ModalSubmitInteraction | MessageComponentInteraction, guildId: string) => {
     const logChannelId = configuration.getConfigurationValue(guildId, TopicLogChannelIdConfigurationKey);
     if (!logChannelId) return;
 
-    const logChannel = interaction.guild?.channels.cache.get(logChannelId) as TextChannel | undefined;
+    return interaction.guild?.channels.cache.get(logChannelId) as TextChannel | undefined;
+}
+
+export const logTopicCreate = async (interaction: ModalSubmitInteraction, guildId: string, topicText: string) => {
+    const logChannel = getLogChannel(interaction, guildId);
     if (!logChannel) return;
 
     const embed = new EmbedBuilder()
@@ -21,10 +25,7 @@ export const logTopicCreate = async (interaction: ModalSubmitInteraction, guildI
 };
 
 export const logTopicEdit = async (interaction: ModalSubmitInteraction, guildId: string, newText: string, previousText: string) => {
-    const logChannelId = configuration.getConfigurationValue(guildId, TopicLogChannelIdConfigurationKey);
-    if (!logChannelId) return;
-
-    const logChannel = interaction.guild?.channels.cache.get(logChannelId) as TextChannel | undefined;
+    const logChannel = getLogChannel(interaction, guildId);
     if (!logChannel) return;
 
     const embed = new EmbedBuilder()
@@ -40,10 +41,7 @@ export const logTopicEdit = async (interaction: ModalSubmitInteraction, guildId:
 }
 
 export const logTopicDelete = async (interaction: MessageComponentInteraction, guildId: string, topicText: string) => {
-    const logChannelId = configuration.getConfigurationValue(guildId, TopicLogChannelIdConfigurationKey);
-    if (!logChannelId) return;
-
-    const logChannel = interaction.guild?.channels.cache.get(logChannelId) as TextChannel | undefined;
+    const logChannel = getLogChannel(interaction, guildId);
     if (!logChannel) return;
 
     const embed = new EmbedBuilder()

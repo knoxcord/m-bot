@@ -88,14 +88,14 @@ export const buildTopicAddModal = () => {
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true)
         .setMaxLength(2000);
-    const label = new LabelBuilder()
+    const topicTextComponent = new LabelBuilder()
         .setLabel("Topic text")
         .setTextInputComponent(topicTextInput);
     return new ModalBuilder()
         .setCustomId(ModalCustomIdPrefix.TopicAdd)
         .setTitle("Add Topic")
-        .addLabelComponents(label)
-        .addTextDisplayComponents(buildTopicTextHelp());
+        .addTextDisplayComponents(buildTopicTextHelp())
+        .addLabelComponents(topicTextComponent);
 };
 
 export const buildTopicEditModal = (topicId: number, currentText: string) => {
@@ -105,12 +105,12 @@ export const buildTopicEditModal = (topicId: number, currentText: string) => {
         .setValue(currentText)
         .setRequired(true)
         .setMaxLength(2000);
-    const label = new LabelBuilder()
+    const topicTextComponent = new LabelBuilder()
         .setLabel("Topic text")
         .setTextInputComponent(topicTextInput);
     return new ModalBuilder()
         .setCustomId(`${ModalCustomIdPrefix.TopicEdit}:${topicId}`)
         .setTitle("Edit Topic")
-        .addLabelComponents(label)
-        .addTextDisplayComponents(buildTopicTextHelp());
+        .addTextDisplayComponents(buildTopicTextHelp())
+        .addLabelComponents(topicTextComponent);
 };
