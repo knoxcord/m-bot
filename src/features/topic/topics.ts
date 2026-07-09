@@ -36,6 +36,10 @@ class Topics {
     updateTopicText(guildId: string, id: number, topic: string) {
         return db.updateTopicText(guildId, id, topic);
     }
+
+    resetTopicLastShown(guildId: string, id: number) {
+        return db.resetTopicLastShownAndReturn(guildId, id);
+    }
 };
 
 export default new Topics();
