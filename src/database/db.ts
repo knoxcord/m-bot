@@ -585,7 +585,8 @@ class DatabaseManager {
             INSERT INTO Topics (GuildId, Topic, AddedByUserId)
             VALUES (?, ?, ?)
         `)
-        statement.run(guildId, topic, userId);
+        const result = statement.run(guildId, topic, userId);
+        return Number(result.lastInsertRowid);
     }
 
     removeTopic(guildId: string, topicId: number) {

@@ -1,3 +1,4 @@
+import { AddTopic } from "./addTopic.ts";
 import { Configure } from "./configure.ts";
 import { TopicManage } from "./topicManage.ts";
 import { Feature } from "./feature.ts";
@@ -20,6 +21,7 @@ const slashCommands = [
     LocationManage,
     SetActivity,
     TopicManage,
+    AddTopic,
 ] as const;
 
 export {

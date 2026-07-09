@@ -1,11 +1,12 @@
 import type { MessageComponentInteraction } from "discord.js";
 import { TarotCustomIdKey } from "../../features/tarot/types.ts";
-import { TopicVoteCustomIdKey } from "../../features/topic/types.ts";
+import { TopicVoteCustomIdKey, TopicManageCustomIdKey } from "../../features/topic/types.ts";
 import { LocationPanelCustomIdKey } from "../../features/locations/types.ts";
 
 export enum MessageComponentCustomIdPrefix {
     Tarot = TarotCustomIdKey,
     TopicVote = TopicVoteCustomIdKey,
+    TopicManage = TopicManageCustomIdKey,
     LocationPanel = LocationPanelCustomIdKey,
 }
 

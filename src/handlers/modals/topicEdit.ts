@@ -5,6 +5,8 @@ import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import topics from "../../features/topic/topics.ts";
 import { TopicEditFieldId } from "../../features/topic/types.ts";
 import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
+import { buildTopicManageButtonRow } from "../../features/topic/builders.ts";
+import { logTopicEdit } from "../../features/topic/logTopic.ts";
 
 const handleTopicEditModalSubmit = async (interaction: ModalSubmitInteraction) => {
     const [, topicIdRaw] = interaction.customId.split(":");
@@ -40,6 +42,18 @@ const handleTopicEditModalSubmit = async (interaction: ModalSubmitInteraction) =
     }
 
     topics.updateTopicText(guildId, topicId, newText);
+
+    // When launched from the ephemeral "Added topic" message (edit button), update that
+    // message in place and log an audit message.
+    if (interaction.isFromMessage()) {
+        await interaction.update({
+            content: `Added topic:\n${newText}`,
+            components: [buildTopicManageButtonRow(topicId)],
+        });
+
+        await logTopicEdit(interaction, guildId, newText, existing.Topic)
+        return;
+    }
 
     const embed = new EmbedBuilder()
         .setTitle("Updated Topic")
