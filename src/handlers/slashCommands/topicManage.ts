@@ -3,10 +3,8 @@ import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } 
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import topics from "../../features/topic/topics.ts";
-import { computeWeightBreakdown } from "../../features/topic/topicWeights.ts";
-import { resolveWeightOptions } from "../../features/topic/topicWeightConfig.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
-import { buildTopicEditModal } from "../../features/topic/builders.ts";
+import { buildTopicEditModal, buildTopicInfoEmbed } from "../../features/topic/builders.ts";
 
 const Key = CommandKey.TopicManage;
 
@@ -58,30 +56,7 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle("Topic Info");
-
-    embed.addFields({ name: "Topic text", value: topic.Topic });
-    embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
-    embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
-    embed.addFields({ name: "Times shown", value: `${topic.ShownCount}`, inline: true });
-    embed.addFields({
-        name: "Last shown",
-        value: topic.LastShownAt
-            ? `<t:${Math.floor(new Date(`${topic.LastShownAt}Z`).getTime() / 1000)}:R>`
-            : "never",
-        inline: true,
-    });
-    embed.addFields({ name: "Upvotes", value: `${topic.Upvotes}`, inline: true });
-    embed.addFields({ name: "Downvotes", value: `${topic.Downvotes}`, inline: true });
-
-    embed.addFields({ name: "​", value: "─────────────────────────────" });
-
-    const breakdown = computeWeightBreakdown(topic, resolveWeightOptions(guildId));
-    embed.addFields({ name: "Recency multiplier", value: breakdown.recency.toFixed(3), inline: true });
-    embed.addFields({ name: "Author multiplier", value: breakdown.author.toFixed(3), inline: true });
-    embed.addFields({ name: "Vote multiplier", value: breakdown.vote.toFixed(3), inline: true });
-    embed.addFields({ name: "Calculated weight", value: breakdown.total.toFixed(3), inline: true });
+    const embed = buildTopicInfoEmbed(topic, guildId);
 
     await interaction.reply({ embeds: [embed] });
 };

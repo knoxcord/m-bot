@@ -13,6 +13,7 @@ export enum CommandKey {
     LocationManage = "location-manage",
     SetActivity = "setactivity",
     TopicManage = "topic-manage",
+    AddTopic = "addtopic",
 }
 
 export interface ISlashCommand
