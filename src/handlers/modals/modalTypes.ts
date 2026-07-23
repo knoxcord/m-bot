@@ -1,10 +1,12 @@
 import type { ModalSubmitInteraction } from "discord.js";
+import { AnonSubmitModalKey } from "../../features/topic/integrations/anonymousSubmit/types.ts";
 
 export enum ModalCustomIdPrefix {
     Tarot = "tarot",
     TopicEdit = "topic-edit",
     TopicAdd = "topic-add",
     LocationEdit = "location-edit",
+    AnonymousSubmit = AnonSubmitModalKey,
 }
 
 export interface IModal{

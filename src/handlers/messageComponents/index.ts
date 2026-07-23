@@ -1,13 +1,17 @@
-import { Tarot } from "./tarot.ts";
+import { TarotComponent } from "./tarot.ts";
 import { TopicVoteComponent } from "./topicVote.ts";
 import { TopicManageComponent } from "./topicManage.ts";
-import { LocationPanel } from "./locationPanel.ts";
+import { LocationPanelComponent } from "./locationPanel.ts";
+import { TopicIntegrationStartComponent } from "./topicIntegrationStart.ts";
+import { SubmissionReviewComponent } from "./submissionReview.ts";
 
 const messageComponents = [
-    Tarot,
+    TarotComponent,
     TopicVoteComponent,
     TopicManageComponent,
-    LocationPanel,
+    LocationPanelComponent,
+    TopicIntegrationStartComponent,
+    SubmissionReviewComponent,
 ];
 
 export {

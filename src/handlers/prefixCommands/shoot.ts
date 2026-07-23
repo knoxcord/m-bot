@@ -3,7 +3,8 @@ import { bold, heading, inlineCode, italic, subtext } from "discord.js";
 import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
 import configuration from "../../features/configuration/configuration.ts";
-import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
+import { MutedRoleIdConfigurationKey } from "../../features/spank/config.ts";
+import { ModeratorRoleIdsConfigurationKey } from "../../features/configuration/shared.ts";
 import { RouletteMutedDurationSecondsConfigurationKey } from "./russianRoulette.ts";
 import { scheduleTemporaryRole } from "../../features/temporaryRoles/temporaryRoles.ts";
 
@@ -25,9 +26,9 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    const moderatorRoleIds = configuration.getConfigurationValue(message.guildId, ModeratorRoleIdsConfigurationKey)?.split(',') ?? [];
+    if (moderatorRoleIds.length < 1) {
+        console.warn(`Found empty moderatorRoleIds config for guildId ${message.guildId}`);
     }
 
     const regexResult = commandBody.match(TargetRegex)?.groups;
@@ -51,7 +52,7 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
     ];
 
     // If user is attempting to target someone else but doesnt have permission
-    const handSlip = targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+    const handSlip = targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...moderatorRoleIds);
     if (handSlip) {
         replyMessageLines.unshift(italic('Your hand slips as you aim the gun at your target...'));
         targetUser = authorUser;

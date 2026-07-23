@@ -2,67 +2,24 @@
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from 'url';
+import type { TopicIntegrationKey } from "../features/topic/types.ts";
+import type {
+    LocationImageRow,
+    LocationRow,
+    SubmissionRow,
+    TemporaryRoleAssignmentRow,
+    TopicRow,
+    TopicWeightingRow,
+    TopicWithVotesRow,
+} from './types.ts';
+import { TopicVote } from './types.ts';
+import type { SubmissionType } from "../features/submissionReview/types.ts";
+import { SubmissionStatus } from "../features/submissionReview/types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DbPath = '../../data/sqlite.db';
-
-export interface LocationRow {
-    Id: number;
-    GuildId: string;
-    Name: string;
-    Address: string | null;
-    Description: string | null;
-    Keywords: string | null;
-    Hours: string | null;
-    Url: string | null;
-    AddedByUserId: string;
-    CreatedAt: string;
-}
-
-export interface LocationImageRow {
-    Id: number;
-    LocationId: number;
-    ImageUrl: string;
-    AddedByUserId: string;
-    CreatedAt: string;
-}
-
-export interface TopicRow {
-    Id: number;
-    GuildId: string;
-    Topic: string;
-    AddedByUserId: string;
-    CreatedAt: string;
-    LastShownAt: string | null;
-    ShownCount: number;
-}
-
-export interface TopicWithVotesRow extends TopicRow {
-    Upvotes: number;
-    Downvotes: number;
-}
-
-export interface TopicWeightingRow {
-    Id: number;
-    AddedByUserId: string;
-    LastShownAt: string | null;
-    Upvotes: number;
-    Downvotes: number;
-}
-
-export enum TopicVote {
-    Up = 0,
-    Down = 1,
-}
-
-export interface TemporaryRoleAssignmentRow {
-    GuildId: string;
-    UserId: string;
-    RoleId: string;
-    ExpiresAt: number;
-}
 
 class DatabaseManager {
     private db: Database.Database;
@@ -193,10 +150,27 @@ class DatabaseManager {
                 ExpiresAt INTEGER NOT NULL,
                 PRIMARY KEY (GuildId, UserId, RoleId)
             );
+
+            CREATE TABLE IF NOT EXISTS Submissions (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                GuildId TEXT NOT NULL,
+                SubmittedByUserId TEXT NOT NULL,
+                Content TEXT NOT NULL,
+                SourceChannelId TEXT NOT NULL,
+                SourceMessageId TEXT,
+                Type TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                Metadata TEXT,
+                ReviewMessageId TEXT,
+                ReviewedByUserId TEXT,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                ReviewedAt DATETIME
+            );
         `)
 
         this.addColumnIfMissing('Topics', 'LastShownAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'ShownCount', 'INTEGER NOT NULL DEFAULT 0');
+        this.addColumnIfMissing('Topics', 'IntegrationKey', 'TEXT');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -483,7 +457,7 @@ class DatabaseManager {
     searchTopics(guildId: string, query: string) {
         const searchTerm = `%${query}%`;
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
             FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
             ORDER BY CreatedAt DESC
             LIMIT 25
@@ -494,7 +468,7 @@ class DatabaseManager {
     getTopic(guildId: string, topicId: number) {
         const statement = this.db.prepare(`
             SELECT
-                t.Id, t.GuildId, t.Topic, t.AddedByUserId, t.CreatedAt, t.LastShownAt, t.ShownCount,
+                t.Id, t.GuildId, t.Topic, t.AddedByUserId, t.CreatedAt, t.LastShownAt, t.ShownCount, t.IntegrationKey,
                 COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Up} THEN 1 ELSE 0 END), 0) AS Upvotes,
                 COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
             FROM Topics t
@@ -507,7 +481,7 @@ class DatabaseManager {
 
     getRecentTopics(guildId: string) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
+            SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
             FROM Topics WHERE GuildId = ?
             ORDER BY CreatedAt DESC
             LIMIT 25;
@@ -570,7 +544,7 @@ class DatabaseManager {
             UPDATE Topics
             SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
             WHERE GuildId = ? AND Id = ?
-            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
         `);
         const txn = this.db.transaction(() => {
             const row = statement.get(guildId, topicId) as TopicRow | undefined;
@@ -586,7 +560,7 @@ class DatabaseManager {
             UPDATE Topics
             SET LastShownAt = NULL, ShownCount = MAX(ShownCount - 1, 0)
             WHERE GuildId = ? AND Id = ?
-            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount
+            RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
         `);
         const txn = this.db.transaction(() => {
             const row = statement.get(guildId, topicId) as TopicRow | undefined;
@@ -596,13 +570,20 @@ class DatabaseManager {
         return txn();
     }
 
-    addTopic(guildId: string, topic: string, userId: string) {
+    addTopic(guildId: string, topic: string, userId: string, integrationKey: TopicIntegrationKey | null = null) {
         const statement = this.db.prepare(`
-            INSERT INTO Topics (GuildId, Topic, AddedByUserId)
-            VALUES (?, ?, ?)
+            INSERT INTO Topics (GuildId, Topic, AddedByUserId, IntegrationKey)
+            VALUES (?, ?, ?, ?)
         `)
-        const result = statement.run(guildId, topic, userId);
+        const result = statement.run(guildId, topic, userId, integrationKey);
         return Number(result.lastInsertRowid);
+    }
+
+    setTopicIntegration(guildId: string, topicId: number, integrationKey: TopicIntegrationKey | null) {
+        const statement = this.db.prepare(`
+            UPDATE Topics SET IntegrationKey = ? WHERE GuildId = ? AND Id = ?
+        `);
+        return statement.run(integrationKey, guildId, topicId);
     }
 
     removeTopic(guildId: string, topicId: number) {
@@ -617,6 +598,59 @@ class DatabaseManager {
             UPDATE Topics SET Topic = ? WHERE GuildId = ? AND Id = ?
         `);
         return statement.run(topic, guildId, topicId);
+    }
+
+    createSubmission(submission: {
+        guildId: string;
+        sourceChannelId: string;
+        sourceMessageId: string | null;
+        submittedByUserId: string;
+        type: SubmissionType;
+        content: string;
+        metadata: string;
+    }) {
+        const statement = this.db.prepare(`
+            INSERT INTO Submissions
+                (GuildId, SourceChannelId, SourceMessageId, SubmittedByUserId, Type, Status, Content, Metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const result = statement.run(
+            submission.guildId,
+            submission.sourceChannelId,
+            submission.sourceMessageId,
+            submission.submittedByUserId,
+            submission.type,
+            SubmissionStatus.Pending,
+            submission.content,
+            submission.metadata,
+        );
+        return Number(result.lastInsertRowid);
+    }
+
+    getSubmission(id: number) {
+        const statement = this.db.prepare(`
+            SELECT
+                Id, GuildId, SubmittedByUserId, Content, SourceChannelId, SourceMessageId,
+                Type, Status, Metadata, ReviewMessageId, ReviewedByUserId, CreatedAt, ReviewedAt
+            FROM Submissions WHERE Id = ?
+        `);
+        return statement.get(id) as SubmissionRow | undefined;
+    }
+
+    setSubmissionReviewMessageId(id: number, reviewMessageId: string) {
+        const statement = this.db.prepare(`
+            UPDATE Submissions SET ReviewMessageId = ? WHERE Id = ?
+        `);
+        return statement.run(reviewMessageId, id);
+    }
+
+    updateSubmissionStatus(id: number, status: SubmissionStatus, reviewedByUserId: string) {
+        const statement = this.db.prepare(`
+            UPDATE Submissions
+            SET Status = ?, ReviewedByUserId = ?, ReviewedAt = CURRENT_TIMESTAMP
+            WHERE Id = ?
+        `);
+        return statement.run(status, reviewedByUserId, id);
     }
 
     saveTemporaryRoleAssignment(guildId: string, userId: string, roleId: string, expiresAt: number) {

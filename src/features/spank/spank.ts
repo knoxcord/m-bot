@@ -3,8 +3,9 @@ import { userMention } from "discord.js";
 import db from "../../database/db.ts";
 import configuration from "../configuration/configuration.ts";
 import { getMissingPermissionResponse } from "../../shared/responses.ts";
-import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "./config.ts";
+import { GlobalMutableChannelId, GlobalMutableRoleId, MutedDurationSecondsConfigurationKey, MutedRoleIdConfigurationKey } from "./config.ts";
 import { scheduleTemporaryRole } from "../temporaryRoles/temporaryRoles.ts";
+import { ModeratorRoleIdsConfigurationKey } from "../configuration/shared.ts";
 
 const SpankRegex = /<?@?(?<userId>\d+)>?(?:\s(?<reason>.+))?/;
 const enum SnowflakeRegexCapturingGroups {
@@ -58,14 +59,14 @@ export const handleSpank = async (commandBody: string, message: OmitPartialGroup
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    const moderatorRoleIds = configuration.getConfigurationValue(message.guildId, ModeratorRoleIdsConfigurationKey)?.split(',') ?? [];
+    if (moderatorRoleIds.length < 1) {
+        console.warn(`Found empty moderatorRoleIds config for guildId ${message.guildId}`);
         return;
     }
     const globalMutableRoleId = configuration.getConfigurationValue(message.guildId, GlobalMutableRoleId);
 
-    const authorCanMute = authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+    const authorCanMute = authorUser.roles.cache.hasAny(...moderatorRoleIds);
     const targetIsGlobalMutable = globalMutableRoleId && targetUser.roles.cache.has(globalMutableRoleId);
     if (!authorCanMute && !targetIsGlobalMutable) {
         await message.reply(getMissingPermissionResponse(authorUserId));

@@ -1,10 +1,12 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, TextDisplayBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import type { TopicWithVotesRow } from "../../database/db.ts";
-import { TopicVote } from "../../database/db.ts";
-import { TopicEditFieldId, TopicManageAction, TopicManageCustomIdKey, TopicVoteCustomIdKey } from "./types.ts";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextDisplayBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import type { TopicRow, TopicWithVotesRow } from "../../database/types.ts";
+import { TopicVote } from "../../database/types.ts";
+import type { TopicIntegrationKey } from "./types.ts";
+import { TopicIntegrationNoneSelectValue, TopicEditFieldId, TopicManageAction, TopicManageCustomIdKey, TopicVoteCustomIdKey } from "./types.ts";
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import { computeWeightBreakdown } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
+import { getTopicIntegration, listTopicIntegrationChoices, buildTopicIntegrationRow } from "./integrations/topicIntegrations.ts";
 
 export const buildTopicVoteRow = (topicId: number, upvotes: number, downvotes: number) =>
     new ActionRowBuilder<ButtonBuilder>().setComponents(
@@ -18,12 +20,20 @@ export const buildTopicVoteRow = (topicId: number, upvotes: number, downvotes: n
             .setStyle(ButtonStyle.Secondary),
     );
 
-export const buildTopicMessage = (topic: TopicWithVotesRow) => ({
-    content: topic.Topic,
-    // Topic text is user-submitted, so never let it ping anyone (users, roles, @everyone/@here).
-    allowedMentions: { parse: [] },
-    components: [buildTopicVoteRow(topic.Id, topic.Upvotes, topic.Downvotes)],
-});
+export const buildTopicMessage = (topic: TopicWithVotesRow) => {
+    const components = [buildTopicVoteRow(topic.Id, topic.Upvotes, topic.Downvotes)];
+
+    // If the topic carries a known integration, append its button (e.g. "Submit anonymously").
+    const integration = getTopicIntegration(topic.IntegrationKey);
+    if (integration) components.push(buildTopicIntegrationRow(integration));
+
+    return {
+        content: topic.Topic,
+        // Topic text is user-submitted, so never let it ping anyone (users, roles, @everyone/@here).
+        allowedMentions: { parse: [] },
+        components,
+    };
+};
 
 export const buildTopicManageButtonRow = (topicId: number) =>
     new ActionRowBuilder<ButtonBuilder>().setComponents(
@@ -82,7 +92,29 @@ const TopicTextHelpText = "You can use [markdown formatting](https://support.dis
 
 const buildTopicTextHelp = () => new TextDisplayBuilder().setContent(TopicTextHelpText);
 
-export const buildTopicAddModal = () => {
+// The integration select is an "advanced" (mod-only) field. It's added to the shared
+// add/edit modals only when isAdvanced is set, so /addtopic stays a plain text-only modal.
+const buildIntegrationLabelComponent = (integrationKey: TopicIntegrationKey | null) => {
+    const integration = getTopicIntegration(integrationKey);
+    const select = new StringSelectMenuBuilder()
+        .setCustomId(TopicEditFieldId.IntegrationKey)
+        .addOptions(
+            new StringSelectMenuOptionBuilder()
+                .setLabel("None")
+                .setValue(TopicIntegrationNoneSelectValue)
+                .setDefault(!integration),
+            ...listTopicIntegrationChoices().map(choice =>
+                new StringSelectMenuOptionBuilder()
+                    .setLabel(choice.name)
+                    .setValue(choice.value)
+                    .setDefault(choice.value === integrationKey)),
+        );
+    return new LabelBuilder()
+        .setLabel("Integration")
+        .setStringSelectMenuComponent(select);
+};
+
+export const buildTopicAddModal = (isAdvanced: boolean = false) => {
     const topicTextInput = new TextInputBuilder()
         .setCustomId(TopicEditFieldId.TopicText)
         .setStyle(TextInputStyle.Paragraph)
@@ -91,26 +123,30 @@ export const buildTopicAddModal = () => {
     const topicTextComponent = new LabelBuilder()
         .setLabel("Topic text")
         .setTextInputComponent(topicTextInput);
-    return new ModalBuilder()
+    const modal = new ModalBuilder()
         .setCustomId(ModalCustomIdPrefix.TopicAdd)
         .setTitle("Add Topic")
         .addTextDisplayComponents(buildTopicTextHelp())
         .addLabelComponents(topicTextComponent);
+    if (isAdvanced) modal.addLabelComponents(buildIntegrationLabelComponent(null));
+    return modal;
 };
 
-export const buildTopicEditModal = (topicId: number, currentText: string) => {
+export const buildTopicEditModal = (topic: TopicRow, isAdvanced: boolean = false) => {
     const topicTextInput = new TextInputBuilder()
         .setCustomId(TopicEditFieldId.TopicText)
         .setStyle(TextInputStyle.Paragraph)
-        .setValue(currentText)
+        .setValue(topic.Topic)
         .setRequired(true)
         .setMaxLength(2000);
     const topicTextComponent = new LabelBuilder()
         .setLabel("Topic text")
         .setTextInputComponent(topicTextInput);
-    return new ModalBuilder()
-        .setCustomId(`${ModalCustomIdPrefix.TopicEdit}:${topicId}`)
+    const modal = new ModalBuilder()
+        .setCustomId(`${ModalCustomIdPrefix.TopicEdit}:${topic.Id}`)
         .setTitle("Edit Topic")
         .addTextDisplayComponents(buildTopicTextHelp())
         .addLabelComponents(topicTextComponent);
+    if (isAdvanced) modal.addLabelComponents(buildIntegrationLabelComponent(topic.IntegrationKey));
+    return modal;
 };

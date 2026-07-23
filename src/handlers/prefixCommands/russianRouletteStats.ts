@@ -3,7 +3,7 @@ import { bold, inlineCode } from "discord.js";
 import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
 import configuration from "../../features/configuration/configuration.ts";
-import { RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
+import { ModeratorRoleIdsConfigurationKey } from "../../features/configuration/shared.ts";
 import db from "../../database/db.ts";
 import { getMissingPermissionResponse } from "../../shared/responses.ts";
 
@@ -30,12 +30,12 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    const moderatorRoleIds = configuration.getConfigurationValue(message.guildId, ModeratorRoleIdsConfigurationKey)?.split(',') ?? [];
+    if (moderatorRoleIds.length < 1) {
+        console.warn(`Found empty moderatorRoleIds config for guildId ${message.guildId}`);
     }
 
-    if (targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...roleIdsThatCanMute)) {
+    if (targetUserId != authorUserId && !authorUser.roles.cache.hasAny(...moderatorRoleIds)) {
         await message.reply(getMissingPermissionResponse(authorUserId));
         return;
     }

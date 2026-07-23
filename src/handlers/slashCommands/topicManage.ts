@@ -1,14 +1,16 @@
 import type { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
-import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import topics from "../../features/topic/topics.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
-import { buildTopicEditModal, buildTopicInfoEmbed } from "../../features/topic/builders.ts";
+import { buildTopicAddModal, buildTopicEditModal, buildTopicInfoEmbed } from "../../features/topic/builders.ts";
+import { logTopicDelete } from "../../features/topic/logTopic.ts";
 
 const Key = CommandKey.TopicManage;
 
 enum TopicManageSubcommand {
+    Add = "add",
     Remove = "remove",
     Get = "get",
     Edit = "edit",
@@ -18,7 +20,11 @@ enum TopicManageSubcommand {
 const builder = new SlashCommandBuilder()
     .setName(Key)
     .setDescription("Manages Topics")
-    .addSubcommand(subcommand => 
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName(TopicManageSubcommand.Add)
+            .setDescription("Add a topic via a modal"))
+    .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Get)
             .setDescription("Get information about a topic")
@@ -56,6 +62,10 @@ const builder = new SlashCommandBuilder()
                     .setAutocomplete(true)))
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 
+const handleAdd = async (interaction: ChatInputCommandInteraction) => {
+    await interaction.showModal(buildTopicAddModal(true));
+};
+
 const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const topicId = interaction.options.getInteger("topic", true);
     const guildId = interaction.guildId ?? "";
@@ -83,15 +93,8 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
 
     topics.removeTopic(topic.GuildId, topic.Id);
 
-    const embed = new EmbedBuilder()
-        .setTitle("Removed Topic")
-        .setColor(0xFF0000)
-
-    embed.addFields({ name: "Topic text", value: topic.Topic });
-    embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
-    embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
-
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ content: "🗑️ Topic removed.", flags: MessageFlags.Ephemeral });
+    await logTopicDelete(interaction, guildId, topic.Topic, topic.IntegrationKey);
 };
 
 
@@ -105,7 +108,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    await interaction.showModal(buildTopicEditModal(topic.Id, topic.Topic));
+    await interaction.showModal(buildTopicEditModal(topic, true));
 };
 
 const handleResetLastShown = async (interaction: ChatInputCommandInteraction) => {
@@ -134,6 +137,9 @@ const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
+        case TopicManageSubcommand.Add:
+            await handleAdd(interaction);
+            break;
         case TopicManageSubcommand.Get:
             await handleGet(interaction);
             break;

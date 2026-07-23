@@ -15,7 +15,7 @@ const edit = async (interaction: MessageComponentInteraction, guildId: string, t
         return;
     }
 
-    await interaction.showModal(buildTopicEditModal(topic.Id, topic.Topic));
+    await interaction.showModal(buildTopicEditModal(topic));
 };
 
 // Delete: replace the manage buttons with a confirmation prompt in place.
@@ -41,7 +41,7 @@ const confirmDelete = async (interaction: MessageComponentInteraction, guildId: 
         components: [],
     });
 
-    await logTopicDelete(interaction, guildId, topic.Topic);
+    await logTopicDelete(interaction, guildId, topic.Topic, topic.IntegrationKey);
 };
 
 // Cancel: restore the original manage buttons.

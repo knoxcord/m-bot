@@ -6,6 +6,7 @@ import topics from "../../features/topic/topics.ts";
 import { TopicEditFieldId } from "../../features/topic/types.ts";
 import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
 import { buildTopicManageButtonRow } from "../../features/topic/builders.ts";
+import { readSubmittedIntegrationKey } from "../../features/topic/integrations/integrationField.ts";
 import { logTopicCreate } from "../../features/topic/logTopic.ts";
 
 const handleTopicAddModalSubmit = async (interaction: ModalSubmitInteraction) => {
@@ -23,7 +24,8 @@ const handleTopicAddModalSubmit = async (interaction: ModalSubmitInteraction) =>
         return;
     }
 
-    const topicId = topics.addTopic(guildId, topicText, interaction.user.id);
+    const integrationKey = readSubmittedIntegrationKey(interaction) ?? null;
+    const topicId = topics.addTopic(guildId, topicText, interaction.user.id, integrationKey);
 
     await interaction.reply({
         content: `Added topic:\n${topicText}`,
@@ -31,7 +33,7 @@ const handleTopicAddModalSubmit = async (interaction: ModalSubmitInteraction) =>
         flags: MessageFlags.Ephemeral,
     });
 
-    await logTopicCreate(interaction, guildId, topicText);
+    await logTopicCreate(interaction, guildId, topicText, integrationKey);
 };
 
 export const TopicAdd: IModal = {

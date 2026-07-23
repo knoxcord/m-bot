@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, LabelBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder, MessageFlags, ModalBuilder, SeparatorBuilder, TextDisplayBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import type { LocationImageRow, LocationRow } from "../../database/db.ts";
+import type { LocationImageRow, LocationRow } from "../../database/types.ts";
 import { LocationFieldId, LocationPanelAction, LocationPanelCustomIdKey } from "./types.ts";
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import { normalizeUrl } from "../../shared/urlHelpers.ts";

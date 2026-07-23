@@ -1,6 +1,6 @@
 import { afterEach, describe, it, mock } from "node:test";
 import { strict as assert } from "node:assert";
-import type { TopicWeightingRow } from "../../database/db.ts";
+import type { TopicWeightingRow } from "../../database/types.ts";
 import type { ResolvedWeightConfig} from "./topicWeights.ts";
 import { computeWeight, pickWeighted, TopicWeightDefaults } from "./topicWeights.ts";
 

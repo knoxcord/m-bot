@@ -9,8 +9,10 @@ import { sayConfigurationRegistrations } from "../say/config.ts";
 import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommands/russianRoulette.ts";
 import { channelOrderConfigurationRegistrations } from "../channelOrder/config.ts";
 import { topicConfigurationRegistrations } from "../topic/config.ts";
+import { sharedConfigurationRegistrations } from "./shared.ts";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
+    ...sharedConfigurationRegistrations,
     ...awardConfigurationRegistrations,
     ...spankConfigurationRegistrations,
     ...roleActivityConfigurationRegistrations,

@@ -1,11 +1,16 @@
 import db from "../../database/db.ts";
-import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/db.ts";
+import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/types.ts";
+import type { TopicIntegrationKey } from "./types.ts";
 import { pickWeighted } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
 
 class Topics {
-    addTopic(guildId: string, topic: string, addedByUserId: string) {
-        return db.addTopic(guildId, topic, addedByUserId);
+    addTopic(guildId: string, topic: string, addedByUserId: string, integrationKey: TopicIntegrationKey | null = null) {
+        return db.addTopic(guildId, topic, addedByUserId, integrationKey);
+    }
+
+    setTopicIntegration(guildId: string, id: number, integrationKey: TopicIntegrationKey | null) {
+        return db.setTopicIntegration(guildId, id, integrationKey);
     }
 
     getTopic(guildId: string, topicId: number) {

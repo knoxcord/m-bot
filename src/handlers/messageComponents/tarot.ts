@@ -45,7 +45,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
     })
 }
 
-export const Tarot: IMessageComponent = {
+export const TarotComponent: IMessageComponent = {
     customIdPrefix: MessageComponentCustomIdPrefix.Tarot,
     handler: handler
 }

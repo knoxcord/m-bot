@@ -3,7 +3,8 @@ import { bold, heading, inlineCode, italic, subtext } from "discord.js";
 import type { IPrefixCommand } from "./prefixCommandTypes.ts";
 import { CommandKey } from "./prefixCommandTypes.ts";
 import configuration from "../../features/configuration/configuration.ts";
-import { MutedRoleIdConfigurationKey, RoleIdsThatCanMuteConfigurationKey } from "../../features/spank/config.ts";
+import { MutedRoleIdConfigurationKey } from "../../features/spank/config.ts";
+import { ModeratorRoleIdsConfigurationKey } from "../../features/configuration/shared.ts";
 import type { ConfigurationRegistration } from "../../features/configuration/configurationTypes.ts";
 import db from "../../database/db.ts";
 import { scheduleTemporaryRole } from "../../features/temporaryRoles/temporaryRoles.ts";
@@ -53,11 +54,11 @@ const handler = async (message: OmitPartialGroupDMChannel<Message<boolean>>, com
         return;
     }
 
-    const roleIdsThatCanMute = configuration.getConfigurationValue(message.guildId, RoleIdsThatCanMuteConfigurationKey)?.split(',') ?? [];
-    if (roleIdsThatCanMute.length < 1) {
-        console.warn(`Found empty roleIdsThatCanMute config for guildId ${message.guildId}`);
+    const moderatorRoleIds = configuration.getConfigurationValue(message.guildId, ModeratorRoleIdsConfigurationKey)?.split(',') ?? [];
+    if (moderatorRoleIds.length < 1) {
+        console.warn(`Found empty moderatorRoleIds config for guildId ${message.guildId}`);
     }
-    const authorCanMute = authorUser.roles.cache.hasAny(...roleIdsThatCanMute);
+    const authorCanMute = authorUser.roles.cache.hasAny(...moderatorRoleIds);
 
     // Allow restriction to specific channel(s) for users without mute permission
     const allowedChannelIds = configuration.getConfigurationValue(message.guildId, RouletteAllowedChannelIdsConfigurationKey)?.split(',') ?? [];
