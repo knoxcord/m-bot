@@ -2,6 +2,7 @@ import {
     EmbedBuilder,
     LabelBuilder,
     ModalBuilder,
+    TextDisplayBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from "discord.js";
@@ -13,6 +14,8 @@ import {
 
 // Builders for the anonymous-submission topic integration. Concrete on purpose — nothing
 // here is meant to be reused by other integrations.
+
+const AnonymousSubmitNote = "Your submission is **anonymous**: your name is never shown publicly. Note, however, that the bot owner can trace who submitted it if it's reported for abuse.";
 
 export const buildAnonymousSubmitModal = () => {
     const textInput = new TextInputBuilder()
@@ -26,14 +29,15 @@ export const buildAnonymousSubmitModal = () => {
     return new ModalBuilder()
         .setCustomId(AnonSubmitModalKey)
         .setTitle("Anonymous Submission")
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(AnonymousSubmitNote))
         .addLabelComponents(textComponent);
 };
 
 export const buildAnonymousEmbed = (submission: SubmissionRow) =>
     new EmbedBuilder()
         // The submitter is deliberately not shown — anonymity is the whole point.
-        .setTitle("🕵️ Anonymous submission — pending review")
+        .setTitle("🕵️ Anonymous submission")
         .setDescription(submission.Content)
         .setColor(0xBBBB00)
-        .addFields({ name: "Would post to", value: `<#${submission.SourceChannelId}>`, inline: true })
+        .addFields({ name: "In reply to", value: `https://discord.com/channels/${submission.GuildId}/${submission.SourceChannelId}/${submission.SourceMessageId}`, inline: true })
         .setFooter({ text: `Submission #${submission.Id}` });

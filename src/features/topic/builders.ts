@@ -21,12 +21,13 @@ export const buildTopicVoteRow = (topicId: number, upvotes: number, downvotes: n
     );
 
 export const buildTopicMessage = (topic: TopicWithVotesRow) => {
-    const components = [buildTopicVoteRow(topic.Id, topic.Upvotes, topic.Downvotes)];
+    const components = [];
 
     // If the topic carries a known integration, append its button (e.g. "Submit anonymously").
     const integration = getTopicIntegration(topic.IntegrationKey);
     if (integration) components.push(buildTopicIntegrationRow(integration));
 
+    components.push(buildTopicVoteRow(topic.Id, topic.Upvotes, topic.Downvotes))
     return {
         content: topic.Topic,
         // Topic text is user-submitted, so never let it ping anyone (users, roles, @everyone/@here).

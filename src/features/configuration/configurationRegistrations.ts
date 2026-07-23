@@ -10,6 +10,7 @@ import { rouletteConfigurationRegistrations } from "../../handlers/prefixCommand
 import { channelOrderConfigurationRegistrations } from "../channelOrder/config.ts";
 import { topicConfigurationRegistrations } from "../topic/config.ts";
 import { sharedConfigurationRegistrations } from "./shared.ts";
+import { submissionReviewConfigurationRegistrations } from "../submissionReview/config.ts";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...sharedConfigurationRegistrations,
@@ -21,7 +22,8 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...sayConfigurationRegistrations,
     ...rouletteConfigurationRegistrations,
     ...channelOrderConfigurationRegistrations,
-    ...topicConfigurationRegistrations
+    ...topicConfigurationRegistrations,
+    ...submissionReviewConfigurationRegistrations
 ]
 
 export {

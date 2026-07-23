@@ -12,7 +12,6 @@ export const AutoTopicQuietHoursStartConfigurationKey = 'AUTO_TOPIC_QUIET_HOURS_
 export const AutoTopicQuietHoursEndConfigurationKey = 'AUTO_TOPIC_QUIET_HOURS_END_UTC';
 export const ChannelIdsWhereTopicsCanBeAddedConfigurationKey = 'CHANNEL_IDS_WHERE_TOPICS_CAN_BE_ADDED';
 export const TopicLogChannelIdConfigurationKey = 'TOPIC_LOG_CHANNEL_ID';
-export const SubmissionReviewChannelIdConfigurationKey = 'SUBMISSION_REVIEW_CHANNEL_ID';
 
 export const TopicWeightConfigurationKeys = {
     RecencyCooldownHours: 'TOPIC_WEIGHT_RECENCY_COOLDOWN_HOURS',
@@ -40,7 +39,6 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Topic Weight: Vote Ceiling', TopicWeightConfigurationKeys.VoteCeiling],
     ['Channel Ids Where Topics Can Be Added (Unset Means Anywhere)', ChannelIdsWhereTopicsCanBeAddedConfigurationKey],
     ['Topic Log Channel Id (Where Added Topics Are Logged)', TopicLogChannelIdConfigurationKey],
-    ['Submission Review Channel Id (Where Topic Integration Submissions Are Sent For Approval)', SubmissionReviewChannelIdConfigurationKey],
 ];
 
 export const topicFeatureFlagRegistrations = <FeatureFlagRegistration[]>[

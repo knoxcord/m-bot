@@ -1,8 +1,8 @@
-import type { TextChannel, ModalSubmitInteraction, EmbedBuilder, MessageCreateOptions, MessageComponentInteraction } from "discord.js";
-import { MessageFlags } from "discord.js";
+import type { TextChannel, ModalSubmitInteraction, MessageCreateOptions, MessageComponentInteraction } from "discord.js";
+import { EmbedBuilder, MessageFlags } from "discord.js";
 import db from "../../database/db.ts"
 import configuration from "../configuration/configuration.ts";
-import { SubmissionReviewChannelIdConfigurationKey } from "../topic/config.ts";
+import { SubmissionReviewChannelIdConfigurationKey } from "../submissionReview/config.ts";
 import type { SubmissionRow } from "../../database/types.ts";
 import { SubmissionStatus, SubmissionReviewAction, type SubmissionType } from "./types.ts";
 import { buildSubmitReviewButtonRow } from "./builders.ts";
@@ -85,12 +85,19 @@ export const reviewSubmission = async (
     if (dbResult.changes < 1)
         return;
 
-    // TODO: Update content text to friendly approval
-    // TODO: Clear/disable buttons
-    // TODO: Add info about who approved/denied
+    const accepted = newSubmissionStatus === SubmissionStatus.Accepted;
+
+    // Reuse the submission type's own card (whatever embed it built) and stamp the outcome onto it,
+    // so this stays generic across submission types.
+    const [existingEmbed] = interaction.message.embeds;
+    const reviewedEmbed = EmbedBuilder.from(existingEmbed)
+        .setColor(accepted ? 0x00AA00 : 0xAA0000)
+        .addFields({ name: accepted ? "Approved by" : "Rejected by", value: `<@${interaction.user.id}>` });
+
     await interaction.update({
-        content: newSubmissionStatus.toString(),
-        components: [buildSubmitReviewButtonRow(submissionId, true)]
+        content: accepted ? "✅ Approved" : "🛑 Rejected",
+        embeds: [reviewedEmbed],
+        components: [],
     });
 
     const updatedSubmission: SubmissionRow = { ...submission, Status: newSubmissionStatus };

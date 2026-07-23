@@ -45,6 +45,11 @@ class Topics {
     resetTopicLastShown(guildId: string, id: number) {
         return db.resetTopicLastShownAndReturn(guildId, id);
     }
+
+    /** Marks a specific topic shown (bumps count + last-shown) and returns it ready to post. */
+    markTopicShown(guildId: string, id: number) {
+        return db.markTopicShownAndReturn(guildId, id);
+    }
 };
 
 export default new Topics();
