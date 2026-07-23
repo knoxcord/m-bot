@@ -5,7 +5,7 @@ export const TopicIntegrationNoneSelectValue = "none";
 export const TopicIntegrationStartCustomIdKey = "topicintegration";
 
 export enum TopicIntegrationKey {
-    AnonymousPost = "anonymous",
+    AnonymousReply = "anonymous",
 }
 
 export interface TopicIntegrationDefinition {

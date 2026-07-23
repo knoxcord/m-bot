@@ -8,10 +8,10 @@ import { TopicIntegrationKey, TopicIntegrationStartCustomIdKey } from "./types.t
  *   topic advertise which integration it carries.
  */
 const integrations: Record<TopicIntegrationKey, TopicIntegrationDefinition> = {
-    [TopicIntegrationKey.AnonymousPost]: {
-        key: TopicIntegrationKey.AnonymousPost,
-        displayName: "Anonymous Post",
-        buttonLabel: "Submit anonymously",
+    [TopicIntegrationKey.AnonymousReply]: {
+        key: TopicIntegrationKey.AnonymousReply,
+        displayName: "Anonymous Reply",
+        buttonLabel: "Reply anonymously",
         buttonEmoji: "🕵️",
     },
 };

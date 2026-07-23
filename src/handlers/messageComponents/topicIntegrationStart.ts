@@ -9,7 +9,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
     const [, integrationKey] = interaction.customId.split(":");
 
     switch (integrationKey) {
-        case TopicIntegrationKey.AnonymousPost:
+        case TopicIntegrationKey.AnonymousReply:
             await interaction.showModal(buildAnonymousSubmitModal());
             return;
         default:
