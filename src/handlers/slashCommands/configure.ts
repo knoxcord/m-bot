@@ -38,7 +38,12 @@ export const getConfigurationCommandBuilder = () => {
                     option.setName('field')
                         .setDescription('The configuration field to retrieve')
                         .setRequired(true)
-                        .setAutocomplete(true)))
+                        .setAutocomplete(true))
+                .addBooleanOption(option => 
+                    option.setName('force')
+                        .setDescription('Skips validity check. Advanced use only')
+                        .setRequired(false))
+                )
         .addSubcommand(subcommand =>
             subcommand
                 .setName(ConfigurationSubcommandEnum.Set)
@@ -51,7 +56,12 @@ export const getConfigurationCommandBuilder = () => {
                 .addStringOption(option =>
                     option.setName('value')
                         .setDescription('The value to set')
-                        .setRequired(true)))
+                        .setRequired(true))
+                .addBooleanOption(option => 
+                    option.setName('force')
+                        .setDescription('Skips validity check. Advanced use only')
+                        .setRequired(false))
+                )
         .addSubcommand(subcommand =>
             subcommand
                 .setName(ConfigurationSubcommandEnum.Unset)
@@ -74,7 +84,11 @@ const isKnownField = async (interaction: ChatInputCommandInteraction, field: str
 
 const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const field = interaction.options.getString('field', true);
-    if (!(await isKnownField(interaction, field))) return;
+    const force = interaction.options.getBoolean('force', false);
+
+    if (!force && !(await isKnownField(interaction, field)))
+        return;
+
     const configVal = configuration.getConfigurationValue(interaction.guildId ?? "", field);
     if (!configVal)
         await interaction.reply(`Field ${inlineCode(field)} is not set`);
@@ -84,7 +98,11 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
 
 const handleSet = async (interaction: ChatInputCommandInteraction) => {
     const field = interaction.options.getString('field', true);
-    if (!(await isKnownField(interaction, field))) return;
+    const force = interaction.options.getBoolean('force', false);
+
+    if (!force && !(await isKnownField(interaction, field)))
+        return;
+
     const value = interaction.options.getString('value', true);
     configuration.setConfigurationValue(interaction.guildId ?? "", field, value, interaction.user.id)
     await interaction.reply(`Set field ${inlineCode(field)} to ${inlineCode(value)}`);
