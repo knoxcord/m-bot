@@ -125,7 +125,7 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
 
     const embed = buildTopicInfoEmbed(topic, guildId);
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 };
 
 const handleRemove = async (interaction: ChatInputCommandInteraction) => {
@@ -138,7 +138,7 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    topics.removeTopic(topic.GuildId, topic.Id);
+    topics.removeTopic(topic.GuildId, topic.Id, interaction.user.id);
 
     await interaction.reply({ content: "🗑️ Topic removed.", flags: MessageFlags.Ephemeral });
     await logTopicDelete(interaction, guildId, topic.Topic, topic.IntegrationKey);
@@ -177,7 +177,7 @@ const handleResetLastShown = async (interaction: ChatInputCommandInteraction) =>
 
     const embed = buildTopicInfoEmbed(updated, guildId);
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 };
 
 const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {

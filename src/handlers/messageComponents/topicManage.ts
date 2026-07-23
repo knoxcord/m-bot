@@ -34,7 +34,7 @@ const confirmDelete = async (interaction: MessageComponentInteraction, guildId: 
         return;
     }
 
-    topics.removeTopic(guildId, topicId);
+    topics.removeTopic(guildId, topicId, interaction.user.id);
 
     await interaction.update({
         content: `🗑️ Topic deleted:\n${topic.Topic}`,

@@ -171,6 +171,8 @@ class DatabaseManager {
         this.addColumnIfMissing('Topics', 'LastShownAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'ShownCount', 'INTEGER NOT NULL DEFAULT 0');
         this.addColumnIfMissing('Topics', 'IntegrationKey', 'TEXT');
+        this.addColumnIfMissing('Topics', 'DeletedAt', 'DATETIME');
+        this.addColumnIfMissing('Topics', 'DeletedByUserId', 'TEXT');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -458,7 +460,7 @@ class DatabaseManager {
         const searchTerm = `%${query}%`;
         const statement = this.db.prepare(`
             SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
-            FROM Topics WHERE GuildId = ? AND (Topic LIKE ?)
+            FROM Topics WHERE GuildId = ? AND DeletedAt IS NULL AND (Topic LIKE ?)
             ORDER BY CreatedAt DESC
             LIMIT 25
         `);
@@ -473,7 +475,7 @@ class DatabaseManager {
                 COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
             FROM Topics t
             LEFT JOIN TopicVotes v ON v.TopicId = t.Id
-            WHERE t.GuildId = ? AND t.Id = ?
+            WHERE t.GuildId = ? AND t.Id = ? AND t.DeletedAt IS NULL
             GROUP BY t.Id
         `);
         return statement.get(guildId, topicId) as TopicWithVotesRow | undefined;
@@ -482,7 +484,7 @@ class DatabaseManager {
     getRecentTopics(guildId: string) {
         const statement = this.db.prepare(`
             SELECT Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
-            FROM Topics WHERE GuildId = ?
+            FROM Topics WHERE GuildId = ? AND DeletedAt IS NULL
             ORDER BY CreatedAt DESC
             LIMIT 25;
         `);
@@ -497,7 +499,7 @@ class DatabaseManager {
                 COALESCE(SUM(CASE WHEN v.Vote = ${TopicVote.Down} THEN 1 ELSE 0 END), 0) AS Downvotes
             FROM Topics t
             LEFT JOIN TopicVotes v ON v.TopicId = t.Id
-            WHERE t.GuildId = ?
+            WHERE t.GuildId = ? AND t.DeletedAt IS NULL
             GROUP BY t.Id
         `);
         return statement.all(guildId) as TopicWeightingRow[];
@@ -543,7 +545,7 @@ class DatabaseManager {
         const statement = this.db.prepare(`
             UPDATE Topics
             SET LastShownAt = CURRENT_TIMESTAMP, ShownCount = ShownCount + 1
-            WHERE GuildId = ? AND Id = ?
+            WHERE GuildId = ? AND Id = ? AND DeletedAt IS NULL
             RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
         `);
         const txn = this.db.transaction(() => {
@@ -559,7 +561,7 @@ class DatabaseManager {
         const statement = this.db.prepare(`
             UPDATE Topics
             SET LastShownAt = NULL, ShownCount = MAX(ShownCount - 1, 0)
-            WHERE GuildId = ? AND Id = ?
+            WHERE GuildId = ? AND Id = ? AND DeletedAt IS NULL
             RETURNING Id, GuildId, Topic, AddedByUserId, CreatedAt, LastShownAt, ShownCount, IntegrationKey
         `);
         const txn = this.db.transaction(() => {
@@ -586,11 +588,14 @@ class DatabaseManager {
         return statement.run(integrationKey, guildId, topicId);
     }
 
-    removeTopic(guildId: string, topicId: number) {
+    /** Soft delete: marks the topic deleted (kept for traceability) rather than removing the row. */
+    removeTopic(guildId: string, topicId: number, deletedByUserId: string) {
         const statement = this.db.prepare(`
-            DELETE FROM Topics WHERE GuildId = ? AND Id = ?;
+            UPDATE Topics
+            SET DeletedAt = CURRENT_TIMESTAMP, DeletedByUserId = ?
+            WHERE GuildId = ? AND Id = ? AND DeletedAt IS NULL
         `);
-        statement.run(guildId, topicId);
+        return statement.run(deletedByUserId, guildId, topicId);
     }
 
     updateTopicText(guildId: string, topicId: number, topic: string) {

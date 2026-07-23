@@ -34,8 +34,8 @@ class Topics {
         return db.searchTopics(guildId, query);
     }
 
-    removeTopic(guildId: string, id: number) {
-        return db.removeTopic(guildId, id);
+    removeTopic(guildId: string, id: number, deletedByUserId: string) {
+        return db.removeTopic(guildId, id, deletedByUserId);
     }
 
     updateTopicText(guildId: string, id: number, topic: string) {
