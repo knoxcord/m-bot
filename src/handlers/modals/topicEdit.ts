@@ -75,7 +75,6 @@ const handleTopicEditModalSubmit = async (interaction: ModalSubmitInteraction) =
         await interaction.reply({ content: "✅ Topic updated.", flags: MessageFlags.Ephemeral });
     }
 
-    // The details go to the configured topic audit channel, not the interaction.
     await logTopicEdit(interaction, guildId, changes);
 };
 
