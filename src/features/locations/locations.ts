@@ -1,4 +1,4 @@
-import type { LocationRow, LocationImageRow } from "../../database/db.ts";
+import type { LocationRow, LocationImageRow } from "../../database/types.ts";
 import db from "../../database/db.ts";
 import { AutocompleteResultLimit } from "../../shared/autocompleteOptionFormatter.ts";
 

@@ -1,11 +1,16 @@
 import db from "../../database/db.ts";
-import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/db.ts";
+import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/types.ts";
+import type { TopicIntegrationKey } from "./integrations/types.ts";
 import { pickWeighted } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
 
 class Topics {
-    addTopic(guildId: string, topic: string, addedByUserId: string) {
-        return db.addTopic(guildId, topic, addedByUserId);
+    addTopic(guildId: string, topic: string, addedByUserId: string, integrationKey: TopicIntegrationKey | null = null) {
+        return db.addTopic(guildId, topic, addedByUserId, integrationKey);
+    }
+
+    setTopicIntegration(guildId: string, id: number, integrationKey: TopicIntegrationKey | null) {
+        return db.setTopicIntegration(guildId, id, integrationKey);
     }
 
     getTopic(guildId: string, topicId: number) {
@@ -29,8 +34,8 @@ class Topics {
         return db.searchTopics(guildId, query);
     }
 
-    removeTopic(guildId: string, id: number) {
-        return db.removeTopic(guildId, id);
+    removeTopic(guildId: string, id: number, deletedByUserId: string) {
+        return db.removeTopic(guildId, id, deletedByUserId);
     }
 
     updateTopicText(guildId: string, id: number, topic: string) {
@@ -39,6 +44,11 @@ class Topics {
 
     resetTopicLastShown(guildId: string, id: number) {
         return db.resetTopicLastShownAndReturn(guildId, id);
+    }
+
+    /** Marks a specific topic shown (bumps count + last-shown) and returns it ready to post. */
+    markTopicShown(guildId: string, id: number) {
+        return db.markTopicShownAndReturn(guildId, id);
     }
 };
 

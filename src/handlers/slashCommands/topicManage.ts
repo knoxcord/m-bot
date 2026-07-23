@@ -1,14 +1,18 @@
 import type { ApplicationCommandOptionChoiceData, AutocompleteInteraction, ChatInputCommandInteraction} from "discord.js";
-import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { ChannelType, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import topics from "../../features/topic/topics.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
-import { buildTopicEditModal, buildTopicInfoEmbed } from "../../features/topic/builders.ts";
+import { buildTopicAddModal, buildTopicEditModal, buildTopicInfoEmbed, buildTopicMessage } from "../../features/topic/builders.ts";
+import { logTopicDelete } from "../../features/topic/logTopic.ts";
+import { getMessageLink } from "../../shared/urlHelpers.ts";
 
 const Key = CommandKey.TopicManage;
 
 enum TopicManageSubcommand {
+    Add = "add",
+    Post = "post",
     Remove = "remove",
     Get = "get",
     Edit = "edit",
@@ -18,7 +22,31 @@ enum TopicManageSubcommand {
 const builder = new SlashCommandBuilder()
     .setName(Key)
     .setDescription("Manages Topics")
-    .addSubcommand(subcommand => 
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName(TopicManageSubcommand.Add)
+            .setDescription("Add a topic via a modal with advanced configuration options"))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName(TopicManageSubcommand.Post)
+            .setDescription("Post a specific topic now (defaults to this channel)")
+            .addIntegerOption(option =>
+                option.setName("topic")
+                    .setDescription("The topic to post (search by text)")
+                    .setRequired(true)
+                    .setAutocomplete(true))
+            .addChannelOption(option =>
+                option.setName("channel")
+                    .setDescription("Channel to post in (defaults to this channel)")
+                    .addChannelTypes(
+                        ChannelType.GuildText,
+                        ChannelType.GuildAnnouncement,
+                        ChannelType.PublicThread,
+                        ChannelType.PrivateThread,
+                        ChannelType.AnnouncementThread,
+                    )
+                    .setRequired(false)))
+    .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Get)
             .setDescription("Get information about a topic")
@@ -39,7 +67,7 @@ const builder = new SlashCommandBuilder()
     .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Edit)
-            .setDescription("Edit a topic's text via a modal")
+            .setDescription("Edit a topic's text via a modal with advanced configuration options")
             .addIntegerOption(option =>
                 option.setName("topic")
                     .setDescription("The topic to edit (search by text)")
@@ -56,6 +84,36 @@ const builder = new SlashCommandBuilder()
                     .setAutocomplete(true)))
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild);
 
+const handleAdd = async (interaction: ChatInputCommandInteraction) => {
+    await interaction.showModal(buildTopicAddModal(true));
+};
+
+const handlePost = async (interaction: ChatInputCommandInteraction) => {
+    const topicId = interaction.options.getInteger("topic", true);
+    const guildId = interaction.guildId ?? "";
+
+    // Defaults to the invoking channel; the channel option (if given) is fetched to a full channel.
+    const channelOption = interaction.options.getChannel("channel");
+    const channel = channelOption
+        ? await interaction.client.channels.fetch(channelOption.id).catch(() => null)
+        : interaction.channel;
+
+    if (!channel || !channel.isTextBased() || !('send' in channel)) {
+        await interaction.reply({ content: "This topic can't be posted in that channel.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    // Marks the topic shown (bumps count + last-shown, like the auto/random post paths).
+    const topic = topics.markTopicShown(guildId, topicId);
+    if (!topic) {
+        await interaction.reply({ content: `Topic not found.`, flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const postedMessage = await channel.send(buildTopicMessage(topic));
+    await interaction.reply({ content: `✅ Posted topic: ${getMessageLink(postedMessage.guildId ?? "", postedMessage.channelId, postedMessage.id)}`, flags: MessageFlags.Ephemeral });
+};
+
 const handleGet = async (interaction: ChatInputCommandInteraction) => {
     const topicId = interaction.options.getInteger("topic", true);
     const guildId = interaction.guildId ?? "";
@@ -68,7 +126,7 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
 
     const embed = buildTopicInfoEmbed(topic, guildId);
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 };
 
 const handleRemove = async (interaction: ChatInputCommandInteraction) => {
@@ -81,17 +139,10 @@ const handleRemove = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    topics.removeTopic(topic.GuildId, topic.Id);
+    topics.removeTopic(topic.GuildId, topic.Id, interaction.user.id);
 
-    const embed = new EmbedBuilder()
-        .setTitle("Removed Topic")
-        .setColor(0xFF0000)
-
-    embed.addFields({ name: "Topic text", value: topic.Topic });
-    embed.addFields({ name: "Added by", value: `<@${topic.AddedByUserId}>`, inline: true });
-    embed.addFields({ name: "Created date", value: `<t:${Math.floor(new Date(`${topic.CreatedAt}Z`).getTime() / 1000)}:f>`, inline: true });
-
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ content: "🗑️ Topic removed.", flags: MessageFlags.Ephemeral });
+    await logTopicDelete(interaction, guildId, topic.Topic, topic.IntegrationKey);
 };
 
 
@@ -105,7 +156,7 @@ const handleEdit = async (interaction: ChatInputCommandInteraction) => {
         return;
     }
 
-    await interaction.showModal(buildTopicEditModal(topic.Id, topic.Topic));
+    await interaction.showModal(buildTopicEditModal(topic, true));
 };
 
 const handleResetLastShown = async (interaction: ChatInputCommandInteraction) => {
@@ -127,13 +178,19 @@ const handleResetLastShown = async (interaction: ChatInputCommandInteraction) =>
 
     const embed = buildTopicInfoEmbed(updated, guildId);
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 };
 
 const topicManageHandler = async (interaction: ChatInputCommandInteraction) => {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
+        case TopicManageSubcommand.Add:
+            await handleAdd(interaction);
+            break;
+        case TopicManageSubcommand.Post:
+            await handlePost(interaction);
+            break;
         case TopicManageSubcommand.Get:
             await handleGet(interaction);
             break;

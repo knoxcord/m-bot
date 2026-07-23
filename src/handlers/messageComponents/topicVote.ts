@@ -1,7 +1,7 @@
 import type { MessageComponentInteraction } from "discord.js";
 import type { IMessageComponent } from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
-import { TopicVote } from "../../database/db.ts";
+import { TopicVote } from "../../database/types.ts";
 import topics from "../../features/topic/topics.ts";
 import { buildTopicVoteRow } from "../../features/topic/builders.ts";
 

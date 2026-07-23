@@ -1,4 +1,4 @@
-import type { TopicWeightingRow } from "../../database/db.ts";
+import type { TopicWeightingRow } from "../../database/types.ts";
 
 export const TopicWeightDefaults = {
     recencyCooldownHours: 0,

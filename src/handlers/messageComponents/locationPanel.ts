@@ -66,7 +66,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
     }
 };
 
-export const LocationPanel: IMessageComponent = {
+export const LocationPanelComponent: IMessageComponent = {
     customIdPrefix: MessageComponentCustomIdPrefix.LocationPanel,
     handler,
 };

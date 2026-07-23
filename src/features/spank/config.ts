@@ -3,14 +3,12 @@ import type { ConfigurationRegistration } from "../../features/configuration/con
 // Setup feature config
 export const MutedRoleIdConfigurationKey = 'MUTED_ROLE_ID';
 export const MutedDurationSecondsConfigurationKey = 'MUTED_DURATION_SECONDS';
-export const RoleIdsThatCanMuteConfigurationKey = 'ROLE_IDS_THAT_CAN_MUTE';
 export const GlobalMutableRoleId = 'GLOBAL_MUTABLE_ROLE_ID';
 export const GlobalMutableChannelId = 'GLOBAL_MUTABLE_CHANNEL_ID';
 
 export const spankConfigurationRegistrations = <ConfigurationRegistration[]>[
     ['Muted Role Id', MutedRoleIdConfigurationKey],
     ['Muted Duration Seconds', MutedDurationSecondsConfigurationKey],
-    ['Role Ids That Can Mute', RoleIdsThatCanMuteConfigurationKey],
     ['Globally Mutable Role Id - Anyone with this role can be slapped by anyone', GlobalMutableRoleId],
     ['Globally Mutable Channel Id - If set, globally mutable role id only works in this channel', GlobalMutableChannelId],
 ];

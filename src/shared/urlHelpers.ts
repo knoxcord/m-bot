@@ -17,3 +17,5 @@ export const normalizeUrl = (input: string): string | null => {
         return null;
     }
 };
+
+export const getMessageLink = (guildId: string, channelId: string, messageId: string) => `https://discord.com/channels/${guildId}/${channelId}/${messageId}`
