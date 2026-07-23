@@ -1,11 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import type { TopicIntegrationDefinition } from "../types.ts";
-import { TopicIntegrationKey, TopicIntegrationStartCustomIdKey } from "../types.ts";
+import type { TopicIntegrationDefinition} from "./types.ts";
+import { TopicIntegrationKey, TopicIntegrationStartCustomIdKey } from "./types.ts";
 
 /**
  * Registry of topic integrations — trigger metadata only (label + button).
- * Each integration's actual behaviour lives in its own code; this registry just lets a
- * topic advertise which integration it carries.
+ * Each integration's actual behavior lives in its own code; this registry just lets a
+ *   topic advertise which integration it carries.
  */
 const integrations: Record<TopicIntegrationKey, TopicIntegrationDefinition> = {
     [TopicIntegrationKey.AnonymousPost]: {

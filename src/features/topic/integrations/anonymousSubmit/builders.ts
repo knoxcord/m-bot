@@ -11,9 +11,7 @@ import {
     AnonSubmitFieldId,
     AnonSubmitModalKey,
 } from "./types.ts";
-
-// Builders for the anonymous-submission topic integration. Concrete on purpose — nothing
-// here is meant to be reused by other integrations.
+import { getMessageLink } from "../../../../shared/urlHelpers.ts";
 
 const AnonymousSubmitNote = "Your submission is **anonymous**: your name is never shown publicly. Note, however, that the bot owner can trace who submitted it if it's reported for abuse.";
 
@@ -39,5 +37,5 @@ export const buildAnonymousEmbed = (submission: SubmissionRow) =>
         .setTitle("🕵️ Anonymous submission")
         .setDescription(submission.Content)
         .setColor(0xBBBB00)
-        .addFields({ name: "In reply to", value: `https://discord.com/channels/${submission.GuildId}/${submission.SourceChannelId}/${submission.SourceMessageId}`, inline: true })
+        .addFields({ name: "In reply to", value: getMessageLink(submission.GuildId, submission.SourceChannelId, submission.SourceMessageId ?? ""), inline: true })
         .setFooter({ text: `Submission #${submission.Id}` });

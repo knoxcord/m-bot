@@ -80,7 +80,7 @@ export const reviewSubmission = async (
     }
 
     const newSubmissionStatus = submissionReviewActionStatusMap[action];
-    const dbResult = db.updateSubmissionStatus(submissionId, newSubmissionStatus, interaction.user.id);
+    const dbResult = db.updateSubmissionStatus(submissionId, newSubmissionStatus, interaction.user.id, submission.Status);
 
     if (dbResult.changes < 1)
         return;

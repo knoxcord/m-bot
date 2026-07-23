@@ -1,5 +1,5 @@
 import type { SubmissionStatus, SubmissionType } from "../features/submissionReview/types.ts";
-import type { TopicIntegrationKey } from "../features/topic/types.ts";
+import type { TopicIntegrationKey } from "../features/topic/integrations/types.ts";
 
 export interface LocationRow {
     Id: number;

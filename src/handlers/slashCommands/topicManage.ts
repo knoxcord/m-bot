@@ -6,6 +6,7 @@ import topics from "../../features/topic/topics.ts";
 import { formatAutocompleteName } from "../../shared/autocompleteOptionFormatter.ts";
 import { buildTopicAddModal, buildTopicEditModal, buildTopicInfoEmbed, buildTopicMessage } from "../../features/topic/builders.ts";
 import { logTopicDelete } from "../../features/topic/logTopic.ts";
+import { getMessageLink } from "../../shared/urlHelpers.ts";
 
 const Key = CommandKey.TopicManage;
 
@@ -66,7 +67,7 @@ const builder = new SlashCommandBuilder()
     .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Edit)
-            .setDescription("Edit a topic's text via a modal wth advanced configuration options")
+            .setDescription("Edit a topic's text via a modal with advanced configuration options")
             .addIntegerOption(option =>
                 option.setName("topic")
                     .setDescription("The topic to edit (search by text)")
@@ -110,7 +111,7 @@ const handlePost = async (interaction: ChatInputCommandInteraction) => {
     }
 
     const postedMessage = await channel.send(buildTopicMessage(topic));
-    await interaction.reply({ content: `✅ Posted topic: https://discord.com/channels/${postedMessage.guildId}/${postedMessage.channelId}/${postedMessage.id}`, flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: `✅ Posted topic: ${getMessageLink(postedMessage.guildId ?? "", postedMessage.channelId, postedMessage.id)}`, flags: MessageFlags.Ephemeral });
 };
 
 const handleGet = async (interaction: ChatInputCommandInteraction) => {

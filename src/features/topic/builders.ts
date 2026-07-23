@@ -1,12 +1,13 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextDisplayBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import type { TopicRow, TopicWithVotesRow } from "../../database/types.ts";
 import { TopicVote } from "../../database/types.ts";
-import type { TopicIntegrationKey } from "./types.ts";
-import { TopicIntegrationNoneSelectValue, TopicEditFieldId, TopicManageAction, TopicManageCustomIdKey, TopicVoteCustomIdKey } from "./types.ts";
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import { computeWeightBreakdown } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
 import { getTopicIntegration, listTopicIntegrationChoices, buildTopicIntegrationRow } from "./integrations/topicIntegrations.ts";
+import type { TopicIntegrationKey} from "./integrations/types.ts";
+import { TopicIntegrationNoneSelectValue } from "./integrations/types.ts";
+import { TopicVoteCustomIdKey, TopicManageCustomIdKey, TopicManageAction, TopicEditFieldId } from "./types.ts";
 
 export const buildTopicVoteRow = (topicId: number, upvotes: number, downvotes: number) =>
     new ActionRowBuilder<ButtonBuilder>().setComponents(

@@ -1,6 +1,7 @@
 import type { ModalSubmitInteraction } from "discord.js";
-import type { TopicIntegrationKey } from "../types.ts";
-import { TopicIntegrationNoneSelectValue, TopicEditFieldId } from "../types.ts";
+import type { TopicIntegrationKey } from "./types.ts";
+import { TopicIntegrationNoneSelectValue } from "./types.ts";
+import { TopicEditFieldId } from "../types.ts";
 
 /**
  * Reads the advanced integration select from a topic modal submission, validated against

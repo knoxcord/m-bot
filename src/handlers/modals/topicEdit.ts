@@ -3,7 +3,6 @@ import { MessageFlags } from "discord.js";
 import type { IModal } from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import topics from "../../features/topic/topics.ts";
-import type { TopicIntegrationKey } from "../../features/topic/types.ts";
 import { TopicEditFieldId } from "../../features/topic/types.ts";
 import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
 import { buildTopicManageButtonRow } from "../../features/topic/builders.ts";
@@ -11,6 +10,7 @@ import { readSubmittedIntegrationKey } from "../../features/topic/integrations/i
 import { getTopicIntegration } from "../../features/topic/integrations/topicIntegrations.ts";
 import type { TopicEditChanges } from "../../features/topic/logTopic.ts";
 import { logTopicEdit } from "../../features/topic/logTopic.ts";
+import type { TopicIntegrationKey } from "../../features/topic/integrations/types.ts";
 
 const handleTopicEditModalSubmit = async (interaction: ModalSubmitInteraction) => {
     const [, topicIdRaw] = interaction.customId.split(":");

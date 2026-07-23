@@ -2,7 +2,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from 'url';
-import type { TopicIntegrationKey } from "../features/topic/types.ts";
+import type { TopicIntegrationKey } from "../features/topic/integrations/types.ts";
 import type {
     LocationImageRow,
     LocationRow,
@@ -649,13 +649,18 @@ class DatabaseManager {
         return statement.run(reviewMessageId, id);
     }
 
-    updateSubmissionStatus(id: number, status: SubmissionStatus, reviewedByUserId: string) {
+    /**
+     * Transitions a submission's status, but only if it currently matches expectedStatus.
+     * The guard makes the pending→decided transition atomic, so concurrent reviews can't
+     * both succeed (changes === 0 means someone else already reviewed it).
+     */
+    updateSubmissionStatus(id: number, status: SubmissionStatus, reviewedByUserId: string, expectedStatus: SubmissionStatus) {
         const statement = this.db.prepare(`
             UPDATE Submissions
             SET Status = ?, ReviewedByUserId = ?, ReviewedAt = CURRENT_TIMESTAMP
-            WHERE Id = ?
+            WHERE Id = ? AND Status = ?
         `);
-        return statement.run(status, reviewedByUserId, id);
+        return statement.run(status, reviewedByUserId, id, expectedStatus);
     }
 
     saveTemporaryRoleAssignment(guildId: string, userId: string, roleId: string, expiresAt: number) {

@@ -10,7 +10,7 @@ export const handleAnonymousTopicReply = async (submission: SubmissionRow, revie
     if (submission.Status != SubmissionStatus.Accepted)
         return;
 
-    // It could be arguedthat the source message isnt really needed for this feature, but
+    // It could be argued that the source message isnt really needed for this feature, but
     //   requiring it helps protect against orphaned replies to a deleted topic.
     const sourceMessageId = submission.SourceMessageId;
     if (!sourceMessageId) {

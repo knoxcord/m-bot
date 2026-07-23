@@ -1,7 +1,7 @@
 import { EmbedBuilder, type ChatInputCommandInteraction, type MessageComponentInteraction, type ModalSubmitInteraction, type TextChannel } from "discord.js";
 import configuration from "../../features/configuration/configuration.ts";
 import { TopicLogChannelIdConfigurationKey } from "../../features/topic/config.ts";
-import type { TopicIntegrationKey } from "./types.ts";
+import type { TopicIntegrationKey } from "./integrations/types.ts";
 import { getTopicIntegration } from "./integrations/topicIntegrations.ts";
 
 type TopicLogInteraction = ModalSubmitInteraction | MessageComponentInteraction | ChatInputCommandInteraction;

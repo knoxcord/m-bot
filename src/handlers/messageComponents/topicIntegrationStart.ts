@@ -1,8 +1,8 @@
 import type { MessageComponentInteraction } from "discord.js";
 import type { IMessageComponent } from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
-import { TopicIntegrationKey } from "../../features/topic/types.ts";
 import { buildAnonymousSubmitModal } from "../../features/topic/integrations/anonymousSubmit/builders.ts";
+import { TopicIntegrationKey } from "../../features/topic/integrations/types.ts";
 
 // An integration button under a posted topic was pressed. Dispatch by key to that integration.
 const handler = async (interaction: MessageComponentInteraction) => {

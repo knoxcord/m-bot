@@ -16,7 +16,7 @@ export enum TopicEditFieldId {
 /** Value of the "None" option in the integration select; maps to a null IntegrationKey. */
 export const TopicIntegrationNoneSelectValue = "none";
 
-// --- Topic integrations: pluggable behaviour a topic can trigger when it's posted ---
+// --- Topic integrations: pluggable behavior a topic can trigger when it's posted ---
 
 // customId prefix for the button rendered under a topic (dispatched by integration key)
 export const TopicIntegrationStartCustomIdKey = "topicintegration";
@@ -41,6 +41,3 @@ export interface TopicIntegrationDefinition {
     buttonLabel: string;
     buttonEmoji?: string;
 }
-
-// --- Anonymous submission integration (concrete; not shared) ---
-

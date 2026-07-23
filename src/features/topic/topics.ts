@@ -1,6 +1,6 @@
 import db from "../../database/db.ts";
 import type { TopicRow, TopicVote, TopicWithVotesRow } from "../../database/types.ts";
-import type { TopicIntegrationKey } from "./types.ts";
+import type { TopicIntegrationKey } from "./integrations/types.ts";
 import { pickWeighted } from "./topicWeights.ts";
 import { resolveWeightOptions } from "./topicWeightConfig.ts";
 
