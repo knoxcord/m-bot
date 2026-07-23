@@ -24,13 +24,9 @@ export const handleAnonymousTopicReply = async (submission: SubmissionRow, revie
     
     const messageOptions: MessageCreateOptions = {
         content: submission.Content,
-        allowedMentions: { parse: [] }
+        allowedMentions: { parse: [] },
+        reply: { messageReference: sourceMessageId }
     }
-
-    // If the source message (topic post) was deleted but we attempt to reply to it, the
-    //   channel.send will fail. We dont want replies to a deleted topic.
-    if (sourceMessageId)
-        messageOptions.reply = { messageReference: sourceMessageId };
 
     try {
         await channel.send(messageOptions);
