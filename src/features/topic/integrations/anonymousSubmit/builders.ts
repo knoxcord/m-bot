@@ -38,14 +38,11 @@ export const buildAnonymousSubmitModal = (topicText: string, codename: string) =
     const textComponent = new LabelBuilder()
         .setLabel("Your message")
         .setTextInputComponent(textInput);
-    // Show the submitter the pseudonym they'll post under on this topic. Modals only ever render
-    // for the invoking user, so revealing their own codename here stays private.
-    const personaNote = new TextDisplayBuilder().setContent(`You'll appear as **${codename}**.`);
     return new ModalBuilder()
         .setCustomId(AnonSubmitModalKey)
         .setTitle("Anonymous Submission")
         .addTextDisplayComponents(buildTopicContext(topicText))
-        .addTextDisplayComponents(personaNote)
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`You'll appear as **${codename}**.`))
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(AnonymousSubmitNote))
         .addLabelComponents(textComponent);
 };
@@ -61,8 +58,6 @@ export const buildAnonymousSubmissionReviewEmbed = (submission: SubmissionRow) =
         .addFields({ name: "In reply to", value: getMessageLink(submission.GuildId, submission.SourceChannelId, submission.SourceMessageId ?? ""), inline: true })
 };
 
-// The public reply posted to the source topic. Unlike the reviewer embed, this omits the
-// "In reply to" field (it's already a native reply) and the internal submission number.
 export const buildAnonymousReplyEmbedFromSubmission = (submission: SubmissionRow) => {
     const identity = deriveAnonymousIdentity(submission);
     return buildAnonymousReplyEmbed(identity, submission.Content);
