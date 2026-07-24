@@ -6,6 +6,8 @@ import topics from "../../features/topic/topics.ts";
 import { TopicManageAction } from "../../features/topic/types.ts";
 import { buildTopicDeleteConfirmRow, buildTopicEditModal, buildTopicManageButtonRow } from "../../features/topic/builders.ts";
 import { logTopicDelete } from "../../features/topic/logTopic.ts";
+import featureFlags from "../../features/featureFlags/featureFlags.ts";
+import { NonModeratorTopicIntegrationAccessFeatureFlag } from "../../features/topic/config.ts";
 
 // Edit: open the edit modal prefilled with the current topic text.
 const edit = async (interaction: MessageComponentInteraction, guildId: string, topicId: number) => {
@@ -15,7 +17,8 @@ const edit = async (interaction: MessageComponentInteraction, guildId: string, t
         return;
     }
 
-    await interaction.showModal(buildTopicEditModal(topic));
+    const showIntegrations = featureFlags.getFeatureFlag(guildId, NonModeratorTopicIntegrationAccessFeatureFlag);
+    await interaction.showModal(buildTopicEditModal(topic, showIntegrations));
 };
 
 // Delete: replace the manage buttons with a confirmation prompt in place.

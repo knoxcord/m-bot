@@ -12,10 +12,24 @@ import {
     AnonSubmitModalKey,
 } from "./types.ts";
 import { getMessageLink } from "../../../../shared/urlHelpers.ts";
+import type { AnonymousIdentity } from "./anonymousIdentity.ts";
+import { deriveAnonymousIdentity } from "./anonymousIdentity.ts";
 
-const AnonymousSubmitNote = "Your submission is **anonymous**: your name is never shown publicly. Note, however, that the bot owner can trace who submitted it if it's reported for abuse.";
+const AnonymousSubmitNote = "Your submission is **anonymous**: your real name will not be shown anywhere. Note, however, that the bot owner can trace who submitted it if it's reported for abuse.";
 
-export const buildAnonymousSubmitModal = () => {
+// Keep the topic-text context block short so it doesn't push the input off-screen in the modal.
+const TopicContextMaxLength = 500;
+
+const buildTopicContext = (topicText: string) => {
+    const trimmed = topicText.length > TopicContextMaxLength
+        ? `${topicText.slice(0, TopicContextMaxLength)}…`
+        : topicText;
+    // Render as a blockquote so it reads as the topic being replied to, distinct from the note.
+    const quoted = trimmed.split("\n").map(line => `> ${line}`).join("\n");
+    return new TextDisplayBuilder().setContent(`**Replying to:**\n${quoted}`);
+};
+
+export const buildAnonymousSubmitModal = (topicText: string, codename: string) => {
     const textInput = new TextInputBuilder()
         .setCustomId(AnonSubmitFieldId.SubmissionText)
         .setStyle(TextInputStyle.Paragraph)
@@ -27,15 +41,32 @@ export const buildAnonymousSubmitModal = () => {
     return new ModalBuilder()
         .setCustomId(AnonSubmitModalKey)
         .setTitle("Anonymous Submission")
+        .addTextDisplayComponents(buildTopicContext(topicText))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`You'll appear as **${codename}**.`))
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(AnonymousSubmitNote))
         .addLabelComponents(textComponent);
 };
 
-export const buildAnonymousEmbed = (submission: SubmissionRow) =>
-    new EmbedBuilder()
-        // The submitter is deliberately not shown — anonymity is the whole point.
-        .setTitle("🕵️ Anonymous submission")
+export const buildAnonymousSubmissionReviewEmbed = (submission: SubmissionRow) => {
+    // The submitter is deliberately not shown — anonymity is the whole point. The codename (and
+    // its sprite) match the public reply, so mods can spot repeat anons within a topic.
+    const { codename, spriteUrl } = deriveAnonymousIdentity(submission);
+    return new EmbedBuilder()
+        .setAuthor({ name: codename, iconURL: spriteUrl })
         .setDescription(submission.Content)
         .setColor(0xBBBB00)
         .addFields({ name: "In reply to", value: getMessageLink(submission.GuildId, submission.SourceChannelId, submission.SourceMessageId ?? ""), inline: true })
-        .setFooter({ text: `Submission #${submission.Id}` });
+};
+
+export const buildAnonymousReplyEmbedFromSubmission = (submission: SubmissionRow) => {
+    const identity = deriveAnonymousIdentity(submission);
+    return buildAnonymousReplyEmbed(identity, submission.Content);
+};
+
+// Ephemeral preview shown to the submitter after they submit: their persona (codename + sprite +
+// color) alongside their message, so they can see how the reply will appear if it's approved.
+export const buildAnonymousReplyEmbed = (identity: AnonymousIdentity, content: string) =>
+    new EmbedBuilder()
+        .setAuthor({ name: identity.codename, iconURL: identity.spriteUrl })
+        .setDescription(content)
+        .setColor(identity.color);

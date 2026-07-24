@@ -1,13 +1,14 @@
 import type { MessageComponentInteraction, TextChannel, MessageCreateOptions } from "discord.js";
 import type { SubmissionRow } from "../../../../database/types.ts";
 import { SubmissionStatus } from "../../../submissionReview/types.ts";
+import { buildAnonymousReplyEmbedFromSubmission } from "./builders.ts";
 
 export const handleAnonymousTopicReply = async (submission: SubmissionRow, reviewInteraction: MessageComponentInteraction) => {
     const guild = reviewInteraction.guild;
     if (!guild)
         return
 
-    if (submission.Status != SubmissionStatus.Accepted)
+    if (submission.Status !== SubmissionStatus.Accepted)
         return;
 
     // It could be argued that the source message isnt really needed for this feature, but
@@ -23,7 +24,7 @@ export const handleAnonymousTopicReply = async (submission: SubmissionRow, revie
     if (!channel) return;
     
     const messageOptions: MessageCreateOptions = {
-        content: submission.Content,
+        embeds: [buildAnonymousReplyEmbedFromSubmission(submission)],
         allowedMentions: { parse: [] },
         reply: { messageReference: sourceMessageId }
     }
