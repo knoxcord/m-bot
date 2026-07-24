@@ -79,6 +79,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Provide config for tests
+        # config.json is gitignored and absent in CI; config.ts reads it at import
+        # time, so tests transitively importing config need a file present.
+        run: cp example.config.json config.json
+
       - name: Test
         # `yarn test` is `tsc && node --test` — the tsc compile also typechecks
         # the full project (incl. test files) before running the tests.

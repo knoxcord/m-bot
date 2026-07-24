@@ -54,7 +54,11 @@ const builder = new SlashCommandBuilder()
                 option.setName("topic")
                     .setDescription("The topic to get (search by text)")
                     .setRequired(true)
-                    .setAutocomplete(true)))
+                    .setAutocomplete(true))
+            .addBooleanOption(option =>
+                option.setName("public")
+                    .setDescription("Reply visibly to everyone in the channel (defaults to false)")
+                    .setRequired(false)))
     .addSubcommand(subcommand =>
         subcommand
             .setName(TopicManageSubcommand.Remove)
@@ -125,8 +129,9 @@ const handleGet = async (interaction: ChatInputCommandInteraction) => {
     }
 
     const embed = buildTopicInfoEmbed(topic, guildId);
+    const isPublic = interaction.options.getBoolean("public") ?? false;
 
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: isPublic ? undefined : MessageFlags.Ephemeral });
 };
 
 const handleRemove = async (interaction: ChatInputCommandInteraction) => {

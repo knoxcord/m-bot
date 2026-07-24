@@ -1,11 +1,9 @@
+import config from "../../../../config.ts";
 import type { SubmissionRow } from "../../../../database/types.ts";
 import { codenamePartsFromHash, formatCodename } from "./anonymousNames.ts";
 
-// Official Pokémon sprite for a National Dex number, from the PokéAPI sprite set. Used as the
-// embed author icon so a codename shows its Pokémon's face. Loads over https; if it ever fails
-// Discord just renders the codename without an icon.
-const spriteUrlForDex = (dex: number): string =>
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${dex}.png`;
+const spriteUrlForDex = (dex: number, isShiny: boolean = false): string =>
+    `${config.assetSrc}/sprites/pokemon/official-artwork/${isShiny ? 'shiny/' : ''}${dex}.png`;
 
 // Converts an HSL color to a packed 0xRRGGBB integer for Discord embed colors.
 const hslToInt = (h: number, s: number, l: number): number => {
@@ -41,7 +39,7 @@ export interface AnonymousIdentity {
     color: number;
     // Friendly pseudonym, e.g. "Brave Pikachu #0427".
     codename: string;
-    // Pokémon sprite for the codename's noun, shown as the embed author icon.
+    // Sprite for the identity, shown as the embed author icon.
     spriteUrl: string;
 }
 
@@ -56,7 +54,8 @@ export const deriveIdentity = (submittedByUserId: string, sourceMessageId: strin
         color: colorFromHash(hash),
         codename: formatCodename(parts),
         // nounIndex is 0-based; +1 maps it to the Gen 1 National Dex number.
-        spriteUrl: spriteUrlForDex(parts.nounIndex + 1),
+        // Use shiny sprite if user happened to get adjective "Shiny"
+        spriteUrl: spriteUrlForDex(parts.nounIndex + 1, parts.adjective === 'Shiny'),
     };
 };
 
