@@ -42,7 +42,7 @@ const handleTopicEditModalSubmit = async (interaction: ModalSubmitInteraction) =
 
     const textChanged = newText !== existing.Topic;
 
-    // The integration select is only present on the advanced modal. If undefined, don't change it
+    // The integration select is only present when integration access is enabled. If undefined, don't change it
     const submittedIntegration = readSubmittedIntegrationKey(interaction);
     const integrationChanged = submittedIntegration !== undefined && submittedIntegration !== existing.IntegrationKey;
 

@@ -3,7 +3,8 @@ import { MessageFlags } from "discord.js";
 import type { IModal } from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import { AnonSubmitFieldId } from "../../features/topic/integrations/anonymousSubmit/types.ts";
-import { buildAnonymousEmbed } from "../../features/topic/integrations/anonymousSubmit/builders.ts";
+import { buildAnonymousSubmissionReviewEmbed, buildAnonymousReplyEmbed } from "../../features/topic/integrations/anonymousSubmit/builders.ts";
+import { deriveIdentity } from "../../features/topic/integrations/anonymousSubmit/anonymousIdentity.ts";
 import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../../features/topic/emojiValidation.ts";
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
@@ -26,11 +27,15 @@ const handler = async (interaction: ModalSubmitInteraction) => {
     }
 
     const metadata = serializeTopicIntegrationSubmissionMetadata(TopicIntegrationType.AnonymousSubmit)
-    const createdReviewMessageId = await createSubmission(SubmissionType.TopicIntegration, content, metadata, interaction, buildAnonymousEmbed);
+    const createdReviewMessageId = await createSubmission(SubmissionType.TopicIntegration, content, metadata, interaction, buildAnonymousSubmissionReviewEmbed);
 
     if (createdReviewMessageId) {
+        // Seed matches what createSubmission stored (submitter + this topic message), so the
+        // previewed persona is exactly the one the posted reply will use.
+        const identity = deriveIdentity(interaction.user.id, interaction.message?.id ?? null);
         await interaction.reply({
-            content: "Thanks! Your submission has been sent to the mods for review.",
+            content: "Thanks! Your submission has been sent to the mods for review. If approved, it'll appear like this:",
+            embeds: [buildAnonymousReplyEmbed(identity, content)],
             flags: MessageFlags.Ephemeral,
         });
     }

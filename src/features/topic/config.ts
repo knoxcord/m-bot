@@ -3,6 +3,7 @@ import type { FeatureFlagRegistration } from "../featureFlags/featureFlagTypes.t
 
 export const TopicsFeatureFlag = 'TOPICS';
 export const AutoTopicFeatureFlag = 'AUTO_TOPIC';
+export const NonModeratorTopicIntegrationAccessFeatureFlag = 'NON_MODERATOR_TOPIC_INTEGRATION_ACCESS';
 
 export const RoleIdsThatCanAddTopicsConfigurationKey = 'ROLE_IDS_THAT_CAN_ADD_TOPICS';
 export const PreloadedTopicsUserIdConfigurationKey = 'PRELOADED_TOPICS_USER_ID';
@@ -44,4 +45,5 @@ export const topicConfigurationRegistrations = <ConfigurationRegistration[]>[
 export const topicFeatureFlagRegistrations = <FeatureFlagRegistration[]>[
     ['Topics', TopicsFeatureFlag],
     ['Auto Topic', AutoTopicFeatureFlag],
+    ['Non-Moderator Topic Integration Access (Show Integration Options In /addtopic)', NonModeratorTopicIntegrationAccessFeatureFlag],
 ];

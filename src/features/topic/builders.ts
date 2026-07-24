@@ -94,8 +94,6 @@ const TopicTextHelpText = "You can use [markdown formatting](https://support.dis
 
 const buildTopicTextHelp = () => new TextDisplayBuilder().setContent(TopicTextHelpText);
 
-// The integration select is an "advanced" (mod-only) field. It's added to the shared
-// add/edit modals only when isAdvanced is set, so /addtopic stays a plain text-only modal.
 const buildIntegrationLabelComponent = (integrationKey: TopicIntegrationKey | null) => {
     const integration = getTopicIntegration(integrationKey);
     const select = new StringSelectMenuBuilder()
@@ -116,7 +114,7 @@ const buildIntegrationLabelComponent = (integrationKey: TopicIntegrationKey | nu
         .setStringSelectMenuComponent(select);
 };
 
-export const buildTopicAddModal = (isAdvanced: boolean = false) => {
+export const buildTopicAddModal = (showIntegrations: boolean = false) => {
     const topicTextInput = new TextInputBuilder()
         .setCustomId(TopicEditFieldId.TopicText)
         .setStyle(TextInputStyle.Paragraph)
@@ -130,11 +128,11 @@ export const buildTopicAddModal = (isAdvanced: boolean = false) => {
         .setTitle("Add Topic")
         .addTextDisplayComponents(buildTopicTextHelp())
         .addLabelComponents(topicTextComponent);
-    if (isAdvanced) modal.addLabelComponents(buildIntegrationLabelComponent(null));
+    if (showIntegrations) modal.addLabelComponents(buildIntegrationLabelComponent(null));
     return modal;
 };
 
-export const buildTopicEditModal = (topic: TopicRow, isAdvanced: boolean = false) => {
+export const buildTopicEditModal = (topic: TopicRow, showIntegrations: boolean = false) => {
     const topicTextInput = new TextInputBuilder()
         .setCustomId(TopicEditFieldId.TopicText)
         .setStyle(TextInputStyle.Paragraph)
@@ -149,6 +147,6 @@ export const buildTopicEditModal = (topic: TopicRow, isAdvanced: boolean = false
         .setTitle("Edit Topic")
         .addTextDisplayComponents(buildTopicTextHelp())
         .addLabelComponents(topicTextComponent);
-    if (isAdvanced) modal.addLabelComponents(buildIntegrationLabelComponent(topic.IntegrationKey));
+    if (showIntegrations) modal.addLabelComponents(buildIntegrationLabelComponent(topic.IntegrationKey));
     return modal;
 };
