@@ -15,6 +15,7 @@ export interface Config {
     clientId: string;
     ownerId: string;
     assetSrc: string;
+    letterGeneratorUrl: string;
 }
 
 const config = JSON.parse(

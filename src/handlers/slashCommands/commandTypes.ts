@@ -14,6 +14,7 @@ export enum CommandKey {
     SetActivity = "setactivity",
     TopicManage = "topic-manage",
     AddTopic = "addtopic",
+    GetLetter = "get-letter",
 }
 
 export interface ISlashCommand
