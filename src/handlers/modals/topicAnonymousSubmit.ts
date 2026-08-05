@@ -27,9 +27,9 @@ const handler = async (interaction: ModalSubmitInteraction) => {
     }
 
     const metadata = serializeTopicIntegrationSubmissionMetadata(TopicIntegrationType.AnonymousSubmit)
-    const createdReviewMessageId = await createSubmission(SubmissionType.TopicIntegration, content, metadata, interaction, buildAnonymousSubmissionReviewEmbed);
+    const submissionId = await createSubmission(SubmissionType.TopicIntegration, content, metadata, interaction, buildAnonymousSubmissionReviewEmbed);
 
-    if (createdReviewMessageId) {
+    if (submissionId) {
         // Seed matches what createSubmission stored (submitter + this topic message), so the
         // previewed persona is exactly the one the posted reply will use.
         const identity = deriveIdentity(interaction.user.id, interaction.message?.id ?? null);

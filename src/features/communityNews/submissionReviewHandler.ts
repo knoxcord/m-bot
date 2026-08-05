@@ -1,0 +1,115 @@
+import type { MessageComponentInteraction } from "discord.js";
+import { AttachmentBuilder, ChannelType, MessageFlags } from "discord.js";
+import db from "../../database/db.ts";
+import type { NewsDraftRow, SubmissionRow } from "../../database/types.ts";
+import { SubmissionStatus } from "../submissionReview/types.ts";
+import configuration from "../configuration/configuration.ts";
+import { CommunityNewsChannelIdConfigurationKey } from "./config.ts";
+import type { CommunityNewsSubmissionMetadata } from "./types.ts";
+import { LetterImageName } from "./types.ts";
+
+export const serializeCommunityNewsSubmissionMetadata = (newsDraftId: number) => {
+    const metadata: CommunityNewsSubmissionMetadata = {
+        NewsDraftId: newsDraftId
+    };
+
+    return JSON.stringify(metadata);
+}
+
+const deserializeCommunityNewsSubmissionMetadata = (metadata: string | null) => {
+    if (metadata == null) {
+        console.error(`Failed to parse community news submission metadata: ${metadata}`);
+        return null;
+    }
+
+    let parsed: CommunityNewsSubmissionMetadata;
+    try {
+        parsed = JSON.parse(metadata);
+    }
+    catch (e) {
+        console.error(`Failed to parse community news submission metadata: ${metadata} with error: ${e}`);
+        return null;
+    }
+    return parsed;
+}
+
+/**
+ * Resolves the channel approved letters get posted to, or null when it isn't configured, isn't
+ * visible, or is a kind of channel letters can't be posted to.
+ */
+export const getCommunityNewsChannel = (interaction: MessageComponentInteraction) => {
+    if (!interaction.guildId)
+        return null;
+
+    const channelId = configuration.getConfigurationValue(interaction.guildId, CommunityNewsChannelIdConfigurationKey);
+    if (!channelId)
+        return null;
+
+    const channel = interaction.guild?.channels.cache.get(channelId);
+    if (!channel)
+        return null;
+
+    // Forum channels take a different posting call than text channels, so both kinds resolve here
+    //   and are differentiated in postLetter.
+    if (channel.type === ChannelType.GuildForum)
+        return channel;
+
+    return channel.isTextBased() && channel.isSendable() ? channel : null;
+}
+
+export type CommunityNewsChannel = NonNullable<ReturnType<typeof getCommunityNewsChannel>>;
+
+/** Discord caps thread names at 100 characters. */
+const ForumPostNameMaxLength = 100;
+
+/** Posts a letter, creating a forum post or sending a message depending on the channel type. */
+const postLetter = async (channel: CommunityNewsChannel, draft: NewsDraftRow) => {
+    const file = new AttachmentBuilder(draft.Image, { name: LetterImageName });
+
+    if (channel.type === ChannelType.GuildForum) {
+        // Forum channels have no send(): every post is a thread, and the letter rides along as
+        //   the starter message.
+        await channel.threads.create({
+            name: draft.Title.slice(0, ForumPostNameMaxLength),
+            message: { files: [file] },
+        });
+        return;
+    }
+
+    await channel.send({ files: [file] });
+}
+
+export const communityNewsSubmissionReviewHandler = async (submission: SubmissionRow, reviewInteraction: MessageComponentInteraction) => {
+    if (submission.Status !== SubmissionStatus.Accepted)
+        return;
+
+    const metadata = deserializeCommunityNewsSubmissionMetadata(submission.Metadata);
+    if (!metadata)
+        return;
+
+    // The stored image is the one the author approved, so a background reroll between submission
+    //   and review can never change what actually gets posted.
+    const draft = db.getNewsDraft(metadata.NewsDraftId);
+    if (!draft) {
+        console.warn(`No news draft ${metadata.NewsDraftId} found for submission ${submission.Id}`);
+        await reviewInteraction.followUp({ content: "I couldn't find the draft for that submission, so nothing was posted.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    const channel = getCommunityNewsChannel(reviewInteraction);
+    if (!channel) {
+        await reviewInteraction.followUp({
+            content: "The community news channel isn't configured, so the approved letter wasn't posted.",
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    try {
+        await postLetter(channel, draft);
+    }
+    catch (e) {
+        console.error(`Encountered error when attempting to post community news draft ${draft.Id}: ${e}`);
+        await reviewInteraction.followUp({ content: "Something went wrong posting the letter.", flags: MessageFlags.Ephemeral });
+    }
+}

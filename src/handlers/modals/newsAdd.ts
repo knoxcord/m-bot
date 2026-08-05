@@ -2,13 +2,15 @@ import type { ModalSubmitInteraction} from "discord.js";
 import { AttachmentBuilder, MessageFlags } from "discord.js";
 import type { IModal} from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
-import { NewsAddFieldId } from "../../features/communityNews/types.ts";
+import { LetterImageName, NewsAddFieldId } from "../../features/communityNews/types.ts";
 import { generateLetter } from "../../features/communityNews/letterGenerator/api.ts";
 import { buildNewsManageButtonRow } from "../../features/communityNews/builders.ts";
-
-const IMAGE_NAME = "letter.webp";
+import db from "../../database/db.ts";
 
 const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => {
+    if (!interaction.guildId)
+        return;
+
     const titleText = interaction.fields.getTextInputValue(NewsAddFieldId.Title).trim();
     const bodyText = interaction.fields.getTextInputValue(NewsAddFieldId.Body).trim();
 
@@ -27,7 +29,7 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
     const response = await generateLetter({
         Title: titleText,
         Body: bodyText,
-        Author: interaction.user.displayName
+        Valediction: interaction.user.displayName
     })
 
     if (!response) {
@@ -35,14 +37,21 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
         return;
     }
 
-    const file = new AttachmentBuilder(Buffer.from(await response.arrayBuffer()), { name: IMAGE_NAME });
+    const image = Buffer.from(await response.arrayBuffer());
+    const file = new AttachmentBuilder(image, { name: LetterImageName });
 
-    // Save to db newsdraft table, return draftId
-    const draftId = 0;
+    const draftId = db.createNewsDraft({
+        guildId: interaction.guildId,
+        authorUserId: interaction.user.id,
+        valediction: interaction.user.displayName,
+        title: titleText,
+        body: bodyText,
+        image: image,
+    });
 
     await interaction.editReply({
         files: [file],
-        components: [buildNewsManageButtonRow(0)]
+        components: [buildNewsManageButtonRow(draftId)]
     });
 };
 

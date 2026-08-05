@@ -49,6 +49,22 @@ export interface SubmissionRow {
     ReviewedAt: string | null;
 }
 
+export interface NewsDraftRow {
+    Id: number;
+    GuildId: string;
+    AuthorUserId: string;
+    Valediction: string;
+    Title: string;
+    Body: string;
+    /** The generated letter image. Kept here so the approved post uses the exact image the author saw. */
+    Image: Buffer;
+    /** Set when the draft is claimed for review; guards against a draft being submitted twice. */
+    SubmittedAt: string | null;
+    SubmissionId: number | null;
+    CreatedAt: string;
+    UpdatedAt: string;
+}
+
 export interface TopicWithVotesRow extends TopicRow {
     Upvotes: number;
     Downvotes: number;

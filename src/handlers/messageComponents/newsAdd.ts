@@ -1,45 +1,109 @@
 import type { MessageComponentInteraction } from "discord.js";
-import { AttachmentBuilder } from "discord.js";
-import { NewsAddButtonIds } from "../../features/communityNews/types.ts";
+import { AttachmentBuilder, MessageFlags } from "discord.js";
+import { LetterImageName, NewsAddButtonIds } from "../../features/communityNews/types.ts";
 import { generateLetter } from "../../features/communityNews/letterGenerator/api.ts";
-import { buildNewsManageButtonRow } from "../../features/communityNews/builders.ts";
+import { buildNewsManageButtonRow, buildNewsSubmissionReviewEmbed } from "../../features/communityNews/builders.ts";
+import {
+    getCommunityNewsChannel,
+    serializeCommunityNewsSubmissionMetadata,
+} from "../../features/communityNews/submissionReviewHandler.ts";
+import { createSubmission } from "../../features/submissionReview/submission.ts";
+import { SubmissionType } from "../../features/submissionReview/types.ts";
+import db from "../../database/db.ts";
 import type { IMessageComponent} from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
 
-const IMAGE_NAME = "letter.webp";
+const loadEditableDraft = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
+    const draft = db.getNewsDraft(draftId);
+
+    if (!draft || draft.GuildId !== guildId || draft.AuthorUserId !== interaction.user.id) {
+        await interaction.reply({ content: "I couldn't find that news draft.", flags: MessageFlags.Ephemeral });
+        return null;
+    }
+
+    if (draft.SubmittedAt) {
+        await interaction.reply({ content: "That draft has already been sent to the mods for review.", flags: MessageFlags.Ephemeral });
+        return null;
+    }
+
+    return draft;
+}
 
 const changeBackground = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
-    interaction.deferReply();
-    
-    // TODO: Load title and body from the backend
-    const title = "title";
-    const body = "body";
+    const draft = await loadEditableDraft(interaction, guildId, draftId);
+    if (!draft) return;
+
+    // Wait to defer update until after loading draft from the db in case load fails and replies first
+    await interaction.deferUpdate();
 
     const response = await generateLetter({
-        Title: title,
-        Body: body,
-        Author: interaction.user.displayName
+        Title: draft.Title,
+        Body: draft.Body,
+        Valediction: draft.Valediction
     })
 
     if (!response) {
-        await interaction.editReply("Sorry, I couldn't generate that letter.");
+        await interaction.followUp({ content: "Sorry, I couldn't generate that letter.", flags: MessageFlags.Ephemeral });
         return;
     }
 
-    const file = new AttachmentBuilder(Buffer.from(await response.arrayBuffer()), { name: IMAGE_NAME });
-
-    // TODO: update db newsdraft table with new image
+    const image = Buffer.from(await response.arrayBuffer());
+    db.updateNewsDraftImage(draftId, image);
 
     await interaction.editReply({
-        files: [file],
+        // The replacement reuses the same file name, so the old attachment has to be dropped explicitly.
+        attachments: [],
+        files: [new AttachmentBuilder(image, { name: LetterImageName })],
         components: [buildNewsManageButtonRow(draftId)]
     });
 }
 
 const post = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
-    // TODO: load draft data (title, body)
+    const draft = await loadEditableDraft(interaction, guildId, draftId);
+    if (!draft) return;
 
-    // TODO: Create submission
+    // Checked up front so the author finds out now rather than after a mod approves something
+    //   and the bot then can't post anywhere.
+    if (!getCommunityNewsChannel(interaction)) {
+        await interaction.reply({
+            content: "Community news isn't set up on this server yet — ask an admin to configure the news channel.",
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    // Claim before the awaits below so a double-click can't produce two submissions.
+    if (db.claimNewsDraftForSubmission(draftId).changes < 1) {
+        await interaction.reply({ content: "That draft has already been sent to the mods for review.", flags: MessageFlags.Ephemeral });
+        return;
+    }
+
+    // Wait to defer update until after db operations in case something fails and replies first
+    await interaction.deferUpdate();
+
+    const submissionId = await createSubmission(
+        SubmissionType.CommunityNews,
+        draft.Body,
+        serializeCommunityNewsSubmissionMetadata(draftId),
+        interaction,
+        () => buildNewsSubmissionReviewEmbed(draft),
+        [new AttachmentBuilder(draft.Image, { name: LetterImageName })],
+    );
+
+    if (!submissionId) {
+        // createSubmission already told the author what went wrong; let them try again.
+        db.releaseNewsDraftClaim(draftId);
+        return;
+    }
+
+    db.setNewsDraftSubmissionId(draftId, submissionId);
+
+    // Drop the buttons so the sent draft can't be rerolled or resubmitted, but keep the letter visible.
+    await interaction.editReply({ components: [] });
+    await interaction.followUp({
+        content: "Thanks! Your news has been sent to the mods for review.",
+        flags: MessageFlags.Ephemeral,
+    });
 }
 
 const handler = async (interaction: MessageComponentInteraction) => {
@@ -62,7 +126,7 @@ const handler = async (interaction: MessageComponentInteraction) => {
     }
 };
 
-export const TopicManageComponent: IMessageComponent = {
+export const NewsAddComponent: IMessageComponent = {
     customIdPrefix: MessageComponentCustomIdPrefix.NewsAdd,
     handler: handler,
 };

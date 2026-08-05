@@ -13,4 +13,5 @@ export enum SubmissionStatus {
 
 export enum SubmissionType {
     TopicIntegration = "topic-integration",
+    CommunityNews = "community-news",
 }

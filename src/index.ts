@@ -9,6 +9,7 @@ import { handleRoleActivityMessage, scheduleRoleActivityHourlyJob } from './feat
 import { handleChannelOrderUpdate } from './features/channelOrder/channelOrder.ts';
 import { handleAutoTopicMessage, initializeAutoTopicTimers } from './features/topic/autoTopic.ts';
 import { restoreTemporaryRoles } from './features/temporaryRoles/temporaryRoles.ts';
+import { scheduleNewsDraftCleanup } from './features/communityNews/newsDraftCleanup.ts';
 
 const CommandPrefix = "-";
 
@@ -24,6 +25,7 @@ client.once(Events.ClientReady, (readyClient) => {
 	scheduleRoleActivityHourlyJob(readyClient);
 	initializeAutoTopicTimers(readyClient);
 	restoreTemporaryRoles(readyClient).catch(error => console.error('Error restoring temporary roles:', error));
+	scheduleNewsDraftCleanup();
 });
 
 const slashCommandLookup = Object.fromEntries(

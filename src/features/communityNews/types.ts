@@ -9,3 +9,9 @@ export enum NewsAddButtonIds {
     ChangeBackground = 'newbg',
     Post = 'post'
 };
+
+export const LetterImageName = "letter.webp";
+
+export interface CommunityNewsSubmissionMetadata {
+    NewsDraftId: number;
+}
