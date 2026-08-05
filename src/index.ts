@@ -27,10 +27,10 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 const slashCommandLookup = Object.fromEntries(
-	slashCommands.map(command => [command.key, command.handler]),
+	slashCommands.filter(command => !!command).map(command => [command.key, command.handler]),
 );
 const autocompleteHandlerLookup = Object.fromEntries(
-	slashCommands.filter(command => command.autocompleteHandler).map(command => [command.key, command.autocompleteHandler!]),
+	slashCommands.filter(command => !!command && command.autocompleteHandler).map(command => [command!.key, command!.autocompleteHandler!]),
 );
 const handleChatInputCommand = (interaction: ChatInputCommandInteraction<CacheType>) => {
 	const commandHandler = slashCommandLookup[interaction.commandName];

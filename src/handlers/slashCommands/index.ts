@@ -10,6 +10,7 @@ import { SetActivity } from "./setActivity.ts";
 import { Tarot } from "./tarot.ts";
 import { Version } from "./version.ts";
 import { GetLetter } from "./getLetter.ts";
+import { AddNews } from "./addNews.ts";
 
 const slashCommands = [
     Ping,
@@ -23,7 +24,8 @@ const slashCommands = [
     SetActivity,
     TopicManage,
     AddTopic,
-    GetLetter
+    GetLetter,
+    AddNews,
 ] as const;
 
 export {

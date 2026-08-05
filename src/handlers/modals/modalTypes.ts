@@ -7,6 +7,7 @@ export enum ModalCustomIdPrefix {
     TopicAdd = "topic-add",
     LocationEdit = "location-edit",
     AnonymousSubmit = AnonSubmitModalKey,
+    NewsAdd = "newsAdd",
 }
 
 export interface IModal{

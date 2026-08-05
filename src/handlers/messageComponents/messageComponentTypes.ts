@@ -4,6 +4,7 @@ import { TopicVoteCustomIdKey, TopicManageCustomIdKey } from "../../features/top
 import { LocationPanelCustomIdKey } from "../../features/locations/types.ts";
 import { SubmissionReviewCustomIdKey } from "../../features/submissionReview/types.ts";
 import { TopicIntegrationStartCustomIdKey } from "../../features/topic/integrations/types.ts";
+import { NewsMessageCustomIdKey } from "../../features/communityNews/types.ts";
 
 export enum MessageComponentCustomIdPrefix {
     Tarot = TarotCustomIdKey,
@@ -12,6 +13,7 @@ export enum MessageComponentCustomIdPrefix {
     LocationPanel = LocationPanelCustomIdKey,
     TopicIntegrationStart = TopicIntegrationStartCustomIdKey,
     SubmissionReview = SubmissionReviewCustomIdKey,
+    NewsAdd = NewsMessageCustomIdKey
 }
 
 export interface IMessageComponent {
