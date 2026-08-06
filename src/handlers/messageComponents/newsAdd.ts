@@ -5,7 +5,7 @@ import { generateLetter } from "../../features/communityNews/letterGenerator/api
 import { buildNewsManageButtonRow, buildNewsSubmissionReviewEmbed } from "../../features/communityNews/builders.ts";
 import {
     getCommunityNewsChannel,
-    serializeCommunityNewsSubmissionMetadata,
+    serializeCommunityNewsSubmissionPayload,
 } from "../../features/communityNews/submissionReviewHandler.ts";
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
@@ -83,8 +83,7 @@ const post = async (interaction: MessageComponentInteraction, guildId: string, d
 
     const submissionId = await createSubmission(
         SubmissionType.CommunityNews,
-        draft.Body,
-        serializeCommunityNewsSubmissionMetadata(draftId),
+        serializeCommunityNewsSubmissionPayload(draftId),
         interaction,
         () => buildNewsSubmissionReviewEmbed(draft),
         [new AttachmentBuilder(draft.Image, { name: LetterImageName })],

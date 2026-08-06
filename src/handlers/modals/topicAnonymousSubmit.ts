@@ -9,7 +9,7 @@ import { buildInaccessibleEmojiMessage, findInaccessibleCustomEmoji } from "../.
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
 import { TopicIntegrationType } from "../../features/topic/integrations/types.ts";
-import { serializeTopicIntegrationSubmissionMetadata } from "../../features/topic/integrations/submissionReviewHandler.ts";
+import { serializeTopicIntegrationSubmissionPayload } from "../../features/topic/integrations/submissionReviewHandler.ts";
 
 // Handles the anonymous submission modal. The submitter is recorded but never surfaced.
 const handler = async (interaction: ModalSubmitInteraction) => {
@@ -26,8 +26,16 @@ const handler = async (interaction: ModalSubmitInteraction) => {
         return;
     }
 
-    const metadata = serializeTopicIntegrationSubmissionMetadata(TopicIntegrationType.AnonymousSubmit)
-    const submissionId = await createSubmission(SubmissionType.TopicIntegration, content, metadata, interaction, buildAnonymousSubmissionReviewEmbed);
+    const payload = serializeTopicIntegrationSubmissionPayload({
+        TopicIntegrationType: TopicIntegrationType.AnonymousSubmit,
+        Content: content,
+    });
+    const submissionId = await createSubmission(
+        SubmissionType.TopicIntegration,
+        payload,
+        interaction,
+        submission => buildAnonymousSubmissionReviewEmbed(submission, content),
+    );
 
     if (submissionId) {
         // Seed matches what createSubmission stored (submitter + this topic message), so the

@@ -156,12 +156,11 @@ class DatabaseManager {
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 GuildId TEXT NOT NULL,
                 SubmittedByUserId TEXT NOT NULL,
-                Content TEXT NOT NULL,
                 SourceChannelId TEXT NOT NULL,
                 SourceMessageId TEXT,
                 Type TEXT NOT NULL,
                 Status TEXT NOT NULL,
-                Metadata TEXT,
+                Payload TEXT NOT NULL,
                 ReviewMessageId TEXT,
                 ReviewedByUserId TEXT,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -626,13 +625,12 @@ class DatabaseManager {
         sourceMessageId: string | null;
         submittedByUserId: string;
         type: SubmissionType;
-        content: string;
-        metadata: string;
+        payload: string;
     }) {
         const statement = this.db.prepare(`
             INSERT INTO Submissions
-                (GuildId, SourceChannelId, SourceMessageId, SubmittedByUserId, Type, Status, Content, Metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (GuildId, SourceChannelId, SourceMessageId, SubmittedByUserId, Type, Status, Payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
         const result = statement.run(
             submission.guildId,
@@ -641,8 +639,7 @@ class DatabaseManager {
             submission.submittedByUserId,
             submission.type,
             SubmissionStatus.Pending,
-            submission.content,
-            submission.metadata,
+            submission.payload,
         );
         return Number(result.lastInsertRowid);
     }
@@ -650,8 +647,8 @@ class DatabaseManager {
     getSubmission(id: number) {
         const statement = this.db.prepare(`
             SELECT
-                Id, GuildId, SubmittedByUserId, Content, SourceChannelId, SourceMessageId,
-                Type, Status, Metadata, ReviewMessageId, ReviewedByUserId, CreatedAt, ReviewedAt
+                Id, GuildId, SubmittedByUserId, SourceChannelId, SourceMessageId,
+                Type, Status, Payload, ReviewMessageId, ReviewedByUserId, CreatedAt, ReviewedAt
             FROM Submissions WHERE Id = ?
         `);
         return statement.get(id) as SubmissionRow | undefined;

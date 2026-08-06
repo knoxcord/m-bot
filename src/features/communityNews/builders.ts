@@ -1,7 +1,8 @@
-import { TextInputBuilder, TextInputStyle, LabelBuilder, ModalBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { TextInputBuilder, TextInputStyle, LabelBuilder, ModalBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import type { NewsDraftRow } from "../../database/types.ts";
 import { LetterImageName, NewsAddButtonIds, NewsAddFieldId, NewsMessageCustomIdKey } from "./types.ts";
+import { ValedictionSelectValue, Valedictions } from "./valedictions.ts";
 
 export const buildNewsAddModal = () => {
     const titleTextInput = new TextInputBuilder()
@@ -11,6 +12,7 @@ export const buildNewsAddModal = () => {
         .setMaxLength(35);
     const titleTextComponent = new LabelBuilder()
         .setLabel("Title")
+        .setDescription("Pick a short, descriptive, title")
         .setTextInputComponent(titleTextInput);
 
     const bodyTextInput = new TextInputBuilder()
@@ -20,13 +22,40 @@ export const buildNewsAddModal = () => {
         .setMaxLength(300);
     const bodyTextComponent = new LabelBuilder()
         .setLabel("Body")
+        .setDescription("Add a brief message sharing community news")
         .setTextInputComponent(bodyTextInput);
+
+    // The two sentinel entries lead so they're visible without scrolling the list of sign-offs.
+    const valedictionOptions = [
+        new StringSelectMenuOptionBuilder()
+            .setLabel("Random")
+            .setDescription("Picks one of the sign-offs at random")
+            .setValue(ValedictionSelectValue.Random)
+            .setDefault(true),
+        new StringSelectMenuOptionBuilder()
+            .setLabel("Just my name")
+            .setDescription("Closes with your name and nothing else")
+            .setValue(ValedictionSelectValue.None),
+        ...Valedictions.map(valediction =>
+            new StringSelectMenuOptionBuilder()
+                .setLabel(valediction)
+                .setValue(valediction)),
+    ];
+    const valedictionSelect = new StringSelectMenuBuilder()
+        .setCustomId(NewsAddFieldId.Valediction)
+        .setRequired(false)
+        .setOptions(valedictionOptions);
+    const valedictionComponent = new LabelBuilder()
+        .setLabel("Sign-off")
+        .setDescription("Choose how the post closes")
+        .setStringSelectMenuComponent(valedictionSelect);
 
     const modal = new ModalBuilder()
         .setCustomId(ModalCustomIdPrefix.NewsAdd)
         .setTitle("Add Community News")
         .addLabelComponents(titleTextComponent)
-        .addLabelComponents(bodyTextComponent);
+        .addLabelComponents(bodyTextComponent)
+        .addLabelComponents(valedictionComponent);
     return modal;
 };
 

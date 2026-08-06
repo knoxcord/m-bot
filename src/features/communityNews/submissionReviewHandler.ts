@@ -5,29 +5,24 @@ import type { NewsDraftRow, SubmissionRow } from "../../database/types.ts";
 import { SubmissionStatus } from "../submissionReview/types.ts";
 import configuration from "../configuration/configuration.ts";
 import { CommunityNewsChannelIdConfigurationKey } from "./config.ts";
-import type { CommunityNewsSubmissionMetadata } from "./types.ts";
+import type { CommunityNewsSubmissionPayload } from "./types.ts";
 import { LetterImageName } from "./types.ts";
 
-export const serializeCommunityNewsSubmissionMetadata = (newsDraftId: number) => {
-    const metadata: CommunityNewsSubmissionMetadata = {
+export const serializeCommunityNewsSubmissionPayload = (newsDraftId: number) => {
+    const payload: CommunityNewsSubmissionPayload = {
         NewsDraftId: newsDraftId
     };
 
-    return JSON.stringify(metadata);
+    return JSON.stringify(payload);
 }
 
-const deserializeCommunityNewsSubmissionMetadata = (metadata: string | null) => {
-    if (metadata == null) {
-        console.error(`Failed to parse community news submission metadata: ${metadata}`);
-        return null;
-    }
-
-    let parsed: CommunityNewsSubmissionMetadata;
+const deserializeCommunityNewsSubmissionPayload = (payload: string) => {
+    let parsed: CommunityNewsSubmissionPayload;
     try {
-        parsed = JSON.parse(metadata);
+        parsed = JSON.parse(payload);
     }
     catch (e) {
-        console.error(`Failed to parse community news submission metadata: ${metadata} with error: ${e}`);
+        console.error(`Failed to parse community news submission payload: ${payload} with error: ${e}`);
         return null;
     }
     return parsed;
@@ -83,15 +78,15 @@ export const communityNewsSubmissionReviewHandler = async (submission: Submissio
     if (submission.Status !== SubmissionStatus.Accepted)
         return;
 
-    const metadata = deserializeCommunityNewsSubmissionMetadata(submission.Metadata);
-    if (!metadata)
+    const payload = deserializeCommunityNewsSubmissionPayload(submission.Payload);
+    if (!payload)
         return;
 
     // The stored image is the one the author approved, so a background reroll between submission
     //   and review can never change what actually gets posted.
-    const draft = db.getNewsDraft(metadata.NewsDraftId);
+    const draft = db.getNewsDraft(payload.NewsDraftId);
     if (!draft) {
-        console.warn(`No news draft ${metadata.NewsDraftId} found for submission ${submission.Id}`);
+        console.warn(`No news draft ${payload.NewsDraftId} found for submission ${submission.Id}`);
         await reviewInteraction.followUp({ content: "I couldn't find the draft for that submission, so nothing was posted.", flags: MessageFlags.Ephemeral });
         return;
     }

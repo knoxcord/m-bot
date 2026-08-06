@@ -31,8 +31,7 @@ const hasEmbeddedAttachment = (embed: Embed): embed is Embed & { image: EmbedAss
 
 export const createSubmission = async (
     type: SubmissionType,
-    content: string,
-    metadata: string,
+    payload: string,
     interaction: SubmissionSourceInteraction,
     embedBuilder: (submission: SubmissionRow) => EmbedBuilder,
     files?: AttachmentBuilder[]
@@ -46,8 +45,7 @@ export const createSubmission = async (
         sourceChannelId: interaction.channelId,
         sourceMessageId: interaction.message?.id ?? null,
         type: type,
-        content: content,
-        metadata: metadata,
+        payload: payload,
     });
 
     const persistedSubmission = db.getSubmission(submissionId);

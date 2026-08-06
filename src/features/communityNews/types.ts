@@ -1,6 +1,7 @@
 export enum NewsAddFieldId {
     Title = "title",
     Body = "body",
+    Valediction = "valediction",
 };
 
 export const NewsMessageCustomIdKey = 'news';
@@ -12,6 +13,6 @@ export enum NewsAddButtonIds {
 
 export const LetterImageName = "letter.webp";
 
-export interface CommunityNewsSubmissionMetadata {
+export interface CommunityNewsSubmissionPayload {
     NewsDraftId: number;
 }

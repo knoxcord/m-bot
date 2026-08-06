@@ -37,12 +37,12 @@ export interface SubmissionRow {
     Id: number;
     GuildId: string;
     SubmittedByUserId: string;
-    Content: string;
     SourceChannelId: string;
     SourceMessageId: string | null;
     Status: SubmissionStatus;
     Type: SubmissionType;
-    Metadata: string | null;
+    /** Serialized, type-specific data */
+    Payload: string;
     ReviewMessageId: string | null;
     ReviewedByUserId: string | null;
     CreatedAt: string;

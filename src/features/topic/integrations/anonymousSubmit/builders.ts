@@ -47,20 +47,20 @@ export const buildAnonymousSubmitModal = (topicText: string, codename: string) =
         .addLabelComponents(textComponent);
 };
 
-export const buildAnonymousSubmissionReviewEmbed = (submission: SubmissionRow) => {
+export const buildAnonymousSubmissionReviewEmbed = (submission: SubmissionRow, content: string) => {
     // The submitter is deliberately not shown — anonymity is the whole point. The codename (and
     // its sprite) match the public reply, so mods can spot repeat anons within a topic.
     const { codename, spriteUrl } = deriveAnonymousIdentity(submission);
     return new EmbedBuilder()
         .setAuthor({ name: codename, iconURL: spriteUrl })
-        .setDescription(submission.Content)
+        .setDescription(content)
         .setColor(0xBBBB00)
         .addFields({ name: "In reply to", value: getMessageLink(submission.GuildId, submission.SourceChannelId, submission.SourceMessageId ?? ""), inline: true })
 };
 
-export const buildAnonymousReplyEmbedFromSubmission = (submission: SubmissionRow) => {
+export const buildAnonymousReplyEmbedFromSubmission = (submission: SubmissionRow, content: string) => {
     const identity = deriveAnonymousIdentity(submission);
-    return buildAnonymousReplyEmbed(identity, submission.Content);
+    return buildAnonymousReplyEmbed(identity, content);
 };
 
 // Ephemeral preview shown to the submitter after they submit: their persona (codename + sprite +

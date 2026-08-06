@@ -3,6 +3,7 @@ import { AttachmentBuilder, MessageFlags } from "discord.js";
 import type { IModal} from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import { LetterImageName, NewsAddFieldId } from "../../features/communityNews/types.ts";
+import { ValedictionSelectValue, resolveValediction } from "../../features/communityNews/valedictions.ts";
 import { generateLetter } from "../../features/communityNews/letterGenerator/api.ts";
 import { buildNewsManageButtonRow } from "../../features/communityNews/builders.ts";
 import db from "../../database/db.ts";
@@ -26,10 +27,13 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
+    const [selectedValediction] = interaction.fields.getStringSelectValues(NewsAddFieldId.Valediction);
+    const valediction = resolveValediction(selectedValediction ?? ValedictionSelectValue.Random, interaction.user.displayName);
+
     const response = await generateLetter({
         Title: titleText,
         Body: bodyText,
-        Valediction: interaction.user.displayName
+        Valediction: valediction
     })
 
     if (!response) {
@@ -43,7 +47,7 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
     const draftId = db.createNewsDraft({
         guildId: interaction.guildId,
         authorUserId: interaction.user.id,
-        valediction: interaction.user.displayName,
+        valediction: valediction,
         title: titleText,
         body: bodyText,
         image: image,
