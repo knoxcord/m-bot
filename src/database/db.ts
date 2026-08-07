@@ -6,6 +6,7 @@ import type { TopicIntegrationKey } from "../features/topic/integrations/types.t
 import type {
     LocationImageRow,
     LocationRow,
+    NewsDraftRow,
     SubmissionRow,
     TemporaryRoleAssignmentRow,
     TopicRow,
@@ -155,16 +156,29 @@ class DatabaseManager {
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 GuildId TEXT NOT NULL,
                 SubmittedByUserId TEXT NOT NULL,
-                Content TEXT NOT NULL,
                 SourceChannelId TEXT NOT NULL,
                 SourceMessageId TEXT,
                 Type TEXT NOT NULL,
                 Status TEXT NOT NULL,
-                Metadata TEXT,
+                Payload TEXT NOT NULL,
                 ReviewMessageId TEXT,
                 ReviewedByUserId TEXT,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 ReviewedAt DATETIME
+            );
+
+            CREATE TABLE IF NOT EXISTS NewsDrafts (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                GuildId TEXT NOT NULL,
+                AuthorUserId TEXT NOT NULL,
+                Valediction TEXT NOT NULL,
+                Title TEXT NOT NULL,
+                Body TEXT NOT NULL,
+                Image BLOB NOT NULL,
+                SubmittedAt DATETIME,
+                SubmissionId INTEGER,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `)
 
@@ -611,13 +625,12 @@ class DatabaseManager {
         sourceMessageId: string | null;
         submittedByUserId: string;
         type: SubmissionType;
-        content: string;
-        metadata: string;
+        payload: string;
     }) {
         const statement = this.db.prepare(`
             INSERT INTO Submissions
-                (GuildId, SourceChannelId, SourceMessageId, SubmittedByUserId, Type, Status, Content, Metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (GuildId, SourceChannelId, SourceMessageId, SubmittedByUserId, Type, Status, Payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
         const result = statement.run(
             submission.guildId,
@@ -626,8 +639,7 @@ class DatabaseManager {
             submission.submittedByUserId,
             submission.type,
             SubmissionStatus.Pending,
-            submission.content,
-            submission.metadata,
+            submission.payload,
         );
         return Number(result.lastInsertRowid);
     }
@@ -635,8 +647,8 @@ class DatabaseManager {
     getSubmission(id: number) {
         const statement = this.db.prepare(`
             SELECT
-                Id, GuildId, SubmittedByUserId, Content, SourceChannelId, SourceMessageId,
-                Type, Status, Metadata, ReviewMessageId, ReviewedByUserId, CreatedAt, ReviewedAt
+                Id, GuildId, SubmittedByUserId, SourceChannelId, SourceMessageId,
+                Type, Status, Payload, ReviewMessageId, ReviewedByUserId, CreatedAt, ReviewedAt
             FROM Submissions WHERE Id = ?
         `);
         return statement.get(id) as SubmissionRow | undefined;
@@ -661,6 +673,92 @@ class DatabaseManager {
             WHERE Id = ? AND Status = ?
         `);
         return statement.run(status, reviewedByUserId, id, expectedStatus);
+    }
+
+    createNewsDraft(draft: {
+        guildId: string;
+        authorUserId: string;
+        valediction: string;
+        title: string;
+        body: string;
+        image: Buffer;
+    }) {
+        const statement = this.db.prepare(`
+            INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        const result = statement.run(
+            draft.guildId,
+            draft.authorUserId,
+            draft.valediction,
+            draft.title,
+            draft.body,
+            draft.image,
+        );
+        return Number(result.lastInsertRowid);
+    }
+
+    getNewsDraft(id: number) {
+        const statement = this.db.prepare(`
+            SELECT Id, GuildId, AuthorUserId, Valediction, Title, Body, Image, SubmittedAt, SubmissionId, CreatedAt, UpdatedAt
+            FROM NewsDrafts WHERE Id = ?
+        `);
+        return statement.get(id) as NewsDraftRow | undefined;
+    }
+
+    updateNewsDraftImage(id: number, image: Buffer) {
+        const statement = this.db.prepare(`
+            UPDATE NewsDrafts SET Image = ?, UpdatedAt = CURRENT_TIMESTAMP WHERE Id = ?
+        `);
+        return statement.run(image, id);
+    }
+
+    /**
+     * Marks a draft as being submitted. The SubmittedAt IS NULL guard makes this a one-shot claim,
+     * so double-clicking Post can't create two submissions (changes === 0 means someone got there
+     * first). The submission itself is created after, then linked with setNewsDraftSubmissionId.
+     */
+    claimNewsDraftForSubmission(id: number) {
+        const statement = this.db.prepare(`
+            UPDATE NewsDrafts SET SubmittedAt = CURRENT_TIMESTAMP, UpdatedAt = CURRENT_TIMESTAMP
+            WHERE Id = ? AND SubmittedAt IS NULL
+        `);
+        return statement.run(id);
+    }
+
+    /** Releases a claim taken by claimNewsDraftForSubmission when creating the submission failed. */
+    releaseNewsDraftClaim(id: number) {
+        const statement = this.db.prepare(`
+            UPDATE NewsDrafts SET SubmittedAt = NULL, UpdatedAt = CURRENT_TIMESTAMP
+            WHERE Id = ? AND SubmissionId IS NULL
+        `);
+        return statement.run(id);
+    }
+
+    setNewsDraftSubmissionId(id: number, submissionId: number) {
+        const statement = this.db.prepare(`
+            UPDATE NewsDrafts SET SubmissionId = ?, UpdatedAt = CURRENT_TIMESTAMP WHERE Id = ?
+        `);
+        return statement.run(submissionId, id);
+    }
+
+    /**
+     * Deletes drafts past the retention window, since each one holds a rendered letter as a blob and
+     * abandoned drafts would otherwise accumulate forever.
+     *
+     * Drafts still awaiting review are exempt at any age: the approval handler reads the image back
+     * out to post it, so pruning one out from under a slow moderator would break the post.
+     */
+    deleteExpiredNewsDrafts(retentionDays: number) {
+        const statement = this.db.prepare(`
+            DELETE FROM NewsDrafts
+            WHERE CreatedAt < datetime('now', ?)
+              AND (
+                  SubmissionId IS NULL
+                  OR SubmissionId IN (SELECT Id FROM Submissions WHERE Status <> ?)
+              )
+        `);
+        return statement.run(`-${retentionDays} days`, SubmissionStatus.Pending);
     }
 
     saveTemporaryRoleAssignment(guildId: string, userId: string, roleId: string, expiresAt: number) {

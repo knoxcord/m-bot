@@ -1,4 +1,4 @@
-import type { TextChannel, ModalSubmitInteraction, MessageCreateOptions, MessageComponentInteraction } from "discord.js";
+import type { TextChannel, ModalSubmitInteraction, MessageCreateOptions, MessageComponentInteraction, AttachmentBuilder, EmbedAssetData, Embed } from "discord.js";
 import { EmbedBuilder, MessageFlags } from "discord.js";
 import db from "../../database/db.ts"
 import configuration from "../configuration/configuration.ts";
@@ -7,18 +7,34 @@ import type { SubmissionRow } from "../../database/types.ts";
 import { SubmissionStatus, SubmissionReviewAction, type SubmissionType } from "./types.ts";
 import { buildSubmitReviewButtonRow } from "./builders.ts";
 import { handleSubmissionReview } from "./handlers.ts";
+import { extractAttachmentNameFromUrl } from "../../shared/urlHelpers.ts";
 
 const submissionReviewActionStatusMap: Record<SubmissionReviewAction, SubmissionStatus> = {
     [SubmissionReviewAction.Accept]: SubmissionStatus.Accepted,
     [SubmissionReviewAction.Reject]: SubmissionStatus.Rejected
 };
 
+const DiscordAttachmentCdnUrlPrefix = 'https://cdn.discordapp.com/attachments/';
+
+/** Submissions start either from a modal (topic integrations) or a button (news drafts). */
+type SubmissionSourceInteraction = ModalSubmitInteraction | MessageComponentInteraction;
+
+// Button-driven callers have usually already deferred by the time we get here, which rules out
+// reply(). followUp covers both cases with the same ephemeral message.
+const respondEphemerally = (interaction: SubmissionSourceInteraction, content: string) =>
+    interaction.deferred || interaction.replied
+        ? interaction.followUp({ content, flags: MessageFlags.Ephemeral })
+        : interaction.reply({ content, flags: MessageFlags.Ephemeral });
+
+const hasEmbeddedAttachment = (embed: Embed): embed is Embed & { image: EmbedAssetData } => 
+        !!embed.image && embed.image.url.startsWith(DiscordAttachmentCdnUrlPrefix)
+
 export const createSubmission = async (
     type: SubmissionType,
-    content: string,
-    metadata: string,
-    interaction: ModalSubmitInteraction,
-    embedBuilder: (submission: SubmissionRow) => EmbedBuilder
+    payload: string,
+    interaction: SubmissionSourceInteraction,
+    embedBuilder: (submission: SubmissionRow) => EmbedBuilder,
+    files?: AttachmentBuilder[]
 ) => {
     if (!interaction.guildId || !interaction.channelId)
         return;
@@ -29,13 +45,12 @@ export const createSubmission = async (
         sourceChannelId: interaction.channelId,
         sourceMessageId: interaction.message?.id ?? null,
         type: type,
-        content: content,
-        metadata: metadata,
+        payload: payload,
     });
 
     const persistedSubmission = db.getSubmission(submissionId);
     if (!persistedSubmission) {
-        await interaction.reply({ content: "Something went wrong saving your submission.", flags: MessageFlags.Ephemeral });
+        await respondEphemerally(interaction, "Something went wrong saving your submission.");
         return;
     }
 
@@ -44,10 +59,7 @@ export const createSubmission = async (
         ? (interaction.guild?.channels.cache.get(reviewChannelId) as TextChannel | undefined)
         : undefined;
     if (!reviewChannel) {
-        await interaction.reply({
-            content: "Submissions aren't set up on this server yet — ask an admin to configure the review channel.",
-            flags: MessageFlags.Ephemeral,
-        });
+        await respondEphemerally(interaction, "Submissions aren't set up on this server yet — ask an admin to configure the review channel.");
         return;
     }
 
@@ -55,9 +67,10 @@ export const createSubmission = async (
         content: "New submission for review",
         embeds: [embedBuilder(persistedSubmission)],
         components: [buildSubmitReviewButtonRow(submissionId)],
+        files: files,
     });
     db.setSubmissionReviewMessageId(submissionId, reviewMessage.id);
-    return reviewMessage.id;
+    return submissionId;
 }
 
 export const reviewSubmission = async (
@@ -81,23 +94,40 @@ export const reviewSubmission = async (
 
     const newSubmissionStatus = submissionReviewActionStatusMap[action];
     const dbResult = db.updateSubmissionStatus(submissionId, newSubmissionStatus, interaction.user.id, submission.Status);
-
+    
     if (dbResult.changes < 1)
         return;
 
     const accepted = newSubmissionStatus === SubmissionStatus.Accepted;
+    
+    // Defer after db because db access is syncronous and could fail
+    await interaction.deferUpdate();
 
     // Reuse the submission type's own card (whatever embed it built) and stamp the outcome onto it,
-    // so this stays generic across submission types.
+    //   so this stays generic across submission types.
     const [existingEmbed] = interaction.message.embeds;
     const reviewedEmbed = EmbedBuilder.from(existingEmbed)
         .setColor(accepted ? 0x00AA00 : 0xAA0000)
         .addFields({ name: accepted ? "Approved by" : "Rejected by", value: `<@${interaction.user.id}>` });
 
-    await interaction.update({
+    // Embedded attachments created from blobs are consumed by discord and converted to files served
+    //   from their CDN.
+    // Reading the embed back resolves that reference to a CDN URL, and editing the embed with the
+    //   resolved URL un-consumes the file. Discord then renders it in the main message content as well
+    //   as in the embed, so the file appears twice.
+    // To ensure the file stays intact in the embed and isn't duplicated, we have to extract the
+    //   file's name from the URL and re-attach it to the embed.
+    if (hasEmbeddedAttachment(existingEmbed)) {
+        const extractedAttachmentName = extractAttachmentNameFromUrl(existingEmbed.image.url);
+        if (extractedAttachmentName)
+            reviewedEmbed.setImage(`attachment://${extractedAttachmentName}`);
+    }
+
+    await interaction.editReply({
         content: accepted ? "✅ Approved" : "🛑 Rejected",
         embeds: [reviewedEmbed],
         components: [],
+        // Don't set `files` here or else the embed's attached files will be removed
     });
 
     const updatedSubmission: SubmissionRow = { ...submission, Status: newSubmissionStatus };

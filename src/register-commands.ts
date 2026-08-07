@@ -12,6 +12,9 @@ const toRegister: SharedSlashCommand [] = [];
 const loadedCommandNames: string[] = [];
 
 slashCommands.forEach(command => {
+	if (!command)
+		return;
+
 	if (loadedCommandNames.includes(command.key)) {
 		console.error("Found multiple commands with the same name, this is not supported");
 		process.exit(1);

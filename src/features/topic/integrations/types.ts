@@ -21,6 +21,10 @@ export enum TopicIntegrationType {
     AnonymousSubmit = "anonymous-submit"
 }
 
-export interface TopicIntegrationSubmissionMetadata {
-    TopicIntegrationType: TopicIntegrationType
+interface AnonymousSubmitSubmissionPayload {
+    TopicIntegrationType: TopicIntegrationType.AnonymousSubmit;
+    /** The submitted text, republished verbatim as the anonymous reply once approved. */
+    Content: string;
 }
+
+export type TopicIntegrationSubmissionPayload = AnonymousSubmitSubmissionPayload;

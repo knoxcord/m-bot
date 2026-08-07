@@ -9,12 +9,11 @@ const makeSubmission = (overrides: Partial<SubmissionRow> = {}): SubmissionRow =
     Id: 1,
     GuildId: "guild-1",
     SubmittedByUserId: "user-1",
-    Content: "hello",
     SourceChannelId: "channel-1",
     SourceMessageId: "message-1",
     Status: SubmissionStatus.Accepted,
     Type: SubmissionType.TopicIntegration,
-    Metadata: null,
+    Payload: "{}",
     ReviewMessageId: null,
     ReviewedByUserId: null,
     CreatedAt: "2026-01-01 12:00:00",
@@ -67,7 +66,7 @@ describe("codenameFromHash", () => {
 describe("deriveAnonymousIdentity", () => {
     it("is stable for the same submitter within the same topic", () => {
         const a = deriveAnonymousIdentity(makeSubmission());
-        const b = deriveAnonymousIdentity(makeSubmission({ Id: 2, Content: "different text" }));
+        const b = deriveAnonymousIdentity(makeSubmission({ Id: 2, Payload: `{"Content":"different text"}` }));
         assert.deepEqual(a, b);
     });
 

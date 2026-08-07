@@ -11,6 +11,7 @@ import { channelOrderConfigurationRegistrations } from "../channelOrder/config.t
 import { topicConfigurationRegistrations } from "../topic/config.ts";
 import { sharedConfigurationRegistrations } from "./shared.ts";
 import { submissionReviewConfigurationRegistrations } from "../submissionReview/config.ts";
+import { communityNewsConfigurationRegistrations } from "../communityNews/config.ts";
 
 const configurationRegistrations: ConfigurationRegistration[] = [
     ...sharedConfigurationRegistrations,
@@ -23,7 +24,8 @@ const configurationRegistrations: ConfigurationRegistration[] = [
     ...rouletteConfigurationRegistrations,
     ...channelOrderConfigurationRegistrations,
     ...topicConfigurationRegistrations,
-    ...submissionReviewConfigurationRegistrations
+    ...submissionReviewConfigurationRegistrations,
+    ...communityNewsConfigurationRegistrations
 ]
 
 export {

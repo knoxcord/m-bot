@@ -37,16 +37,32 @@ export interface SubmissionRow {
     Id: number;
     GuildId: string;
     SubmittedByUserId: string;
-    Content: string;
     SourceChannelId: string;
     SourceMessageId: string | null;
     Status: SubmissionStatus;
     Type: SubmissionType;
-    Metadata: string | null;
+    /** Serialized, type-specific data */
+    Payload: string;
     ReviewMessageId: string | null;
     ReviewedByUserId: string | null;
     CreatedAt: string;
     ReviewedAt: string | null;
+}
+
+export interface NewsDraftRow {
+    Id: number;
+    GuildId: string;
+    AuthorUserId: string;
+    Valediction: string;
+    Title: string;
+    Body: string;
+    /** The generated letter image. Kept here so the approved post uses the exact image the author saw. */
+    Image: Buffer;
+    /** Set when the draft is claimed for review; guards against a draft being submitted twice. */
+    SubmittedAt: string | null;
+    SubmissionId: number | null;
+    CreatedAt: string;
+    UpdatedAt: string;
 }
 
 export interface TopicWithVotesRow extends TopicRow {

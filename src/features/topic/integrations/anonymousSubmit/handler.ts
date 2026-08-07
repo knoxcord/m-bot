@@ -3,7 +3,7 @@ import type { SubmissionRow } from "../../../../database/types.ts";
 import { SubmissionStatus } from "../../../submissionReview/types.ts";
 import { buildAnonymousReplyEmbedFromSubmission } from "./builders.ts";
 
-export const handleAnonymousTopicReply = async (submission: SubmissionRow, reviewInteraction: MessageComponentInteraction) => {
+export const handleAnonymousTopicReply = async (submission: SubmissionRow, content: string, reviewInteraction: MessageComponentInteraction) => {
     const guild = reviewInteraction.guild;
     if (!guild)
         return
@@ -24,7 +24,7 @@ export const handleAnonymousTopicReply = async (submission: SubmissionRow, revie
     if (!channel) return;
     
     const messageOptions: MessageCreateOptions = {
-        embeds: [buildAnonymousReplyEmbedFromSubmission(submission)],
+        embeds: [buildAnonymousReplyEmbedFromSubmission(submission, content)],
         allowedMentions: { parse: [] },
         reply: { messageReference: sourceMessageId }
     }
