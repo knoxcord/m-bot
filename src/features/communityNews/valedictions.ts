@@ -10,7 +10,7 @@ export const Valedictions = [
     "Later, gator,",
     "Sweet dreams,",
     "Go touch some grass,",
-    "Bon voyage",
+    "Bon voyage,",
 ];
 
 /** Select values for the two entries that aren't literal sign-offs. */
