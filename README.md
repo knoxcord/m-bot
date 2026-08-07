@@ -30,3 +30,11 @@ Before running the bot you must register its slash commands. To do this, execute
 
 ### Running
 To run the bot, execute `yarn start`
+
+## Config
+
+- `token`: discord bot app token
+- `clientId`: discord bot app client id
+- `assetSrc`: static image asset source base url
+- `ownerId`: user id for the owner of the bot
+- `letterGeneratorUrl`: URL to send community news generate letter POST requests
