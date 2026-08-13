@@ -36,8 +36,15 @@ export const generateLetter = async (request: GenerateLetterRequest): Promise<Ge
         return null;
     }
 
+    // This header isnt technically that important, but if it isnt there then sometihng is wrong
+    const stationery = response.headers.get(StationeryHeader);
+    if (!stationery) {
+        console.error(`Letter generator response is missing the ${StationeryHeader} header`);
+        return null;
+    }
+
     return {
         image: Buffer.from(await response.arrayBuffer()),
-        stationery: response.headers.get(StationeryHeader),
+        stationery: stationery
     };
 }
