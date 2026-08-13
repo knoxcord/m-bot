@@ -3,7 +3,7 @@ import { AttachmentBuilder, MessageFlags } from "discord.js";
 import type { IModal} from "./modalTypes.ts";
 import { ModalCustomIdPrefix } from "./modalTypes.ts";
 import { LetterImageName, NewsAddFieldId } from "../../features/communityNews/types.ts";
-import { ValedictionSelectValue, resolveValediction } from "../../features/communityNews/valedictions.ts";
+import { rollValediction } from "../../features/communityNews/valedictions.ts";
 import { generateLetter } from "../../features/communityNews/letterGenerator/api.ts";
 import { buildNewsManageButtonRow } from "../../features/communityNews/builders.ts";
 import db from "../../database/db.ts";
@@ -27,22 +27,20 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const [selectedValediction] = interaction.fields.getStringSelectValues(NewsAddFieldId.Valediction);
-    const valediction = resolveValediction(selectedValediction ?? ValedictionSelectValue.Random, interaction.user.displayName);
+    const valediction = rollValediction(interaction.user.displayName);
 
-    const response = await generateLetter({
+    const letter = await generateLetter({
         Title: titleText,
         Body: bodyText,
         Valediction: valediction
     })
 
-    if (!response) {
+    if (!letter) {
         await interaction.editReply("Sorry, I couldn't generate that letter.");
         return;
     }
 
-    const image = Buffer.from(await response.arrayBuffer());
-    const file = new AttachmentBuilder(image, { name: LetterImageName });
+    const file = new AttachmentBuilder(letter.image, { name: LetterImageName });
 
     const draftId = db.createNewsDraft({
         guildId: interaction.guildId,
@@ -50,7 +48,8 @@ const handleNewsAddModalSubmit = async (interaction: ModalSubmitInteraction) => 
         valediction: valediction,
         title: titleText,
         body: bodyText,
-        image: image,
+        image: letter.image,
+        stationery: letter.stationery,
     });
 
     await interaction.editReply({

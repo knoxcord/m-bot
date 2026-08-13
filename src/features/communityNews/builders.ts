@@ -1,8 +1,7 @@
-import { TextInputBuilder, TextInputStyle, LabelBuilder, ModalBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import { TextInputBuilder, TextInputStyle, LabelBuilder, ModalBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import type { NewsDraftRow } from "../../database/types.ts";
 import { LetterImageName, NewsAddButtonIds, NewsAddFieldId, NewsMessageCustomIdKey } from "./types.ts";
-import { ValedictionSelectValue } from "./valedictions.ts";
 
 export const buildNewsAddModal = () => {
     const titleTextInput = new TextInputBuilder()
@@ -25,30 +24,11 @@ export const buildNewsAddModal = () => {
         .setDescription("Add a brief message sharing community news")
         .setTextInputComponent(bodyTextInput);
 
-    const valedictionSelect = new StringSelectMenuBuilder()
-        .setCustomId(NewsAddFieldId.Valediction)
-        .setRequired(false)
-        .setOptions(
-            new StringSelectMenuOptionBuilder()
-                .setLabel("Random")
-                .setDescription("Picks one of the sign-offs at random")
-                .setValue(ValedictionSelectValue.Random)
-                .setDefault(true),
-            new StringSelectMenuOptionBuilder()
-                .setLabel("Just my name")
-                .setDescription("Closes with your name and nothing else")
-                .setValue(ValedictionSelectValue.None));
-    const valedictionComponent = new LabelBuilder()
-        .setLabel("Sign-off")
-        .setDescription("Choose how the post closes")
-        .setStringSelectMenuComponent(valedictionSelect);
-
     const modal = new ModalBuilder()
         .setCustomId(ModalCustomIdPrefix.NewsAdd)
         .setTitle("Add Community News")
         .addLabelComponents(titleTextComponent)
-        .addLabelComponents(bodyTextComponent)
-        .addLabelComponents(valedictionComponent);
+        .addLabelComponents(bodyTextComponent);
     return modal;
 };
 
@@ -57,6 +37,10 @@ export const buildNewsManageButtonRow = (newsDraftId: number) =>
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.ChangeBackground}:${newsDraftId}`)
             .setLabel("Change Background")
+            .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+            .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.ChangeValediction}:${newsDraftId}`)
+            .setLabel("Change Sign-off")
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.Post}:${newsDraftId}`)
