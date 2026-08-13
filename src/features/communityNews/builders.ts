@@ -3,12 +3,19 @@ import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import type { NewsDraftRow } from "../../database/types.ts";
 import { LetterImageName, NewsAddButtonIds, NewsAddFieldId, NewsMessageCustomIdKey } from "./types.ts";
 
-export const buildNewsAddModal = () => {
+export const buildNewsAddModal = () => buildNewsModal(ModalCustomIdPrefix.NewsAdd, "Add Community News");
+
+export const buildNewsEditModal = (draft: NewsDraftRow) =>
+    buildNewsModal(`${ModalCustomIdPrefix.NewsEdit}:${draft.Id}`, "Edit Community News", draft);
+
+const buildNewsModal = (customId: string, title: string, draft?: NewsDraftRow) => {
     const titleTextInput = new TextInputBuilder()
         .setCustomId(NewsAddFieldId.Title)
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
         .setMaxLength(35);
+    if (draft)
+        titleTextInput.setValue(draft.Title);
     const titleTextComponent = new LabelBuilder()
         .setLabel("Title")
         .setDescription("Pick a short, descriptive, title")
@@ -19,14 +26,16 @@ export const buildNewsAddModal = () => {
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true)
         .setMaxLength(300);
+    if (draft)
+        bodyTextInput.setValue(draft.Body);
     const bodyTextComponent = new LabelBuilder()
         .setLabel("Body")
         .setDescription("Add a brief message sharing community news")
         .setTextInputComponent(bodyTextInput);
 
     const modal = new ModalBuilder()
-        .setCustomId(ModalCustomIdPrefix.NewsAdd)
-        .setTitle("Add Community News")
+        .setCustomId(customId)
+        .setTitle(title)
         .addLabelComponents(titleTextComponent)
         .addLabelComponents(bodyTextComponent);
     return modal;
@@ -41,6 +50,10 @@ export const buildNewsManageButtonRow = (newsDraftId: number) =>
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.ChangeValediction}:${newsDraftId}`)
             .setLabel("Change Sign-off")
+            .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+            .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.EditText}:${newsDraftId}`)
+            .setLabel("Edit Text")
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.Post}:${newsDraftId}`)

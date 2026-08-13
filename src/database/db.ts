@@ -175,7 +175,7 @@ class DatabaseManager {
                 Title TEXT NOT NULL,
                 Body TEXT NOT NULL,
                 Image BLOB NOT NULL,
-                Stationery TEXT,
+                Stationery TEXT NOT NULL,
                 SubmittedAt DATETIME,
                 SubmissionId INTEGER,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -188,7 +188,6 @@ class DatabaseManager {
         this.addColumnIfMissing('Topics', 'IntegrationKey', 'TEXT');
         this.addColumnIfMissing('Topics', 'DeletedAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'DeletedByUserId', 'TEXT');
-        this.addColumnIfMissing('NewsDrafts', 'Stationery', 'TEXT');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -684,7 +683,7 @@ class DatabaseManager {
         title: string;
         body: string;
         image: Buffer;
-        stationery: string | null;
+        stationery: string;
     }) {
         const statement = this.db.prepare(`
             INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery)
@@ -711,17 +710,35 @@ class DatabaseManager {
     }
 
     /**
-     * Replaces a draft's rendered letter. The valediction is only passed when the sign-off was rerolled.
+     * Replaces a draft's rendered letter, plus whichever inputs were rerolled or edited to produce it.
      * The stationery is always passed since even a reroll of the background needs recording in case
      * stationery was invalid.
      */
-    updateNewsDraftRender(id: number, render: { image: Buffer; stationery: string | null; valediction?: string }) {
+    updateNewsDraft(id: number, draft: {
+        image: Buffer;
+        stationery: string;
+        valediction?: string;
+        title?: string;
+        body?: string;
+    }) {
         const statement = this.db.prepare(`
             UPDATE NewsDrafts
-            SET Image = ?, Stationery = ?, Valediction = COALESCE(?, Valediction), UpdatedAt = CURRENT_TIMESTAMP
+            SET Image = ?,
+                Stationery = ?,
+                Valediction = COALESCE(?, Valediction),
+                Title = COALESCE(?, Title),
+                Body = COALESCE(?, Body),
+                UpdatedAt = CURRENT_TIMESTAMP
             WHERE Id = ?
         `);
-        return statement.run(render.image, render.stationery, render.valediction ?? null, id);
+        return statement.run(
+            draft.image,
+            draft.stationery,
+            draft.valediction ?? null,
+            draft.title ?? null,
+            draft.body ?? null,
+            id,
+        );
     }
 
     /**

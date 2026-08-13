@@ -9,5 +9,5 @@ export interface GenerateLetterRequest {
 export interface GeneratedLetter {
     image: Buffer,
     /** The stationery drawn on, to store and send back when redrawing this letter. */
-    stationery: string | null,
+    stationery: string,
 }

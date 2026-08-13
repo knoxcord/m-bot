@@ -8,6 +8,7 @@ export const NewsMessageCustomIdKey = 'news';
 export enum NewsAddButtonIds {
     ChangeBackground = 'newbg',
     ChangeValediction = 'newsign',
+    EditText = 'edit',
     Post = 'post'
 };
 
