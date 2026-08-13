@@ -100,6 +100,10 @@ const scheduleAutoTopicTimer = (guild: Guild) => {
 
 export const handleAutoTopicMessage = (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
     if (!message.guildId || !message.guild) return;
+
+    const channelId = configuration.getConfigurationValue(message.guildId, AutoTopicChannelIdConfigurationKey);
+    if (!channelId || message.channelId !== channelId) return;
+
     scheduleAutoTopicTimer(message.guild);
 };
 

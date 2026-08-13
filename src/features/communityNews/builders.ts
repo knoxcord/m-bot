@@ -2,7 +2,7 @@ import { TextInputBuilder, TextInputStyle, LabelBuilder, ModalBuilder, ButtonBui
 import { ModalCustomIdPrefix } from "../../handlers/modals/modalTypes.ts";
 import type { NewsDraftRow } from "../../database/types.ts";
 import { LetterImageName, NewsAddButtonIds, NewsAddFieldId, NewsMessageCustomIdKey } from "./types.ts";
-import { ValedictionSelectValue, Valedictions } from "./valedictions.ts";
+import { ValedictionSelectValue } from "./valedictions.ts";
 
 export const buildNewsAddModal = () => {
     const titleTextInput = new TextInputBuilder()
@@ -25,26 +25,19 @@ export const buildNewsAddModal = () => {
         .setDescription("Add a brief message sharing community news")
         .setTextInputComponent(bodyTextInput);
 
-    // The two sentinel entries lead so they're visible without scrolling the list of sign-offs.
-    const valedictionOptions = [
-        new StringSelectMenuOptionBuilder()
-            .setLabel("Random")
-            .setDescription("Picks one of the sign-offs at random")
-            .setValue(ValedictionSelectValue.Random)
-            .setDefault(true),
-        new StringSelectMenuOptionBuilder()
-            .setLabel("Just my name")
-            .setDescription("Closes with your name and nothing else")
-            .setValue(ValedictionSelectValue.None),
-        ...Valedictions.map(valediction =>
-            new StringSelectMenuOptionBuilder()
-                .setLabel(valediction)
-                .setValue(valediction)),
-    ];
     const valedictionSelect = new StringSelectMenuBuilder()
         .setCustomId(NewsAddFieldId.Valediction)
         .setRequired(false)
-        .setOptions(valedictionOptions);
+        .setOptions(
+            new StringSelectMenuOptionBuilder()
+                .setLabel("Random")
+                .setDescription("Picks one of the sign-offs at random")
+                .setValue(ValedictionSelectValue.Random)
+                .setDefault(true),
+            new StringSelectMenuOptionBuilder()
+                .setLabel("Just my name")
+                .setDescription("Closes with your name and nothing else")
+                .setValue(ValedictionSelectValue.None));
     const valedictionComponent = new LabelBuilder()
         .setLabel("Sign-off")
         .setDescription("Choose how the post closes")
