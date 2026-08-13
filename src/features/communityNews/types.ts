@@ -1,13 +1,13 @@
 export enum NewsAddFieldId {
     Title = "title",
     Body = "body",
-    Valediction = "valediction",
 };
 
 export const NewsMessageCustomIdKey = 'news';
 
 export enum NewsAddButtonIds {
     ChangeBackground = 'newbg',
+    ChangeValediction = 'newsign',
     Post = 'post'
 };
 

@@ -175,6 +175,7 @@ class DatabaseManager {
                 Title TEXT NOT NULL,
                 Body TEXT NOT NULL,
                 Image BLOB NOT NULL,
+                Stationery TEXT,
                 SubmittedAt DATETIME,
                 SubmissionId INTEGER,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -187,6 +188,7 @@ class DatabaseManager {
         this.addColumnIfMissing('Topics', 'IntegrationKey', 'TEXT');
         this.addColumnIfMissing('Topics', 'DeletedAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'DeletedByUserId', 'TEXT');
+        this.addColumnIfMissing('NewsDrafts', 'Stationery', 'TEXT');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -682,10 +684,11 @@ class DatabaseManager {
         title: string;
         body: string;
         image: Buffer;
+        stationery: string | null;
     }) {
         const statement = this.db.prepare(`
-            INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
         const result = statement.run(
             draft.guildId,
@@ -694,23 +697,31 @@ class DatabaseManager {
             draft.title,
             draft.body,
             draft.image,
+            draft.stationery,
         );
         return Number(result.lastInsertRowid);
     }
 
     getNewsDraft(id: number) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, AuthorUserId, Valediction, Title, Body, Image, SubmittedAt, SubmissionId, CreatedAt, UpdatedAt
+            SELECT Id, GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery, SubmittedAt, SubmissionId, CreatedAt, UpdatedAt
             FROM NewsDrafts WHERE Id = ?
         `);
         return statement.get(id) as NewsDraftRow | undefined;
     }
 
-    updateNewsDraftImage(id: number, image: Buffer) {
+    /**
+     * Replaces a draft's rendered letter. The valediction is only passed when the sign-off was rerolled.
+     * The stationery is always passed since even a reroll of the background needs recording in case
+     * stationery was invalid.
+     */
+    updateNewsDraftRender(id: number, render: { image: Buffer; stationery: string | null; valediction?: string }) {
         const statement = this.db.prepare(`
-            UPDATE NewsDrafts SET Image = ?, UpdatedAt = CURRENT_TIMESTAMP WHERE Id = ?
+            UPDATE NewsDrafts
+            SET Image = ?, Stationery = ?, Valediction = COALESCE(?, Valediction), UpdatedAt = CURRENT_TIMESTAMP
+            WHERE Id = ?
         `);
-        return statement.run(image, id);
+        return statement.run(render.image, render.stationery, render.valediction ?? null, id);
     }
 
     /**

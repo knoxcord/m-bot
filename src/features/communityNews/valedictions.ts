@@ -60,18 +60,15 @@ export const Valedictions = [
     "You've activated my trap card,",
 ];
 
-/** The only two choices offered; the sign-off lines themselves aren't individually selectable. */
-export enum ValedictionSelectValue {
-    Random = "random",
-    None = "none",
-}
+/**
+ * Picks a sign-off, avoiding whatever the letter reads now so that asking for a new one always
+ * visibly changes something.
+ */
+export const rollValediction = (authorDisplayName: string, current?: string) => {
+    const candidates = current
+        ? Valedictions.filter(valediction => `${valediction} ${authorDisplayName}` !== current)
+        : Valedictions;
 
-// Random picks here, at submit time, so the resolved line can be stored on the draft. Picking at
-//   render time instead would reshuffle the sign-off every time the artwork is regenerated.
-export const resolveValediction = (selectedValue: string, authorDisplayName: string) => {
-    if (selectedValue === ValedictionSelectValue.None)
-        return authorDisplayName;
-
-    const valediction = Valedictions[Math.floor(Math.random() * Valedictions.length)];
+    const valediction = candidates[Math.floor(Math.random() * candidates.length)];
     return `${valediction} ${authorDisplayName}`;
 };

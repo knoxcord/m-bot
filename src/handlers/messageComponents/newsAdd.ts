@@ -9,6 +9,8 @@ import {
 } from "../../features/communityNews/submissionReviewHandler.ts";
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
+import { rollValediction } from "../../features/communityNews/valedictions.ts";
+import type { NewsDraftRow } from "../../database/types.ts";
 import db from "../../database/db.ts";
 import type { IMessageComponent} from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
@@ -29,34 +31,56 @@ const loadEditableDraft = async (interaction: MessageComponentInteraction, guild
     return draft;
 }
 
-const changeBackground = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
+/**
+ * Redraws a draft's letter, replacing the attachment in place. `change` decides what differs this
+ * time round; anything it leaves out stays as the draft already has it.
+ */
+const redrawLetter = async (
+    interaction: MessageComponentInteraction,
+    guildId: string,
+    draftId: number,
+    change: (draft: NewsDraftRow) => { stationery?: string; valediction?: string },
+) => {
     const draft = await loadEditableDraft(interaction, guildId, draftId);
     if (!draft) return;
 
     // Wait to defer update until after loading draft from the db in case load fails and replies first
     await interaction.deferUpdate();
 
-    const response = await generateLetter({
+    const { stationery, valediction } = change(draft);
+
+    const letter = await generateLetter({
         Title: draft.Title,
         Body: draft.Body,
-        Valediction: draft.Valediction
+        Valediction: valediction ?? draft.Valediction,
+        Stationery: stationery,
     })
 
-    if (!response) {
+    if (!letter) {
         await interaction.followUp({ content: "Sorry, I couldn't generate that letter.", flags: MessageFlags.Ephemeral });
         return;
     }
 
-    const image = Buffer.from(await response.arrayBuffer());
-    db.updateNewsDraftImage(draftId, image);
+    db.updateNewsDraftRender(draftId, { image: letter.image, stationery: letter.stationery, valediction });
 
     await interaction.editReply({
         // The replacement reuses the same file name, so the old attachment has to be dropped explicitly.
         attachments: [],
-        files: [new AttachmentBuilder(image, { name: LetterImageName })],
+        files: [new AttachmentBuilder(letter.image, { name: LetterImageName })],
         components: [buildNewsManageButtonRow(draftId)]
     });
 }
+
+// Leave stationery undefined so the generator picks a new one
+const changeBackground = (interaction: MessageComponentInteraction, guildId: string, draftId: number) =>
+    redrawLetter(interaction, guildId, draftId, () => ({}));
+
+// Include current stationery and new valediction so only valediction changes
+const changeValediction = (interaction: MessageComponentInteraction, guildId: string, draftId: number) =>
+    redrawLetter(interaction, guildId, draftId, draft => ({
+        stationery: draft.Stationery ?? undefined,
+        valediction: rollValediction(interaction.user.displayName, draft.Valediction),
+    }));
 
 const post = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
     const draft = await loadEditableDraft(interaction, guildId, draftId);
@@ -118,6 +142,8 @@ const handler = async (interaction: MessageComponentInteraction) => {
     switch (action) {
         case NewsAddButtonIds.ChangeBackground:
             return changeBackground(interaction, guildId, draftId);
+        case NewsAddButtonIds.ChangeValediction:
+            return changeValediction(interaction, guildId, draftId);
         case NewsAddButtonIds.Post:
             return post(interaction, guildId, draftId);
         default:

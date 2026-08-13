@@ -1,7 +1,13 @@
-import type { GenerateLetterRequest } from "./types.ts";
+import type { GenerateLetterRequest, GeneratedLetter } from "./types.ts";
 import config from "../../../config.ts";
 
-export const generateLetter = async (request: GenerateLetterRequest) => {
+const StationeryHeader = "Letter-Stationery";
+
+/**
+ * Generates a letter image. Returns undefined when the generator isn't configured and null when it
+ * couldn't be reached or refused the request.
+ */
+export const generateLetter = async (request: GenerateLetterRequest): Promise<GeneratedLetter | null | undefined> => {
     if (!config.letterGeneratorUrl) {
         console.warn("Letter generator url not configured, returning...");
         return;
@@ -19,10 +25,19 @@ export const generateLetter = async (request: GenerateLetterRequest) => {
         return null;
     }
 
+    // Gracefully handle invalid stationery. Should never happen, but still...
+    if (response.status === 400 && request.Stationery) {
+        console.warn(`Letter generator rejected stationery '${request.Stationery}', retrying without it`);
+        return generateLetter({ ...request, Stationery: undefined });
+    }
+
     if (!response.ok) {
         console.error(`Got ${response.status} ${response.statusText} from letter generator: ${await response.text()}`);
         return null;
     }
 
-    return response;
+    return {
+        image: Buffer.from(await response.arrayBuffer()),
+        stationery: response.headers.get(StationeryHeader),
+    };
 }

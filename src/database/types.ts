@@ -58,6 +58,8 @@ export interface NewsDraftRow {
     Body: string;
     /** The generated letter image. Kept here so the approved post uses the exact image the author saw. */
     Image: Buffer;
+    /** Name of the stationery the image was drawn on, so the letter can be redrawn on the same design. */
+    Stationery: string | null;
     /** Set when the draft is claimed for review; guards against a draft being submitted twice. */
     SubmittedAt: string | null;
     SubmissionId: number | null;
