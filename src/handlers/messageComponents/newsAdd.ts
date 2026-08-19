@@ -5,14 +5,17 @@ import { buildNewsEditModal, buildNewsSubmissionReviewEmbed } from "../../featur
 import { loadEditableDraft, redrawLetter } from "../../features/communityNews/draftEditing.ts";
 import {
     getCommunityNewsChannel,
+    postNews,
     serializeCommunityNewsSubmissionPayload,
-} from "../../features/communityNews/submissionReviewHandler.ts";
+} from "../../features/communityNews/postNews.ts";
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
 import { rollValediction } from "../../features/communityNews/valedictions.ts";
 import db from "../../database/db.ts";
 import type { IMessageComponent} from "./messageComponentTypes.ts";
 import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
+import featureFlags from "../../features/featureFlags/featureFlags.ts";
+import { RequireCommunityNewsSubmissionReviewFeatureFlag } from "../../features/communityNews/config.ts";
 
 // Leave stationery undefined so the generator picks a new one
 const changeBackground = (interaction: MessageComponentInteraction, guildId: string, draftId: number) =>
@@ -32,13 +35,23 @@ const editText = async (interaction: MessageComponentInteraction, guildId: strin
     await interaction.showModal(buildNewsEditModal(draft));
 }
 
+const confirmPost = async (message: string, interaction: MessageComponentInteraction) => {
+    // Drop the buttons so the sent draft can't be rerolled or resubmitted, but keep the letter visible.
+    await interaction.editReply({ components: [] });
+    await interaction.followUp({
+        content: message,
+        flags: MessageFlags.Ephemeral,
+    });
+}
+
 const post = async (interaction: MessageComponentInteraction, guildId: string, draftId: number) => {
     const draft = await loadEditableDraft(interaction, guildId, draftId);
     if (!draft) return;
 
     // Checked up front so the author finds out now rather than after a mod approves something
     //   and the bot then can't post anywhere.
-    if (!getCommunityNewsChannel(interaction)) {
+    const communityNewsChannel = getCommunityNewsChannel(interaction);
+    if (!communityNewsChannel) {
         await interaction.reply({
             content: "Community news isn't set up on this server yet — ask an admin to configure the news channel.",
             flags: MessageFlags.Ephemeral,
@@ -46,14 +59,30 @@ const post = async (interaction: MessageComponentInteraction, guildId: string, d
         return;
     }
 
-    // Claim before the awaits below so a double-click can't produce two submissions.
+    // Claim before the awaits below so a double-click can't produce two posts/submissions.
     if (db.claimNewsDraftForSubmission(draftId).changes < 1) {
-        await interaction.reply({ content: "That draft has already been sent to the mods for review.", flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: "That draft has already been sent.", flags: MessageFlags.Ephemeral });
         return;
     }
 
     // Wait to defer update until after db operations in case something fails and replies first
     await interaction.deferUpdate();
+
+    const requireSubmissionReview = featureFlags.getFeatureFlag(guildId, RequireCommunityNewsSubmissionReviewFeatureFlag);
+    if (!requireSubmissionReview) {
+        let postLink: string;
+        try {
+            postLink = await postNews(communityNewsChannel, draft);
+        } catch (e) {
+            console.error(`Encountered error when attempting to post community news draft ${draft.Id}: ${e}`);
+            db.releaseNewsDraftClaim(draftId);
+            await interaction.followUp({ content: "Something went wrong posting the news.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        await confirmPost(`Thanks! Your news has been posted [here](${postLink}).`, interaction);
+        return;
+    }
 
     const submissionId = await createSubmission(
         SubmissionType.CommunityNews,
@@ -70,13 +99,7 @@ const post = async (interaction: MessageComponentInteraction, guildId: string, d
     }
 
     db.setNewsDraftSubmissionId(draftId, submissionId);
-
-    // Drop the buttons so the sent draft can't be rerolled or resubmitted, but keep the letter visible.
-    await interaction.editReply({ components: [] });
-    await interaction.followUp({
-        content: "Thanks! Your news has been sent to the mods for review.",
-        flags: MessageFlags.Ephemeral,
-    });
+    await confirmPost("Thanks! Your news has been sent to the mods for review.", interaction);
 }
 
 const handler = async (interaction: MessageComponentInteraction) => {

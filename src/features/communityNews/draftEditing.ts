@@ -18,7 +18,7 @@ export const loadEditableDraft = async (interaction: DraftInteraction, guildId: 
     }
 
     if (draft.SubmittedAt) {
-        await interaction.reply({ content: "That draft has already been sent to the mods for review.", flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: "That draft has already been sent.", flags: MessageFlags.Ephemeral });
         return null;
     }
 

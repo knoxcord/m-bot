@@ -15,7 +15,7 @@ export const Valedictions = [
     "Tone: Announcing,",
     "Deuces,",
     "*Blinks twice*",
-    "Sent From My iPhone",
+    "Sent From My iPhone,",
     "Sent from my enclosure,",
     "Sent from the piss arcade,",
     "Currently on I40,",

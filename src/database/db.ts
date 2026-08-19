@@ -744,7 +744,7 @@ class DatabaseManager {
     /**
      * Marks a draft as being submitted. The SubmittedAt IS NULL guard makes this a one-shot claim,
      * so double-clicking Post can't create two submissions (changes === 0 means someone got there
-     * first). The submission itself is created after, then linked with setNewsDraftSubmissionId.
+     * first).
      */
     claimNewsDraftForSubmission(id: number) {
         const statement = this.db.prepare(`
@@ -754,7 +754,7 @@ class DatabaseManager {
         return statement.run(id);
     }
 
-    /** Releases a claim taken by claimNewsDraftForSubmission when creating the submission failed. */
+    /** Releases a claim taken by claimNewsDraftForSubmission. */
     releaseNewsDraftClaim(id: number) {
         const statement = this.db.prepare(`
             UPDATE NewsDrafts SET SubmittedAt = NULL, UpdatedAt = CURRENT_TIMESTAMP

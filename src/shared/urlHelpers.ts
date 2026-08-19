@@ -20,6 +20,8 @@ export const normalizeUrl = (input: string): string | null => {
 
 export const getMessageLink = (guildId: string, channelId: string, messageId: string) => `https://discord.com/channels/${guildId}/${channelId}/${messageId}`
 
+export const getThreadLink = (guildId: string, threadId: string) => `https://discord.com/channels/${guildId}/${threadId}`
+
 export const extractAttachmentNameFromUrl = (url: string) => {
     try {
         return new URL(url).pathname.split("/").pop() || null;
