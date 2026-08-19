@@ -7,6 +7,7 @@ import configuration from "../configuration/configuration.ts";
 import { CommunityNewsChannelIdConfigurationKey } from "./config.ts";
 import type { CommunityNewsSubmissionPayload } from "./types.ts";
 import { LetterImageName } from "./types.ts";
+import { getMessageLink, getThreadLink } from "../../shared/urlHelpers.ts";
 
 export const serializeCommunityNewsSubmissionPayload = (newsDraftId: number) => {
     const payload: CommunityNewsSubmissionPayload = {
@@ -45,7 +46,7 @@ export const getCommunityNewsChannel = (interaction: MessageComponentInteraction
         return null;
 
     // Forum channels take a different posting call than text channels, so both kinds resolve here
-    //   and are differentiated in postLetter.
+    //   and are differentiated in postNews.
     if (channel.type === ChannelType.GuildForum)
         return channel;
 
@@ -57,21 +58,25 @@ export type CommunityNewsChannel = NonNullable<ReturnType<typeof getCommunityNew
 /** Discord caps thread names at 100 characters. */
 const ForumPostNameMaxLength = 100;
 
-/** Posts a letter, creating a forum post or sending a message depending on the channel type. */
-const postLetter = async (channel: CommunityNewsChannel, draft: NewsDraftRow) => {
+/**
+ * Posts a letter, creating a forum post or sending a message depending on the channel type.
+ * Returns link to the forum post or message
+ */
+export const postNews = async (channel: CommunityNewsChannel, draft: NewsDraftRow) => {
     const file = new AttachmentBuilder(draft.Image, { name: LetterImageName });
 
     if (channel.type === ChannelType.GuildForum) {
         // Forum channels have no send(): every post is a thread, and the letter rides along as
         //   the starter message.
-        await channel.threads.create({
+        const thread = await channel.threads.create({
             name: draft.Title.slice(0, ForumPostNameMaxLength),
             message: { files: [file] },
         });
-        return;
+        return getThreadLink(channel.guildId, thread.id);
     }
 
-    await channel.send({ files: [file] });
+    const message = await channel.send({ files: [file] });
+    return getMessageLink(channel.guildId, channel.id, message.id);
 }
 
 export const communityNewsSubmissionReviewHandler = async (submission: SubmissionRow, reviewInteraction: MessageComponentInteraction) => {
@@ -101,7 +106,7 @@ export const communityNewsSubmissionReviewHandler = async (submission: Submissio
     }
 
     try {
-        await postLetter(channel, draft);
+        await postNews(channel, draft);
     }
     catch (e) {
         console.error(`Encountered error when attempting to post community news draft ${draft.Id}: ${e}`);
