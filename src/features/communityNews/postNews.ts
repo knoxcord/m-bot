@@ -51,7 +51,8 @@ const lockPost = async (channel: ForumChannel, thread: ForumThreadChannel, tag: 
     catch (e) {
         const me = channel.guild.members.me;
         const missing = me ? channel.permissionsFor(me).missing(LockRelatedPermissions) : ["unresolved"];
-        console.error(`Failed to lock post ${thread.id} tagged ${tag.name} in #${channel.name}. `
+        console.error(`Failed to lock post ${thread.id} tagged ${tag.name} in #${channel.name} `
+            + `for guildId ${channel.guildId}. `
             + `Missing: ${missing.join(", ") || "nothing relevant"}. Error: ${e}`);
     }
 };
