@@ -1,6 +1,7 @@
 export enum NewsAddFieldId {
     Title = "title",
     Body = "body",
+    Tag = "tag",
 };
 
 export const NewsMessageCustomIdKey = 'news';
