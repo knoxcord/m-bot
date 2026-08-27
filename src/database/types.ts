@@ -60,6 +60,8 @@ export interface NewsDraftRow {
     Image: Buffer;
     /** Name of the stationery the image was drawn on, so the letter can be redrawn on the same design. */
     Stationery: string;
+    /** Forum tag the author picked, if the news channel is a forum offering tags. */
+    TagId: string | null;
     /** Set when the draft is claimed for review; guards against a draft being submitted twice. */
     SubmittedAt: string | null;
     SubmissionId: number | null;

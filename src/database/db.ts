@@ -188,6 +188,7 @@ class DatabaseManager {
         this.addColumnIfMissing('Topics', 'IntegrationKey', 'TEXT');
         this.addColumnIfMissing('Topics', 'DeletedAt', 'DATETIME');
         this.addColumnIfMissing('Topics', 'DeletedByUserId', 'TEXT');
+        this.addColumnIfMissing('NewsDrafts', 'TagId', 'TEXT');
     }
 
     private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -684,10 +685,11 @@ class DatabaseManager {
         body: string;
         image: Buffer;
         stationery: string;
+        tagId: string | null;
     }) {
         const statement = this.db.prepare(`
-            INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO NewsDrafts (GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery, TagId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `);
         const result = statement.run(
             draft.guildId,
@@ -697,13 +699,14 @@ class DatabaseManager {
             draft.body,
             draft.image,
             draft.stationery,
+            draft.tagId,
         );
         return Number(result.lastInsertRowid);
     }
 
     getNewsDraft(id: number) {
         const statement = this.db.prepare(`
-            SELECT Id, GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery, SubmittedAt, SubmissionId, CreatedAt, UpdatedAt
+            SELECT Id, GuildId, AuthorUserId, Valediction, Title, Body, Image, Stationery, TagId, SubmittedAt, SubmissionId, CreatedAt, UpdatedAt
             FROM NewsDrafts WHERE Id = ?
         `);
         return statement.get(id) as NewsDraftRow | undefined;
@@ -739,6 +742,14 @@ class DatabaseManager {
             draft.body ?? null,
             id,
         );
+    }
+
+    /** Sets, or with a null tagId clears, the forum tag a draft's post will be filed under. */
+    setNewsDraftTag(id: number, tagId: string | null) {
+        const statement = this.db.prepare(`
+            UPDATE NewsDrafts SET TagId = ?, UpdatedAt = CURRENT_TIMESTAMP WHERE Id = ?
+        `);
+        return statement.run(tagId, id);
     }
 
     /**

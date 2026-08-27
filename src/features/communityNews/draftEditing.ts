@@ -33,7 +33,14 @@ export const redrawLetter = async (
     interaction: DraftInteraction,
     guildId: string,
     draftId: number,
-    change: (draft: NewsDraftRow) => { stationery?: string; valediction?: string; title?: string; body?: string },
+    change: (draft: NewsDraftRow) => {
+        stationery?: string;
+        valediction?: string;
+        title?: string;
+        body?: string;
+        /** Undefined leaves the tag alone; null clears it. */
+        tagId?: string | null;
+    },
 ) => {
     const draft = await loadEditableDraft(interaction, guildId, draftId);
     if (!draft) return;
@@ -41,7 +48,7 @@ export const redrawLetter = async (
     // Wait to defer update until after loading draft from the db in case load fails and replies first
     await interaction.deferUpdate();
 
-    const { stationery, valediction, title, body } = change(draft);
+    const { stationery, valediction, title, body, tagId } = change(draft);
 
     const letter = await generateLetter({
         Title: title ?? draft.Title,
@@ -56,6 +63,9 @@ export const redrawLetter = async (
     }
 
     db.updateNewsDraft(draftId, { image: letter.image, stationery: letter.stationery, valediction, title, body });
+
+    if (tagId !== undefined)
+        db.setNewsDraftTag(draftId, tagId);
 
     await interaction.editReply({
         // The replacement reuses the same file name, so the old attachment has to be dropped explicitly.

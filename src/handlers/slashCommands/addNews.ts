@@ -4,6 +4,7 @@ import type { ISlashCommand } from "./commandTypes.ts";
 import { CommandKey } from "./commandTypes.ts";
 import config from "../../config.ts";
 import { buildNewsAddModal } from "../../features/communityNews/builders.ts";
+import { getCommunityNewsTagPicker } from "../../features/communityNews/channel.ts";
 
 const Key = CommandKey.AddNews;
 
@@ -20,7 +21,7 @@ const addNewsHandler = async (interaction: ChatInputCommandInteraction) => {
     // No need to restrict roles that can add topic because the default slash command access requires ManageGuild
     //   and this can be customized as needed per-guild.
 
-    await interaction.showModal(buildNewsAddModal());
+    await interaction.showModal(buildNewsAddModal(getCommunityNewsTagPicker(interaction)));
 };
 
 const command: ISlashCommand = {

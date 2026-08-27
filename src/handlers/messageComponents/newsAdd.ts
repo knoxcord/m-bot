@@ -3,11 +3,8 @@ import { AttachmentBuilder, MessageFlags } from "discord.js";
 import { LetterImageName, NewsAddButtonIds } from "../../features/communityNews/types.ts";
 import { buildNewsEditModal, buildNewsSubmissionReviewEmbed } from "../../features/communityNews/builders.ts";
 import { loadEditableDraft, redrawLetter } from "../../features/communityNews/draftEditing.ts";
-import {
-    getCommunityNewsChannel,
-    postNews,
-    serializeCommunityNewsSubmissionPayload,
-} from "../../features/communityNews/postNews.ts";
+import { getCommunityNewsChannel, getCommunityNewsTagPicker } from "../../features/communityNews/channel.ts";
+import { postNews, serializeCommunityNewsSubmissionPayload } from "../../features/communityNews/postNews.ts";
 import { createSubmission } from "../../features/submissionReview/submission.ts";
 import { SubmissionType } from "../../features/submissionReview/types.ts";
 import { rollValediction } from "../../features/communityNews/valedictions.ts";
@@ -32,7 +29,7 @@ const editText = async (interaction: MessageComponentInteraction, guildId: strin
     const draft = await loadEditableDraft(interaction, guildId, draftId);
     if (!draft) return;
 
-    await interaction.showModal(buildNewsEditModal(draft));
+    await interaction.showModal(buildNewsEditModal(draft, getCommunityNewsTagPicker(interaction)));
 }
 
 const confirmPost = async (message: string, interaction: MessageComponentInteraction) => {
@@ -54,6 +51,17 @@ const post = async (interaction: MessageComponentInteraction, guildId: string, d
     if (!communityNewsChannel) {
         await interaction.reply({
             content: "Community news isn't set up on this server yet — ask an admin to configure the news channel.",
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const tagPicker = getCommunityNewsTagPicker(interaction);
+    if (tagPicker?.required && !draft.TagId) {
+        await interaction.reply({
+            content: tagPicker.tags.length
+                ? "The news forum needs every post to have a tag — hit \"Edit Text\" to pick one."
+                : "The news forum needs every post to have a tag, but it doesn't offer any you can pick. Ask an admin.",
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -84,11 +92,12 @@ const post = async (interaction: MessageComponentInteraction, guildId: string, d
         return;
     }
 
+    const tag = tagPicker?.tags.find(availableTag => availableTag.id === draft.TagId);
     const submissionId = await createSubmission(
         SubmissionType.CommunityNews,
         serializeCommunityNewsSubmissionPayload(draftId),
         interaction,
-        () => buildNewsSubmissionReviewEmbed(draft),
+        () => buildNewsSubmissionReviewEmbed(draft, tag),
         [new AttachmentBuilder(draft.Image, { name: LetterImageName })],
     );
 

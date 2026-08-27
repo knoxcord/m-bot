@@ -8,9 +8,15 @@ The bot needs these permissions to use all features:
 - `bot`
 
 ### Bot Permissions:
+- `Add Reactions`
+- `Attach Files`
+- `Embed Links`
 - `Manage Roles`
-- `Send Messages`
+- `Manage Threads`
 - `Read Message History`
+- `Send Messages in Threads`
+- `Send Messages`
+- `Use External Emojis`
 
 ### Intents:
 - Server Members Intent

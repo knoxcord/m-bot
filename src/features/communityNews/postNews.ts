@@ -1,10 +1,10 @@
-import type { MessageComponentInteraction } from "discord.js";
-import { AttachmentBuilder, ChannelType, MessageFlags } from "discord.js";
+import type { ForumChannel, ForumThreadChannel, GuildForumTag, MessageComponentInteraction } from "discord.js";
+import { AttachmentBuilder, ChannelType, MessageFlags, PermissionsBitField } from "discord.js";
 import db from "../../database/db.ts";
 import type { NewsDraftRow, SubmissionRow } from "../../database/types.ts";
 import { SubmissionStatus } from "../submissionReview/types.ts";
-import configuration from "../configuration/configuration.ts";
-import { CommunityNewsChannelIdConfigurationKey } from "./config.ts";
+import type { CommunityNewsChannel } from "./channel.ts";
+import { getCommunityNewsChannel, isLockingTag } from "./channel.ts";
 import type { CommunityNewsSubmissionPayload } from "./types.ts";
 import { LetterImageName } from "./types.ts";
 import { getMessageLink, getThreadLink } from "../../shared/urlHelpers.ts";
@@ -29,34 +29,33 @@ const deserializeCommunityNewsSubmissionPayload = (payload: string) => {
     return parsed;
 }
 
-/**
- * Resolves the channel approved letters get posted to, or null when it isn't configured, isn't
- * visible, or is a kind of channel letters can't be posted to.
- */
-export const getCommunityNewsChannel = (interaction: MessageComponentInteraction) => {
-    if (!interaction.guildId)
-        return null;
-
-    const channelId = configuration.getConfigurationValue(interaction.guildId, CommunityNewsChannelIdConfigurationKey);
-    if (!channelId)
-        return null;
-
-    const channel = interaction.guild?.channels.cache.get(channelId);
-    if (!channel)
-        return null;
-
-    // Forum channels take a different posting call than text channels, so both kinds resolve here
-    //   and are differentiated in postNews.
-    if (channel.type === ChannelType.GuildForum)
-        return channel;
-
-    return channel.isTextBased() && channel.isSendable() ? channel : null;
-}
-
-export type CommunityNewsChannel = NonNullable<ReturnType<typeof getCommunityNewsChannel>>;
-
 /** Discord caps thread names at 100 characters. */
 const ForumPostNameMaxLength = 100;
+
+/** Checked when a lock fails, since a channel overwrite withholding one of these is the usual cause. */
+const LockRelatedPermissions = [
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.ManageThreads,
+    PermissionsBitField.Flags.SendMessagesInThreads,
+];
+
+/**
+ * Locks a post filed under a locking tag. A failure is logged rather than thrown, since the letter
+ * is already up and shouldn't read to the author as a failed post. Whichever permissions the forum
+ * withholds go into the log, because Discord answers with a bare Missing Access either way.
+ */
+const lockPost = async (channel: ForumChannel, thread: ForumThreadChannel, tag: GuildForumTag) => {
+    try {
+        await thread.setLocked(true);
+    }
+    catch (e) {
+        const me = channel.guild.members.me;
+        const missing = me ? channel.permissionsFor(me).missing(LockRelatedPermissions) : ["unresolved"];
+        console.error(`Failed to lock post ${thread.id} tagged ${tag.name} in #${channel.name} `
+            + `for guildId ${channel.guildId}. `
+            + `Missing: ${missing.join(", ") || "nothing relevant"}. Error: ${e}`);
+    }
+};
 
 /**
  * Posts a letter, creating a forum post or sending a message depending on the channel type.
@@ -66,12 +65,19 @@ export const postNews = async (channel: CommunityNewsChannel, draft: NewsDraftRo
     const file = new AttachmentBuilder(draft.Image, { name: LetterImageName });
 
     if (channel.type === ChannelType.GuildForum) {
+        const tag = channel.availableTags.find(availableTag => availableTag.id === draft.TagId);
+
         // Forum channels have no send(): every post is a thread, and the letter rides along as
         //   the starter message.
         const thread = await channel.threads.create({
             name: draft.Title.slice(0, ForumPostNameMaxLength),
             message: { files: [file] },
+            appliedTags: tag ? [tag.id] : [],
         });
+
+        if (tag && isLockingTag(channel.guildId, tag))
+            await lockPost(channel, thread, tag);
+
         return getThreadLink(channel.guildId, thread.id);
     }
 
