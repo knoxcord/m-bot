@@ -14,9 +14,9 @@ import { MessageComponentCustomIdPrefix } from "./messageComponentTypes.ts";
 import featureFlags from "../../features/featureFlags/featureFlags.ts";
 import { RequireCommunityNewsSubmissionReviewFeatureFlag } from "../../features/communityNews/config.ts";
 
-// Leave stationery undefined so the generator picks a new one
+// Leave stationery undefined so the generator picks a new one, excluding the one already drawn on
 const changeBackground = (interaction: MessageComponentInteraction, guildId: string, draftId: number) =>
-    redrawLetter(interaction, guildId, draftId, () => ({}));
+    redrawLetter(interaction, guildId, draftId, draft => ({ excludeStationery: draft.Stationery }));
 
 // Include current stationery and new valediction so only valediction changes
 const changeValediction = (interaction: MessageComponentInteraction, guildId: string, draftId: number) =>
