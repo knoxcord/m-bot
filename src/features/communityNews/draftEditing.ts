@@ -47,8 +47,10 @@ export const redrawLetter = async (
     const draft = await loadEditableDraft(interaction, guildId, draftId);
     if (!draft) return;
 
-    // Wait to defer update until after loading draft from the db in case load fails and replies first
-    await interaction.deferUpdate();
+    // Wait to acknowledge until after loading draft from the db in case load fails and replies first.
+    // The client stops spinning the button as soon as the interaction is acknowledged, so the
+    //   acknowledgement disables the row to show the redraw is still in flight.
+    await interaction.update({ components: [buildNewsManageButtonRow(draftId, true)] });
 
     const { stationery, excludeStationery, valediction, title, body, tagId } = change(draft);
 
@@ -61,6 +63,8 @@ export const redrawLetter = async (
     })
 
     if (!letter) {
+        // Edit to re-enable the buttons in the event of generation failure so that the user can try again
+        await interaction.editReply({ components: [buildNewsManageButtonRow(draftId)] });
         await interaction.followUp({ content: "Sorry, I couldn't generate that letter.", flags: MessageFlags.Ephemeral });
         return;
     }

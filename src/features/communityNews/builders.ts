@@ -95,24 +95,29 @@ const buildNewsModal = (customId: string, title: string, tagPicker: CommunityNew
     return modal;
 };
 
-export const buildNewsManageButtonRow = (newsDraftId: number) =>
+/** `disabled` draws the row greyed out while a redraw the buttons started is still in flight. */
+export const buildNewsManageButtonRow = (newsDraftId: number, disabled = false) =>
     new ActionRowBuilder<ButtonBuilder>().setComponents(
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.ChangeBackground}:${newsDraftId}`)
             .setLabel("Change Background")
-            .setStyle(ButtonStyle.Secondary),
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(disabled),
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.ChangeValediction}:${newsDraftId}`)
             .setLabel("Change Sign-off")
-            .setStyle(ButtonStyle.Secondary),
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(disabled),
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.EditText}:${newsDraftId}`)
             .setLabel("Edit Text")
-            .setStyle(ButtonStyle.Secondary),
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(disabled),
         new ButtonBuilder()
             .setCustomId(`${NewsMessageCustomIdKey}:${NewsAddButtonIds.Post}:${newsDraftId}`)
             .setLabel("Post")
-            .setStyle(ButtonStyle.Primary));
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(disabled));
 
 // The letter image carries the title, body and author already, but mods review by reading text,
 //   so the embed repeats them alongside the rendered letter attached to the same message.
