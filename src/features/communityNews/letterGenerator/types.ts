@@ -4,6 +4,8 @@ export interface GenerateLetterRequest {
     Valediction: string,
     /** Name of the stationery to draw on. Omit to have the generator pick one that is in season. */
     Stationery?: string,
+    /** Name of the stationery to exclude, useful to prevent rerolling the same one */
+    ExcludeStationary?: string,
 }
 
 export interface GeneratedLetter {

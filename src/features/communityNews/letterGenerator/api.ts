@@ -26,9 +26,12 @@ export const generateLetter = async (request: GenerateLetterRequest): Promise<Ge
     }
 
     // Gracefully handle invalid stationery. Should never happen, but still...
-    if (response.status === 400 && request.Stationery) {
-        console.warn(`Letter generator rejected stationery '${request.Stationery}', retrying without it`);
-        return generateLetter({ ...request, Stationery: undefined });
+    if (response.status === 400 && (request.Stationery || request.ExcludeStationary)) {
+        console.warn(
+            `Letter generator rejected stationery '${request.Stationery ?? ""}'`
+            + ` / exclusion '${request.ExcludeStationary ?? ""}', retrying without them`
+        );
+        return generateLetter({ ...request, Stationery: undefined, ExcludeStationary: undefined });
     }
 
     if (!response.ok) {

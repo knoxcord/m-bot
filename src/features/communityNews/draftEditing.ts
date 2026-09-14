@@ -35,6 +35,8 @@ export const redrawLetter = async (
     draftId: number,
     change: (draft: NewsDraftRow) => {
         stationery?: string;
+        /** Stationery the generator must not pick, so a reroll can't land on the current one. */
+        excludeStationery?: string;
         valediction?: string;
         title?: string;
         body?: string;
@@ -48,13 +50,14 @@ export const redrawLetter = async (
     // Wait to defer update until after loading draft from the db in case load fails and replies first
     await interaction.deferUpdate();
 
-    const { stationery, valediction, title, body, tagId } = change(draft);
+    const { stationery, excludeStationery, valediction, title, body, tagId } = change(draft);
 
     const letter = await generateLetter({
         Title: title ?? draft.Title,
         Body: body ?? draft.Body,
         Valediction: valediction ?? draft.Valediction,
         Stationery: stationery,
+        ExcludeStationary: excludeStationery,
     })
 
     if (!letter) {
