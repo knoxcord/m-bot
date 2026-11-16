@@ -26,14 +26,14 @@ const handler = async (interaction: MessageComponentInteraction) => {
     const newCardKey = pulledCardKeys[newIndex];
     const isReversed = newCardKey.startsWith(TarotCardReversedIndicator);
     const newCardId = isReversed ? newCardKey.slice(TarotCardReversedIndicator.length) : newCardKey;
-    const newCard = deck.find(card => card.id === newCardId);
+    const deckCard = deck.find(card => card.id === newCardId);
 
-    if (!newCard) {
+    if (!deckCard) {
         // This shouldnt happen
         console.warn(`Failed to retrieve card matching id ${newCardId}`);
         return;
     }
-    newCard.isReversed = isReversed;
+    const newCard = { ...deckCard, isReversed };
 
     const embed = buildTarotDisplay(newCard, newIndex, pulledCardKeys.length);
     const actionRow = buildTarotActionRow(newCard, newIndex, pulledCardKeys.length);

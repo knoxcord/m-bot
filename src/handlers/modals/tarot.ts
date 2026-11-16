@@ -25,22 +25,28 @@ const hashString = (purpose: string): number => {
     return hash >>> 0;
 }
 
+// Each value XORs Math.random() bits with the purpose hash for influence from the given purpose
+const createPurposeInfluencedRandom = (purpose: string) => {
+    const stringHash = hashString(purpose);
+    return () => {
+        const randomBits = Math.floor(Math.random() * 0x100000000);
+        const influenced = stringHash ? (randomBits ^ stringHash) : randomBits;
+        return (influenced >>> 0) / 0x100000000;
+    };
+}
+
 // Adapted from: https://bost.ocks.org/mike/shuffle/
 const shuffleDeck = (purpose: string, includeReversed: boolean = true) => {
-    const cards = deck;
-    const stringHash = hashString(purpose);
+    // Copy each card so reversal state never leaks into the shared deck or between pulls
+    const cards: ICard[] = deck.map(card => ({ ...card }));
+    const random = createPurposeInfluencedRandom(purpose);
     let divisionIndex: number, swapCard: ICard, currentCardIndex: number;
     divisionIndex = cards.length;
 
     // While there remain elements to shuffle…
     while (divisionIndex) {
-        // XOR Math.random() bits with string hash for influence from given purpose
-        const randomBits = Math.floor(Math.random() * 0x100000000);
-        const influenced = stringHash ? (randomBits ^ stringHash) : randomBits;
-        const randomValue = (influenced >>> 0) / 0x100000000;
-
         // Pick a random card from the unshuffled portion of the deck
-        currentCardIndex = Math.floor(randomValue * divisionIndex--);
+        currentCardIndex = Math.floor(random() * divisionIndex--);
 
         // Pick the card at the end of the unshuffled section.
         // This position will become the latest shuffled card added to the shuffled deck
@@ -51,8 +57,7 @@ const shuffleDeck = (purpose: string, includeReversed: boolean = true) => {
         cards[divisionIndex] = cards[currentCardIndex];
 
         // Determine if the shuffled card should be reversed
-        if (includeReversed)
-            cards[divisionIndex].isReversed = Math.round(Math.random()) === 1;
+        cards[divisionIndex].isReversed = includeReversed && random() < 0.5;
 
         // Set the position of the randomly chosen currentCardIndex to the value of the swapped card
         cards[currentCardIndex] = swapCard;
